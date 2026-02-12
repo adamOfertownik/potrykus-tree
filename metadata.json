@@ -1,0 +1,5 @@
+{
+  "name": "CarForce Visualizer",
+  "description": "Professional car wrap visualization tool using Gemini 3 Pro Image generation.",
+  "requestFramePermissions": []
+}
