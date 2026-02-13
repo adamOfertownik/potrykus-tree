@@ -1,41 +1,73 @@
 import { GoogleGenAI } from "@google/genai";
+import { ModelTier } from "../types";
 
 interface GenerateParams {
   carBase64: string;
   foilBase64: string;
   apiKey?: string;
+  customPrompt?: string;
+  modelTier?: ModelTier;
 }
 
 export const generateCarVisualization = async ({
   carBase64,
   foilBase64,
-  apiKey
+  apiKey,
+  customPrompt,
+  modelTier = 'pro'
 }: GenerateParams): Promise<string> => {
-  // Use the provided apiKey if available, otherwise fallback to process.env.API_KEY
-  // which might be injected by window.aistudio or build tools.
-  const finalApiKey = apiKey || process.env.API_KEY;
+  const rawApiKey = apiKey || process.env.API_KEY;
+  const finalApiKey = rawApiKey?.trim();
 
   if (!finalApiKey) {
     throw new Error("Brak klucza API. Wpisz klucz w konfiguracji lub wybierz go.");
   }
 
-  // Always create a new instance to ensure we capture the selected API key
   const ai = new GoogleGenAI({ apiKey: finalApiKey });
-
-  // Remove data URL prefix if present for the API call
   const cleanBase64 = (data: string) => data.split(',')[1] || data;
-  const mimeType = 'image/jpeg'; // Assuming jpegs for simplicity or derived from input
+  const mimeType = 'image/jpeg';
 
-  // Construct the prompt with 2 images (Car, Foil) and text
+  // Determine model based on tier
+  // If user requests "pro", use 'gemini-3-pro-image-preview'.
+  // If user requests "flash" (Safe Mode), use 'gemini-2.5-flash-image'.
+  const modelName = modelTier === 'pro' 
+    ? 'gemini-3-pro-image-preview' 
+    : 'gemini-2.5-flash-image';
+
+  // Construct a precise engineering prompt
+  const basePrompt = `
+    You are a professional automotive wrapper visualizer. Generate a photorealistic image.
+    
+    INPUTS:
+    - Image 1: The target vehicle.
+    - Image 2: A material sample (swatch) of the wrap foil. 
+    - CRITICAL SCALE INFO: The texture/pattern in Image 2 represents a physical real-world size of 5cm x 10cm.
+    
+    TASK:
+    1. Apply the wrap material from Image 2 onto the painted exterior parts of the vehicle in Image 1.
+    2. SCALING: detailed attention is required here. Based on the 5x10cm swatch size, scale the texture density accurately so the grain/metallic flake/pattern looks realistic on a full-size car. Do not stretch the texture unrealistically.
+    3. REALISM: Maintain the original perspective, background, lighting, shadows, and reflections of Image 1. The car should look exactly like the original photo, just with a new paint job/wrap.
+    
+    USER CUSTOM INSTRUCTIONS:
+    ${customPrompt ? customPrompt : "No additional custom instructions."}
+  `;
+
+  const config: any = {
+    imageConfig: {
+      aspectRatio: "16:9"
+    }
+  };
+
+  // Only Pro model supports explicit imageSize (e.g. 2K)
+  if (modelTier === 'pro') {
+    config.imageConfig.imageSize = "2K";
+  }
+
   const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-image-preview',
+    model: modelName,
     contents: {
       parts: [
-        {
-            text: "Generate a high-quality, photorealistic image. \n" +
-            "Task: Apply the car wrap/foil color and texture shown in 'Image 2' to the car shown in 'Image 1'. \n" +
-            "Details: Maintain the original background, perspective, lighting, and reflections of 'Image 1'. Only change the car's exterior paint/wrap to match the foil sample. The result should look like a professional photo of the specific car provided in Image 1 with the new wrap applied."
-        },
+        { text: basePrompt },
         {
           inlineData: {
             mimeType: mimeType,
@@ -50,16 +82,9 @@ export const generateCarVisualization = async ({
         }
       ]
     },
-    config: {
-      imageConfig: {
-        imageSize: "2K",
-        aspectRatio: "16:9" 
-      }
-    }
+    config: config
   });
 
-  // Extract the generated image
-  // The API returns generated images in the parts array
   for (const part of response.candidates?.[0]?.content?.parts || []) {
     if (part.inlineData) {
       return `data:image/png;base64,${part.inlineData.data}`;

@@ -11,6 +11,8 @@ export enum AppStatus {
   ERROR = 'ERROR',
 }
 
+export type ModelTier = 'pro' | 'flash';
+
 // Extend the AIStudio interface. 
 // The 'aistudio' property is already defined on the Window interface with type 'AIStudio', 
 // so we augment the AIStudio interface directly to include the required methods.
