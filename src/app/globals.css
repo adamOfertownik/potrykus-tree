@@ -282,23 +282,65 @@ input {
   margin-bottom: 1rem;
 }
 
-.search-wrap {
+/* ——— Person search ——— */
+.person-search {
   position: relative;
-  flex: 1 1 240px;
-  max-width: 420px;
+  flex: 1 1 260px;
+  max-width: 440px;
 }
 
-.search-input {
+.person-search__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 0.35rem;
+}
+
+.person-search__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.person-search__icon {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--ink-soft);
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+.person-search__input {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 2.2rem 0.75rem 2.35rem;
   background: white;
 }
 
-.search-results {
+.person-search__input:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent) 40%, white);
+  border-color: var(--accent);
+}
+
+.person-search__clear {
   position: absolute;
-  z-index: 30;
+  right: 0.45rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.25rem 0.45rem;
+}
+
+.person-search__results {
+  position: absolute;
+  z-index: 40;
   left: 0;
   right: 0;
   top: calc(100% + 4px);
@@ -309,18 +351,53 @@ input {
   border: 1px solid var(--line);
   border-radius: 12px;
   box-shadow: var(--shadow);
-  max-height: 280px;
+  max-height: 320px;
   overflow: auto;
 }
 
-.search-results a {
-  display: block;
+.person-search__item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  border: 0;
+  background: transparent;
+  text-align: left;
   padding: 0.55rem 0.7rem;
   border-radius: 8px;
+  cursor: pointer;
+  color: inherit;
 }
 
-.search-results a:hover {
+.person-search__item:hover,
+.person-search__item.is-active {
   background: var(--bg);
+}
+
+.person-search__name {
+  font-weight: 650;
+  font-size: 0.92rem;
+}
+
+.person-search__meta {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.person-search__empty {
+  position: absolute;
+  z-index: 40;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
 }
 
 .toolbar-actions {
@@ -370,7 +447,7 @@ input {
   margin-bottom: 0.75rem;
 }
 
-/* ——— Tree ——— */
+/* ——— Tree / family-chart ——— */
 .tree-scroll {
   overflow: auto;
   padding: 1rem 0.5rem 2rem;
@@ -384,6 +461,43 @@ input {
       transparent 27px,
       color-mix(in srgb, var(--line) 35%, transparent) 28px
     );
+}
+
+.tree-scroll--chart {
+  padding: 0;
+  overflow: hidden;
+  min-height: calc(100dvh - 180px);
+  background: #eef4ef;
+}
+
+.family-chart-wrap {
+  position: relative;
+  height: calc(100dvh - 180px);
+  min-height: 520px;
+}
+
+.family-chart-host {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  background: #eef4ef !important;
+  color: var(--ink) !important;
+}
+
+.family-chart-host .card {
+  color: var(--ink);
+}
+
+.family-chart-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.5rem;
+  margin: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+  pointer-events: none;
 }
 
 .tree-canvas {
@@ -583,42 +697,143 @@ input {
   background: #8aa193;
 }
 
-/* ——— List view ——— */
+/* ——— List view with visual nesting ——— */
+.genealogy-panel {
+  background: color-mix(in srgb, white 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.genealogy-panel__head {
+  padding: 1.1rem 1.25rem 0.85rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.genealogy-panel__head h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  letter-spacing: -0.02em;
+}
+
+.genealogy-panel__head p {
+  margin: 0.35rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
 .genealogy-list {
   list-style: none;
   margin: 0;
-  padding: 0.5rem 0 2rem;
-  background: color-mix(in srgb, white 70%, transparent);
-  border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  padding: 0.65rem 0.5rem 1.5rem;
 }
 
 .genealogy-item {
+  --depth: 0;
+  --guide: 1.15rem;
   position: relative;
-  padding: 0.45rem 1rem;
-  border-left: 2px solid color-mix(in srgb, var(--line) 80%, transparent);
-  margin-left: 0.5rem;
+  display: flex;
+  align-items: stretch;
+  min-height: 2.05rem;
   font-size: 0.95rem;
-  line-height: 1.4;
+  line-height: 1.55;
+  border-radius: 8px;
+}
+
+.genealogy-item.is-highlight {
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  outline: 1px solid color-mix(in srgb, var(--accent) 35%, white);
 }
 
 .genealogy-item.is-spouse {
   color: var(--ink-soft);
-  font-weight: 400;
+}
+
+.genealogy-guides {
+  display: flex;
+  flex-shrink: 0;
+  width: calc(var(--depth) * var(--guide));
+  position: relative;
+}
+
+.genealogy-guide {
+  position: relative;
+  width: var(--guide);
+  flex-shrink: 0;
+}
+
+.genealogy-guide.is-cont::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #9bb0a2;
+  transform: translateX(-50%);
+}
+
+.genealogy-guide.is-elbow::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  height: 50%;
+  width: 2px;
+  background: #9bb0a2;
+  transform: translateX(-50%);
+}
+
+.genealogy-guide.is-elbow::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 50%;
+  height: 2px;
+  background: #9bb0a2;
+  transform: translateY(-50%);
+}
+
+.genealogy-item:not(.is-last) > .genealogy-guides > .genealogy-guide.is-elbow::before {
+  height: 100%;
+}
+
+.genealogy-item.is-last > .genealogy-guides > .genealogy-guide.is-elbow::before {
+  height: 50%;
+}
+
+.genealogy-content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.35rem;
+  padding: 0.28rem 0.55rem 0.28rem 0.15rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .genealogy-gen {
   font-weight: 700;
-  margin-right: 0.35rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-strong);
+  min-width: 1.4rem;
 }
 
 .genealogy-spouse {
   font-style: italic;
-  margin-right: 0.35rem;
+  font-size: 0.88em;
+  margin-right: 0.15rem;
 }
 
 .genealogy-name {
   font-weight: 650;
+  line-height: 1.45;
+}
+
+.genealogy-item.is-person .genealogy-name {
+  font-size: 0.98rem;
 }
 
 .genealogy-name:hover {
@@ -628,7 +843,25 @@ input {
 
 .genealogy-date {
   color: var(--ink-soft);
-  font-size: 0.9em;
+  font-size: 0.88em;
+  line-height: 1.45;
+}
+
+.genealogy-focus {
+  margin-left: auto;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.genealogy-focus:hover {
+  color: var(--accent-strong);
+  border-color: var(--accent);
 }
 
 /* ——— Person detail ——— */

@@ -1,44 +1,33 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AccessGate } from "@/components/AccessGate";
 import { AppShell } from "@/components/AppShell";
-import { FamilyTreeView } from "@/components/FamilyTreeView";
+import { FamilyChartView } from "@/components/FamilyChartView";
+import { PersonSearch } from "@/components/PersonSearch";
 import { useAuthStatus, useFamily } from "@/lib/hooks";
-import { buildDescendantTree, searchPeople } from "@/lib/tree";
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
-import { displayName } from "@/lib/db-client";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export function TreePageClient() {
   const auth = useAuthStatus();
   const unlocked = Boolean(auth.data?.unlocked);
   const family = useFamily(unlocked);
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState("");
+  const router = useRouter();
   const [rootId, setRootId] = useState<string | null>(null);
+  const [pdfBusy, setPdfBusy] = useState<"list" | "a0" | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     const root = searchParams.get("root");
     if (root) setRootId(root);
   }, [searchParams]);
-  const [pdfBusy, setPdfBusy] = useState<"list" | "a0" | null>(null);
-  const [pdfError, setPdfError] = useState<string | null>(null);
 
   const people = family.data?.people ?? [];
   const meta = family.data?.meta;
   const effectiveRoot = rootId || meta?.rootPersonId || "";
-
-  const tree = useMemo(() => {
-    if (!people.length || !effectiveRoot) return null;
-    return buildDescendantTree(people, effectiveRoot);
-  }, [people, effectiveRoot]);
-
-  const matches = useMemo(
-    () => (query.trim() ? searchPeople(people, query).slice(0, 12) : []),
-    [people, query],
-  );
 
   if (auth.isLoading) {
     return <div className="loading-screen">Ładowanie…</div>;
@@ -66,11 +55,15 @@ export function TreePageClient() {
     );
   }
 
-  const onExportList = () => {
+  const onExportList = async () => {
     setPdfError(null);
     setPdfBusy("list");
     try {
-      exportListPdf(people, effectiveRoot, meta?.title || "Drzewo Potrykus");
+      await exportListPdf(
+        people,
+        effectiveRoot,
+        meta?.title || "Drzewo Potrykus",
+      );
     } catch (e) {
       setPdfError((e as Error).message);
     } finally {
@@ -82,7 +75,11 @@ export function TreePageClient() {
     setPdfError(null);
     setPdfBusy("a0");
     try {
-      await exportTreeA0Pdf();
+      await exportTreeA0Pdf(
+        people,
+        effectiveRoot,
+        meta?.title || "Drzewo Potrykus",
+      );
     } catch (e) {
       setPdfError((e as Error).message);
     } finally {
@@ -93,37 +90,22 @@ export function TreePageClient() {
   return (
     <AppShell peopleCount={people.length}>
       <section className="toolbar">
-        <div className="search-wrap">
-          <input
-            type="search"
-            placeholder="Znajdź osobę…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="search-input"
-          />
-          {matches.length > 0 && (
-            <ul className="search-results">
-              {matches.map((p) => (
-                <li key={p.id}>
-                  <Link
-                    href={`/osoba/${p.id}`}
-                    onClick={() => {
-                      setRootId(p.id);
-                      setQuery("");
-                    }}
-                  >
-                    {displayName(p)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <PersonSearch
+          people={people}
+          placeholder="Szukaj w drzewie…"
+          onSelect={(p) => {
+            setRootId(p.id);
+            router.replace(`/drzewo?root=${encodeURIComponent(p.id)}`);
+          }}
+        />
         <div className="toolbar-actions">
           <button
             type="button"
             className="btn btn-secondary"
-            onClick={() => setRootId(meta?.rootPersonId || null)}
+            onClick={() => {
+              setRootId(meta?.rootPersonId || null);
+              router.replace("/drzewo");
+            }}
           >
             Od korzenia
           </button>
@@ -152,11 +134,18 @@ export function TreePageClient() {
         </p>
       )}
 
-      <div className="tree-scroll">
-        {tree ? (
-          <FamilyTreeView root={tree} focusId={effectiveRoot} />
+      <div className="tree-scroll tree-scroll--chart">
+        {effectiveRoot ? (
+          <FamilyChartView
+            people={people}
+            mainId={effectiveRoot}
+            onMainChange={(id) => {
+              setRootId(id);
+              router.replace(`/drzewo?root=${encodeURIComponent(id)}`);
+            }}
+          />
         ) : (
-          <p className="empty-hint">Brak danych drzewa dla wybranego korzenia.</p>
+          <p className="empty-hint">Brak danych drzewa.</p>
         )}
       </div>
     </AppShell>

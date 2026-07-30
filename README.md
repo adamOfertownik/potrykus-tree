@@ -33,10 +33,11 @@ Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessC
 
 ## Funkcje
 
-- Widok drzewa z powiązaniami (inspiracja MyHeritage)
+- Widok drzewa na bibliotece [family-chart](https://github.com/donatso/family-chart) (zoom, pan, fokus)
+- Wyszukiwanie osób (drzewo + lista)
+- Lista hierarchiczna z graficznymi powiązaniami
 - Karty osób: imię, nazwisko, nazwisko rodowe, daty, zdjęcie
-- Widok listy hierarchicznej (jak w dokumentach rodzinnych)
-- Eksport PDF: lista powiązań + duży format A0
+- Eksport PDF: lista A4 + duży format A0 (czcionki DejaVu, polskie znaki)
 - Numery telefonów tylko po odblokowaniu kodem
 
 ## Dane
