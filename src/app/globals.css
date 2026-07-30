@@ -15,6 +15,8 @@
   --radius: 14px;
   --font-display: var(--font-display), Georgia, serif;
   --font-body: var(--font-body), "Segoe UI", sans-serif;
+  --text-scale: 1;
+  --touch: 2.75rem; /* ~44px at 16px — senior-friendly tap target */
 }
 
 @theme inline {
@@ -25,6 +27,13 @@
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  /* Respect iOS/Android “larger text” / accessibility font size */
+  font-size: calc(100% * var(--text-scale, 1));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html,
@@ -40,6 +49,8 @@ body {
     radial-gradient(ellipse 60% 40% at 100% 0%, #dce9df 0%, transparent 45%),
     linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
   font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -239,10 +250,13 @@ input {
   border: 0;
   background: transparent;
   color: var(--ink-soft);
-  padding: 0.45rem 0.75rem;
+  padding: 0.55rem 0.75rem;
+  min-height: var(--touch);
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
 }
 
 .app-nav a.is-active {
@@ -259,10 +273,11 @@ input {
   border: 1px solid var(--line);
   background: white;
   color: var(--ink);
-  padding: 0.4rem 0.7rem;
+  padding: 0.45rem 0.75rem;
+  min-height: var(--touch);
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 650;
   display: inline-flex;
   align-items: center;
@@ -303,16 +318,23 @@ input {
   border: 0;
   background: transparent;
   text-align: left;
-  padding: 0.6rem 0.7rem;
+  padding: 0.7rem 0.75rem;
+  min-height: var(--touch);
   border-radius: 10px;
   cursor: pointer;
   color: var(--ink);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .nav-menu__panel button:hover:not(:disabled) {
   background: var(--bg);
+}
+
+.nav-menu__panel button.is-checked {
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  color: var(--accent-strong);
+  font-weight: 650;
 }
 
 .nav-menu__panel button:disabled {
@@ -425,7 +447,9 @@ input {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 0.75rem 2.2rem 0.75rem 2.35rem;
+  min-height: var(--touch);
   background: white;
+  font-size: 1rem; /* ≥16px — no iOS input-zoom, readable for seniors */
 }
 
 .person-search__input:focus {
@@ -517,9 +541,10 @@ input {
   border: 1px solid transparent;
   border-radius: 12px;
   padding: 0.7rem 1rem;
+  min-height: var(--touch);
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1097,33 +1122,30 @@ input {
 /* ——— Prototype banner ——— */
 .prototype-banner {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 0.4rem;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
   align-items: center;
-  padding: 0.28rem 0.85rem;
+  padding: 0.35rem 0.85rem;
   background: #fff6e8;
   color: #6b4a1b;
   border-bottom: 1px solid #efd7a8;
-  font-size: 0.72rem;
-  line-height: 1.25;
-  overflow: hidden;
+  font-size: 0.85rem;
+  line-height: 1.35;
 }
 
 .prototype-banner strong {
   flex-shrink: 0;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-size: 0.65rem;
-  padding: 0.1rem 0.35rem;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.4rem;
   border-radius: 4px;
   background: color-mix(in srgb, #efd7a8 70%, white);
 }
 
 .prototype-banner span {
   min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 1 1 12rem;
 }
 
 /* ——— Search identity ——— */
@@ -1291,7 +1313,8 @@ input {
 .field-input,
 .change-form input,
 .change-form select,
-.change-form textarea {
+.change-form textarea,
+.gate-input {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -1300,6 +1323,31 @@ input {
   color: var(--ink);
   font: inherit;
   font-weight: 400;
+  font-size: 1rem;
+  min-height: var(--touch);
+  line-height: 1.4;
+}
+
+.change-form textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+/* Prefer wrapping over clipping when system text is large */
+@media (max-width: 720px) {
+  .btn-inline {
+    white-space: normal;
+    line-height: 1.2;
+    max-width: 7.5rem;
+  }
+
+  .person-search__row {
+    flex-wrap: wrap;
+  }
+
+  .person-search__row .btn-inline {
+    flex: 1 1 auto;
+  }
 }
 
 .change-form textarea {

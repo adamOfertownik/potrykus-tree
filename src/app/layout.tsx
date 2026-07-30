@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Source_Sans_3 } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import "./globals.css";
@@ -21,6 +21,13 @@ export const metadata: Metadata = {
     "Prywatne drzewo genealogiczne rodziny Potrykus — twórca Adam Lieske",
   applicationName: "Drzewo Potrykus",
   authors: [{ name: "Adam Lieske" }],
+};
+
+/** Allow pinch-zoom and system text scaling — important for seniors */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

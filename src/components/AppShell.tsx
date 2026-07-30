@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useFamily, useLogout } from "@/lib/hooks";
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
+import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 
 export function AppShell({
   children,
@@ -20,6 +21,7 @@ export function AppShell({
   const pathname = usePathname();
   const logout = useLogout();
   const family = useFamily(true);
+  const { scale, setScale } = useTextScale();
   const [menuOpen, setMenuOpen] = useState(false);
   const [pdfBusy, setPdfBusy] = useState<"list" | "a0" | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
@@ -116,6 +118,27 @@ export function AppShell({
             </button>
             {menuOpen && (
               <div className="nav-menu__panel" role="menu">
+                <p className="nav-menu__label">Wielkość tekstu</p>
+                {(
+                  [
+                    ["normal", "Normalny"],
+                    ["large", "Większy"],
+                    ["xlarge", "Największy"],
+                  ] as [TextScaleId, string][]
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={scale === id}
+                    className={scale === id ? "is-checked" : undefined}
+                    onClick={() => setScale(id)}
+                  >
+                    {label}
+                    {scale === id ? " ✓" : ""}
+                  </button>
+                ))}
+                <div className="nav-menu__sep" />
                 <p className="nav-menu__label">Pobieranie</p>
                 <button
                   type="button"
