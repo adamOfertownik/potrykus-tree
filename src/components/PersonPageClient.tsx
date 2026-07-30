@@ -40,6 +40,14 @@ export function PersonPageClient({ id }: { id: string }) {
     .map((pid) => byId.get(pid))
     .filter(Boolean);
   const children = people.filter((p) => p.parentIds.includes(person.id));
+  const siblings =
+    person.parentIds.length === 0
+      ? []
+      : people.filter(
+          (p) =>
+            p.id !== person.id &&
+            p.parentIds.some((pid) => person.parentIds.includes(pid)),
+        );
 
   return (
     <AppShell peopleCount={people.length}>
@@ -89,6 +97,16 @@ export function PersonPageClient({ id }: { id: string }) {
                   <PersonCard key={p.id} person={p} href={`/osoba/${p.id}`} />
                 ),
             )}
+          </div>
+        </section>
+
+        <section className="person-relations">
+          <h2>Rodzeństwo ({siblings.length})</h2>
+          <div className="relation-grid">
+            {siblings.length === 0 && <p className="empty-hint">Brak danych</p>}
+            {siblings.map((p) => (
+              <PersonCard key={p.id} person={p} href={`/osoba/${p.id}`} />
+            ))}
           </div>
         </section>
 

@@ -1424,14 +1424,33 @@ person({
   deathDate: "1996-03-04",
   parentIds: [mariaLieske.id, brunonLieske.id],
 });
-person({
+const barbaraLieske = person({
   firstName: "Barbara",
-  lastName: "Lieske",
+  lastName: "Kałuzińska",
+  maidenName: "Lieske",
   gender: "female",
   birthDate: "1995-01-27",
   parentIds: [mariaLieske.id, brunonLieske.id],
+  id: "barbara-lieske-1995-01-27",
 });
+const michalKal = person({
+  firstName: "Michał",
+  lastName: "Kałuziński",
+  gender: "male",
+  birthDate: "1986-07-22",
+  id: "michal-kaluzinski-1986-07-22",
+});
+linkSpouses(barbaraLieske.id, michalKal.id);
 person({
+  firstName: "Jakub",
+  lastName: "Kałuziński",
+  gender: "male",
+  birthDate: "2019-11-19",
+  parentIds: [barbaraLieske.id, michalKal.id],
+  id: "jakub-kaluzinski-2019-11-19",
+});
+
+const adamLieske = person({
   firstName: "Adam",
   lastName: "Lieske",
   gender: "male",
@@ -1439,6 +1458,31 @@ person({
   parentIds: [mariaLieske.id, brunonLieske.id],
   notes: "Twórca aplikacji Drzewo Potrykus",
   id: "adam-lieske",
+});
+const juliaLieske = person({
+  firstName: "Julia",
+  lastName: "Lieske",
+  maidenName: "Gogół",
+  gender: "female",
+  birthDate: "1999-04-04",
+  id: "julia-lieske-1999-04-04",
+});
+linkSpouses(adamLieske.id, juliaLieske.id);
+person({
+  firstName: "Tola",
+  lastName: "Lieske",
+  gender: "female",
+  birthDate: "2024-04-22",
+  parentIds: [adamLieske.id, juliaLieske.id],
+  id: "tola-lieske-2024-04-22",
+});
+person({
+  firstName: "Milo",
+  lastName: "Lieske",
+  gender: "male",
+  birthDate: "2026-01-16",
+  parentIds: [adamLieske.id, juliaLieske.id],
+  id: "milo-lieske-2026-01-16",
 });
 
 // ——— Walerian Potrykus ———

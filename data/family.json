@@ -3,7 +3,7 @@
     "title": "Drzewo rodziny Potrykus",
     "rootPersonId": "franciszek-xawery-potrykus",
     "creator": "Adam Lieske",
-    "updatedAt": "2026-07-30T22:12:42.008Z",
+    "updatedAt": "2026-07-30T22:43:11.986Z",
     "description": "Potomkowie Franciszka Xawerego Potrykusa — dane z dokumentów rodzinnych. Numery telefonów i zdjęcia uzupełniaj lokalnie."
   },
   "people": [
@@ -2203,14 +2203,17 @@
     {
       "id": "barbara-lieske-1995-01-27",
       "firstName": "Barbara",
-      "lastName": "Lieske",
+      "lastName": "Kałuzińska",
       "gender": "female",
       "birthDate": "1995-01-27",
       "parentIds": [
         "maria-lieske-1959-09-08",
         "brunon-tadeusz-lieske-1956-08-26"
       ],
-      "spouseIds": []
+      "spouseIds": [
+        "michal-kaluzinski-1986-07-22"
+      ],
+      "maidenName": "Lieske"
     },
     {
       "notes": "Twórca aplikacji Drzewo Potrykus",
@@ -2223,7 +2226,9 @@
         "maria-lieske-1959-09-08",
         "brunon-tadeusz-lieske-1956-08-26"
       ],
-      "spouseIds": []
+      "spouseIds": [
+        "julia-lieske-1999-04-04"
+      ]
     },
     {
       "id": "walerian-potrykus-1929-09-12",
@@ -3580,6 +3585,65 @@
         "piotr-szczechura-1981-07-30"
       ],
       "spouseIds": []
+    },
+    {
+      "parentIds": [],
+      "spouseIds": [
+        "adam-lieske"
+      ],
+      "id": "julia-lieske-1999-04-04",
+      "firstName": "Julia",
+      "lastName": "Lieske",
+      "maidenName": "Gogół",
+      "gender": "female",
+      "birthDate": "1999-04-04"
+    },
+    {
+      "parentIds": [
+        "adam-lieske",
+        "julia-lieske-1999-04-04"
+      ],
+      "spouseIds": [],
+      "id": "tola-lieske-2024-04-22",
+      "firstName": "Tola",
+      "lastName": "Lieske",
+      "gender": "female",
+      "birthDate": "2024-04-22"
+    },
+    {
+      "parentIds": [
+        "adam-lieske",
+        "julia-lieske-1999-04-04"
+      ],
+      "spouseIds": [],
+      "id": "milo-lieske-2026-01-16",
+      "firstName": "Milo",
+      "lastName": "Lieske",
+      "gender": "male",
+      "birthDate": "2026-01-16"
+    },
+    {
+      "parentIds": [],
+      "spouseIds": [
+        "barbara-lieske-1995-01-27"
+      ],
+      "id": "michal-kaluzinski-1986-07-22",
+      "firstName": "Michał",
+      "lastName": "Kałuziński",
+      "gender": "male",
+      "birthDate": "1986-07-22"
+    },
+    {
+      "parentIds": [
+        "barbara-lieske-1995-01-27",
+        "michal-kaluzinski-1986-07-22"
+      ],
+      "spouseIds": [],
+      "id": "jakub-kaluzinski-2019-11-19",
+      "firstName": "Jakub",
+      "lastName": "Kałuziński",
+      "gender": "male",
+      "birthDate": "2019-11-19"
     }
   ]
 }
