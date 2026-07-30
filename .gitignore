@@ -33,9 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# local runtime submissions (keep empty template in git)
-data/submissions.json
-!data/.gitkeep
+# local photo uploads (keep placeholders)
+/public/photos/*
+!/public/photos/.gitkeep
 
 
 # vercel
