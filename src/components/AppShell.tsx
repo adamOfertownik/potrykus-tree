@@ -145,7 +145,7 @@ function AppShellInner({
                   disabled={pdfBusy !== null || !rootId}
                   onClick={downloadA0}
                 >
-                  {pdfBusy === "a0" ? "Generuję…" : "PDF drzewo (A0)"}
+                  {pdfBusy === "a0" ? "Generuję…" : "PDF graf (A0)"}
                 </button>
                 <div className="nav-menu__sep" />
                 <button
