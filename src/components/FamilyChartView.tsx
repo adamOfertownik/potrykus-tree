@@ -32,6 +32,14 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
     const chart = f3.createChart(el, data);
     chart.setTransitionTime(250);
     chart.setSingleParentEmptyCard(false);
+    // Links are white by default (dark theme) — recolor after each render
+    chart.afterUpdate = () => {
+      el.querySelectorAll("path.link").forEach((path) => {
+        path.setAttribute("stroke", "#5f7a6a");
+        path.setAttribute("stroke-width", "2.5");
+        path.setAttribute("fill", "none");
+      });
+    };
 
     const card = chart.setCardHtml();
     card.setCardDisplay([
