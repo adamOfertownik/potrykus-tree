@@ -3,7 +3,9 @@
 Prywatne drzewo genealogiczne rodziny **Potrykus**.  
 Twórca: **Adam Lieske**
 
-Repozytorium: `adamOfertownik/potrykus-family-tree`
+> **Repozytorium:** to repo zastąpiło przypadkowy projekt CarForce.  
+> Zmień nazwę w GitHub → **Settings → General → Repository name** → `potrykus-family-tree`,  
+> potem: `git remote set-url origin https://github.com/adamOfertownik/potrykus-family-tree.git`
 
 ## Stack
 
