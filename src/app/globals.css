@@ -681,12 +681,25 @@ input {
 
 .family-chart-host .card {
   color: var(--ink);
+  font-size: var(--f3-card-font, 13px) !important;
+}
+
+.family-chart-host--large .card,
+.family-chart-host--xlarge .card {
+  line-height: 1.25;
+}
+
+.family-chart-host div.card-rect {
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
 }
 
 .family-chart-host .card text,
 .family-chart-host .card .card-text,
-.family-chart-host .card-inner text {
-  font-size: 13px !important;
+.family-chart-host .card-inner text,
+.family-chart-host div.card {
+  font-size: var(--f3-card-font, 13px) !important;
 }
 
 /* Relationship lines — visible on light background */
@@ -941,19 +954,20 @@ input {
 .genealogy-list {
   list-style: none;
   margin: 0;
-  padding: 0.65rem 0.5rem 1.5rem;
+  padding: 0.65rem 0.35rem 1.5rem;
 }
 
 .genealogy-item {
   --depth: 0;
-  --guide: 1.15rem;
+  --guide: 1.35rem;
   position: relative;
   display: flex;
   align-items: stretch;
-  min-height: 2.05rem;
+  min-height: 2.25rem;
   font-size: 0.95rem;
   line-height: 1.55;
   border-radius: 8px;
+  padding-right: 0.35rem;
 }
 
 .genealogy-item.is-highlight {
@@ -970,6 +984,7 @@ input {
   flex-shrink: 0;
   width: calc(var(--depth) * var(--guide));
   position: relative;
+  margin-right: 0.15rem;
 }
 
 .genealogy-guide {
@@ -984,9 +999,11 @@ input {
   left: 50%;
   top: 0;
   bottom: 0;
-  width: 2px;
-  background: #9bb0a2;
+  width: 3px;
+  background: color-mix(in srgb, var(--accent) 35%, #9bb0a2);
+  border-radius: 2px;
   transform: translateX(-50%);
+  opacity: 0.85;
 }
 
 .genealogy-guide.is-elbow::before {
@@ -995,8 +1012,9 @@ input {
   left: 50%;
   top: 0;
   height: 50%;
-  width: 2px;
-  background: #9bb0a2;
+  width: 3px;
+  background: color-mix(in srgb, var(--accent) 45%, #7a9484);
+  border-radius: 2px;
   transform: translateX(-50%);
 }
 
@@ -1005,9 +1023,10 @@ input {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 50%;
-  height: 2px;
-  background: #9bb0a2;
+  width: 55%;
+  height: 3px;
+  background: color-mix(in srgb, var(--accent) 45%, #7a9484);
+  border-radius: 2px;
   transform: translateY(-50%);
 }
 
@@ -1019,14 +1038,25 @@ input {
   height: 50%;
 }
 
+/* Depth wash — makes nesting levels easier to scan */
+.genealogy-item.is-person {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) calc(var(--depth) * 3.5%), transparent) 0,
+    transparent calc(var(--depth) * var(--guide) + 0.5rem)
+  );
+}
+
 .genealogy-content {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.2rem 0.35rem;
-  padding: 0.28rem 0.55rem 0.28rem 0.15rem;
-  flex: 1;
+  gap: 0.15rem 0.35rem;
   min-width: 0;
+  flex: 1;
+  padding: 0.35rem 0.55rem 0.35rem 0.55rem;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  margin-left: 0.1rem;
 }
 
 .genealogy-gen {

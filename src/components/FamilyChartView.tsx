@@ -7,11 +7,21 @@ import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
+import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 
 type Props = {
   people: Person[];
   mainId: string;
   onMainChange?: (id: string) => void;
+};
+
+const SCALE_LAYOUT: Record<
+  TextScaleId,
+  { w: number; h: number; xSpace: number; ySpace: number; font: number }
+> = {
+  normal: { w: 220, h: 78, xSpace: 250, ySpace: 250, font: 13 },
+  large: { w: 260, h: 96, xSpace: 300, ySpace: 290, font: 16 },
+  xlarge: { w: 300, h: 112, xSpace: 350, ySpace: 330, font: 18 },
 };
 
 export function FamilyChartView({ people, mainId, onMainChange }: Props) {
@@ -22,6 +32,7 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
   onMainChangeRef.current = onMainChange;
   peopleRef.current = people;
 
+  const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
 
   useEffect(() => {
@@ -29,6 +40,9 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
     if (!el || !people.length) return;
 
     el.innerHTML = "";
+    const layout = SCALE_LAYOUT[scale] ?? SCALE_LAYOUT.normal;
+    el.style.setProperty("--f3-card-font", `${layout.font}px`);
+
     const data = peopleToFamilyChartData(people);
     const safeMain = data.some((d) => d.id === mainId) ? mainId : data[0]?.id;
     if (!safeMain) return;
@@ -36,6 +50,8 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
     const chart = f3.createChart(el, data);
     chart.setTransitionTime(250);
     chart.setSingleParentEmptyCard(false);
+    chart.setCardXSpacing(layout.xSpace);
+    chart.setCardYSpacing(layout.ySpace);
     chart.afterUpdate = () => {
       el.querySelectorAll("path.link").forEach((path) => {
         path.setAttribute("stroke", "#5f7a6a");
@@ -45,6 +61,16 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
     };
 
     const card = chart.setCardHtml();
+    card.setCardDim({
+      w: layout.w,
+      h: layout.h,
+      text_x: 75,
+      text_y: 15,
+      img_w: 60,
+      img_h: 60,
+      img_x: 5,
+      img_y: 5,
+    });
     card.setCardDisplay([
       ["first name", "last name"],
       ["maiden"],
@@ -69,8 +95,7 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
       chartRef.current = null;
       el.innerHTML = "";
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [people]);
+  }, [people, scale]);
 
   useEffect(() => {
     const chart = chartRef.current;
@@ -84,7 +109,8 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
       <div
         ref={containerRef}
         id="FamilyChart"
-        className="f3 family-chart-host"
+        className={`f3 family-chart-host family-chart-host--${scale}`}
+        data-text-scale={scale}
       />
       <p className="family-chart-hint">
         Przeciągnij, aby przesunąć · scroll = zoom · klik = wybór osoby

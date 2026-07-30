@@ -3,6 +3,7 @@
 import { jsPDF } from "jspdf";
 import type { Person } from "@/types/family";
 import { buildDescendantList } from "@/lib/list";
+import { getChildrenIds, getPersonMap } from "@/lib/tree";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 
 type PdfFormat = "a4" | "a0";
@@ -29,7 +30,8 @@ async function ensureFonts(doc: jsPDF): Promise<void> {
           return r.arrayBuffer();
         }),
         fetch("/fonts/DejaVuSans-Bold.ttf").then((r) => {
-          if (!r.ok) throw new Error("Nie udało się wczytać czcionki DejaVu Bold.");
+          if (!r.ok)
+            throw new Error("Nie udało się wczytać czcionki DejaVu Bold.");
           return r.arrayBuffer();
         }),
       ]);
@@ -75,12 +77,10 @@ function drawNestingRails(
         : entry.ancestorLast[i] === true;
 
     if (i < depth - 1) {
-      // continuing vertical for unfinished ancestors
       if (!entry.ancestorLast[i]) {
         doc.line(x, y - lineH * 0.35, x, y + lineH * 0.65);
       }
     } else {
-      // elbow for this node
       const midY = y + 0.5;
       doc.line(x, y - lineH * 0.35, x, midY);
       doc.line(x, midY, x + colW * 0.45, midY);
@@ -152,7 +152,10 @@ async function exportHierarchicalPdf(
 
     drawNestingRails(doc, entry, margin, y, lineH, colW);
 
-    const indent = textStart + Math.floor(entry.railDepth) * colW + (entry.isSpouse ? colW * 0.5 : 0);
+    const indent =
+      textStart +
+      Math.floor(entry.railDepth) * colW +
+      (entry.isSpouse ? colW * 0.5 : 0);
     const gen = entry.isSpouse ? "" : `${entry.generation}. `;
     const line = `${gen}${personLine(entry.person, entry.isSpouse)}`;
 
@@ -170,7 +173,6 @@ async function exportHierarchicalPdf(
     y += Math.max(wrapped.length, 1) * lineH;
   }
 
-  // Footer on last page
   doc.setFont("DejaVuSans", "normal");
   doc.setFontSize(8);
   doc.setTextColor(120, 130, 125);
@@ -181,9 +183,7 @@ async function exportHierarchicalPdf(
   );
 
   doc.save(
-    format === "a0"
-      ? "potrykus-drzewo-a0.pdf"
-      : "potrykus-drzewo-lista.pdf",
+    format === "a0" ? "potrykus-drzewo-a0.pdf" : "potrykus-drzewo-lista.pdf",
   );
 }
 
@@ -196,9 +196,237 @@ export async function exportListPdf(
   await exportHierarchicalPdf(people, rootId, title, "a4");
 }
 
+/* ——— A0 graph (boxes + lines), max 2 sheets ——— */
+
+type GraphNode = {
+  id: string;
+  person: Person;
+  isSpouse: boolean;
+  generation: number;
+  /** Layout coords in abstract units before scale */
+  x: number;
+  y: number;
+  parentKey?: string;
+};
+
+function collectGraphNodes(
+  people: Person[],
+  rootId: string,
+  maxGenerations = 8,
+): GraphNode[] {
+  const map = getPersonMap(people);
+  const root = map.get(rootId);
+  if (!root) return [];
+
+  const nodes: GraphNode[] = [];
+  const visited = new Set<string>();
+
+  type Q = {
+    id: string;
+    generation: number;
+    parentKey?: string;
+  };
+  const queue: Q[] = [{ id: rootId, generation: 0 }];
+
+  while (queue.length) {
+    const cur = queue.shift()!;
+    if (visited.has(cur.id) || cur.generation > maxGenerations) continue;
+    visited.add(cur.id);
+    const person = map.get(cur.id);
+    if (!person) continue;
+
+    nodes.push({
+      id: cur.id,
+      person,
+      isSpouse: false,
+      generation: cur.generation,
+      x: 0,
+      y: cur.generation,
+      parentKey: cur.parentKey,
+    });
+
+    for (const spouseId of person.spouseIds) {
+      const spouse = map.get(spouseId);
+      if (!spouse || visited.has(`spouse:${cur.id}:${spouseId}`)) continue;
+      visited.add(`spouse:${cur.id}:${spouseId}`);
+      nodes.push({
+        id: `spouse:${spouseId}`,
+        person: spouse,
+        isSpouse: true,
+        generation: cur.generation,
+        x: 0,
+        y: cur.generation,
+        parentKey: cur.id,
+      });
+    }
+
+    for (const childId of getChildrenIds(people, cur.id)) {
+      if (!visited.has(childId)) {
+        queue.push({
+          id: childId,
+          generation: cur.generation + 1,
+          parentKey: cur.id,
+        });
+      }
+    }
+  }
+
+  // Assign x within each generation
+  const byGen = new Map<number, GraphNode[]>();
+  for (const n of nodes) {
+    const list = byGen.get(n.generation) ?? [];
+    list.push(n);
+    byGen.set(n.generation, list);
+  }
+
+  let maxCols = 1;
+  for (const [, list] of byGen) {
+    // Keep blood people first, spouses immediately after their partner when possible
+    list.sort((a, b) => {
+      if (a.isSpouse !== b.isSpouse) return a.isSpouse ? 1 : -1;
+      return a.person.lastName.localeCompare(b.person.lastName, "pl");
+    });
+    list.forEach((n, i) => {
+      n.x = i;
+    });
+    maxCols = Math.max(maxCols, list.length);
+  }
+
+  // Normalize x to center generations of different widths
+  for (const [, list] of byGen) {
+    const offset = (maxCols - list.length) / 2;
+    list.forEach((n) => {
+      n.x += offset;
+    });
+  }
+
+  return nodes;
+}
+
+function drawGraphPage(
+  doc: jsPDF,
+  nodes: GraphNode[],
+  title: string,
+  subtitle: string,
+  pageIndex: number,
+  pageCount: number,
+) {
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 18;
+  const headerH = 22;
+
+  const gens = Math.max(...nodes.map((n) => n.generation), 0) + 1;
+  const cols = Math.max(...nodes.map((n) => n.x), 0) + 1;
+
+  const availW = pageW - margin * 2;
+  const availH = pageH - margin * 2 - headerH;
+
+  const cardW = Math.min(52, Math.max(22, availW / Math.max(cols, 1) - 4));
+  const cardH = Math.min(28, Math.max(14, availH / Math.max(gens, 1) - 8));
+  const gapX = Math.min(10, Math.max(3, (availW - cols * cardW) / Math.max(cols, 1)));
+  const gapY = Math.min(18, Math.max(6, (availH - gens * cardH) / Math.max(gens, 1)));
+
+  const totalW = cols * cardW + Math.max(cols - 1, 0) * gapX;
+  const totalH = gens * cardH + Math.max(gens - 1, 0) * gapY;
+  const scale = Math.min(1, availW / totalW, availH / totalH);
+  const cW = cardW * scale;
+  const cH = cardH * scale;
+  const gX = gapX * scale;
+  const gY = gapY * scale;
+  const originX = margin + (availW - (cols * cW + Math.max(cols - 1, 0) * gX)) / 2;
+  const originY = margin + headerH;
+
+  const pos = new Map<string, { cx: number; cy: number; x: number; y: number }>();
+  for (const n of nodes) {
+    const x = originX + n.x * (cW + gX);
+    const y = originY + n.generation * (cH + gY);
+    pos.set(n.id, { x, y, cx: x + cW / 2, cy: y + cH / 2 });
+  }
+
+  // Title
+  doc.setFont("DejaVuSans", "bold");
+  doc.setFontSize(14);
+  doc.setTextColor(15, 60, 45);
+  doc.text(title, margin, margin + 6);
+  doc.setFont("DejaVuSans", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(70, 90, 80);
+  doc.text(
+    `${subtitle}  ·  strona ${pageIndex}/${pageCount}  ·  Twórca: Adam Lieske`,
+    margin,
+    margin + 12,
+  );
+
+  // Links first
+  doc.setDrawColor(95, 122, 106);
+  doc.setLineWidth(0.4);
+  for (const n of nodes) {
+    if (!n.parentKey) continue;
+    const parent = pos.get(n.parentKey);
+    const child = pos.get(n.id);
+    if (!parent || !child) continue;
+    if (n.isSpouse) {
+      doc.setDrawColor(160, 130, 140);
+      doc.line(parent.x + cW, parent.y + cH / 2, child.x, child.y + cH / 2);
+      doc.setDrawColor(95, 122, 106);
+    } else {
+      const midY = (parent.y + cH + child.y) / 2;
+      doc.line(parent.cx, parent.y + cH, parent.cx, midY);
+      doc.line(parent.cx, midY, child.cx, midY);
+      doc.line(child.cx, midY, child.cx, child.y);
+    }
+  }
+
+  // Cards
+  const fontSize = Math.max(5.5, Math.min(9, cH * 0.28));
+  for (const n of nodes) {
+    const p = pos.get(n.id)!;
+    const isFemale = n.person.gender === "female";
+    const isMale = n.person.gender === "male";
+    if (n.isSpouse) {
+      doc.setFillColor(252, 246, 248);
+      doc.setDrawColor(180, 140, 155);
+    } else if (isFemale) {
+      doc.setFillColor(252, 240, 244);
+      doc.setDrawColor(196, 91, 122);
+    } else if (isMale) {
+      doc.setFillColor(235, 242, 252);
+      doc.setDrawColor(47, 111, 237);
+    } else {
+      doc.setFillColor(245, 248, 245);
+      doc.setDrawColor(120, 140, 125);
+    }
+    doc.setLineWidth(0.35);
+    doc.roundedRect(p.x, p.y, cW, cH, 1.5, 1.5, "FD");
+
+    doc.setFont("DejaVuSans", "bold");
+    doc.setFontSize(fontSize);
+    doc.setTextColor(26, 46, 36);
+    const name = `${n.person.firstName} ${n.person.lastName}`;
+    const lines = doc.splitTextToSize(name, cW - 3) as string[];
+    doc.text(lines.slice(0, 2), p.x + cW / 2, p.y + 4.2, {
+      align: "center",
+    });
+
+    const dates = [
+      formatPolishDate(n.person.birthDate),
+      formatPolishDate(n.person.deathDate),
+    ]
+      .filter(Boolean)
+      .join(" – ");
+    if (dates && cH > 16) {
+      doc.setFont("DejaVuSans", "normal");
+      doc.setFontSize(Math.max(4.5, fontSize - 1.2));
+      doc.setTextColor(80, 100, 90);
+      doc.text(dates, p.x + cW / 2, p.y + cH - 3, { align: "center" });
+    }
+  }
+}
+
 /**
- * Large A0 PDF with hierarchical nesting (vector).
- * More reliable than html2canvas for huge family trees.
+ * A0 graph PDF of the focused branch — packed onto 1 page when possible,
+ * otherwise split into max 2 sheets (by root children).
  */
 export async function exportTreeA0Pdf(
   people?: Person[],
@@ -210,10 +438,80 @@ export async function exportTreeA0Pdf(
       "Brak danych do eksportu A0. Odśwież drzewo i spróbuj ponownie.",
     );
   }
-  await exportHierarchicalPdf(
-    people,
-    rootId,
-    title || "Drzewo rodziny Potrykus",
-    "a0",
-  );
+
+  const map = getPersonMap(people);
+  const root = map.get(rootId);
+  const label = title || "Drzewo rodziny Potrykus";
+  const rootName = root ? displayName(root) : "gałąź";
+
+  const childIds = getChildrenIds(people, rootId);
+  const allNodes = collectGraphNodes(people, rootId);
+  const tooWide = allNodes.length > 90 || childIds.length > 6;
+
+  const doc = new jsPDF({
+    orientation: "landscape",
+    unit: "mm",
+    format: "a0",
+  });
+  await ensureFonts(doc);
+
+  if (!tooWide || childIds.length <= 1) {
+    drawGraphPage(
+      doc,
+      allNodes,
+      label,
+      `Graf od: ${rootName} · ${allNodes.length} kart`,
+      1,
+      1,
+    );
+  } else {
+    // Split into two sheets by root children
+    const mid = Math.ceil(childIds.length / 2);
+    const groups = [childIds.slice(0, mid), childIds.slice(mid)];
+    let page = 0;
+    for (const group of groups) {
+      if (!group.length) continue;
+      page += 1;
+      if (page > 1) doc.addPage();
+      // Synthetic page: root + spouses + this half of descendants
+      const subsetIds = new Set<string>([rootId, ...group]);
+      // BFS descendants of group
+      const q = [...group];
+      while (q.length) {
+        const id = q.shift()!;
+        for (const c of getChildrenIds(people, id)) {
+          if (!subsetIds.has(c)) {
+            subsetIds.add(c);
+            q.push(c);
+          }
+        }
+        const p = map.get(id);
+        p?.spouseIds.forEach((s) => subsetIds.add(s));
+      }
+      map.get(rootId)?.spouseIds.forEach((s) => subsetIds.add(s));
+
+      const subsetPeople = people.filter(
+        (p) => subsetIds.has(p.id) || p.spouseIds.some((s) => subsetIds.has(s)),
+      );
+      // Keep links: include people who are parents in subset
+      const nodes = collectGraphNodes(subsetPeople, rootId);
+      drawGraphPage(
+        doc,
+        nodes,
+        label,
+        `Graf od: ${rootName} · część ${page}/2 · ${nodes.length} kart`,
+        page,
+        2,
+      );
+      if (page >= 2) break;
+    }
+  }
+
+  // Ensure we never exceed 2 pages
+  const pages = doc.getNumberOfPages();
+  if (pages > 2) {
+    for (let i = pages; i > 2; i--) doc.deletePage(i);
+  }
+
+  doc.save(`potrykus-graf-a0-${rootId.slice(0, 24)}.pdf`);
 }
