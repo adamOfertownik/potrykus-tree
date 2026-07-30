@@ -8,6 +8,8 @@ import { PersonSearch } from "@/components/PersonSearch";
 import { useAuthStatus, useFamily } from "@/lib/hooks";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import { displayName } from "@/lib/db-client";
+import Link from "next/link";
 
 export function TreePageClient() {
   const auth = useAuthStatus();
@@ -19,12 +21,23 @@ export function TreePageClient() {
 
   useEffect(() => {
     const root = searchParams.get("root");
-    if (root) setRootId(root);
+    setRootId(root);
   }, [searchParams]);
 
   const people = family.data?.people ?? [];
   const meta = family.data?.meta;
-  const effectiveRoot = rootId || meta?.rootPersonId || "";
+  const familyRoot = meta?.rootPersonId || "";
+  const effectiveRoot = rootId || familyRoot;
+  const focusedAway =
+    Boolean(rootId) && Boolean(familyRoot) && rootId !== familyRoot;
+  const focusPerson = focusedAway
+    ? people.find((p) => p.id === rootId) ?? null
+    : null;
+
+  const goFullTree = () => {
+    setRootId(null);
+    router.replace("/drzewo");
+  };
 
   if (auth.isLoading) {
     return <div className="loading-screen">Ładowanie…</div>;
@@ -62,20 +75,29 @@ export function TreePageClient() {
             setRootId(p.id);
             router.replace(`/drzewo?root=${encodeURIComponent(p.id)}`);
           }}
-          trailing={
-            <button
-              type="button"
-              className="btn btn-secondary btn-inline"
-              onClick={() => {
-                setRootId(meta?.rootPersonId || null);
-                router.replace("/drzewo");
-              }}
-            >
-              Od korzenia
-            </button>
-          }
         />
+        <Link href="/pokrewienstwo" className="btn btn-secondary btn-inline">
+          Kto kim?
+        </Link>
       </section>
+
+      {focusedAway && (
+        <div className="tree-focus-bar" role="status">
+          <p>
+            Widok wokół:{" "}
+            <strong>
+              {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
+            </strong>
+          </p>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={goFullTree}
+          >
+            ← Pełne drzewo
+          </button>
+        </div>
+      )}
 
       <div className="tree-scroll tree-scroll--chart">
         {effectiveRoot ? (

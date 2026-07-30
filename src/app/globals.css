@@ -413,9 +413,42 @@ input {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   margin-bottom: 1rem;
+}
+
+.toolbar--tree {
+  align-items: flex-end;
+}
+
+.toolbar--tree .person-search {
+  flex: 1 1 240px;
+  max-width: none;
+}
+
+.tree-focus-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  margin: -0.35rem 0 0.85rem;
+  padding: 0.65rem 0.85rem;
+  background: color-mix(in srgb, var(--accent) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: 12px;
+}
+
+.tree-focus-bar p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--ink);
+  min-width: 0;
+}
+
+.tree-focus-bar .btn {
+  flex-shrink: 0;
 }
 
 /* ——— Person search ——— */
@@ -423,11 +456,6 @@ input {
   position: relative;
   flex: 1 1 260px;
   max-width: 440px;
-}
-
-.toolbar--tree .person-search {
-  max-width: none;
-  width: 100%;
 }
 
 .person-search__row {

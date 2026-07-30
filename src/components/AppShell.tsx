@@ -174,6 +174,12 @@ export function AppShell({
           >
             Zgłoś
           </Link>
+          <Link
+            href="/pokrewienstwo"
+            className={pathname.startsWith("/pokrewienstwo") ? "is-active" : ""}
+          >
+            Kto kim
+          </Link>
         </nav>
       </header>
 
