@@ -1384,6 +1384,178 @@ input {
   line-height: 1.4;
 }
 
+/* ——— Event / spotkanie ——— */
+.event-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.event-hero {
+  background:
+    linear-gradient(135deg, rgba(15, 107, 92, 0.1), transparent 55%),
+    color-mix(in srgb, white 82%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 18px;
+  padding: 1.35rem 1.25rem 1.2rem;
+}
+
+.event-hero__eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.event-hero h1 {
+  margin: 0.35rem 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 5vw, 2.3rem);
+  letter-spacing: -0.02em;
+  color: var(--accent-strong);
+}
+
+.event-hero__lead {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  max-width: 40rem;
+}
+
+.event-meta {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.65rem;
+}
+
+.event-meta li {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.event-meta span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+.event-meta strong {
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.event-organizers {
+  margin: 0.85rem 0 0;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.event-section {
+  background: color-mix(in srgb, white 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 18px;
+  padding: 1.15rem 1.2rem 1.25rem;
+}
+
+.event-section h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.2rem;
+}
+
+.event-section__lead {
+  margin: 0 0 1rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.transfer-grid {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.transfer-grid > div {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+}
+
+.transfer-grid dt {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+.transfer-grid dd {
+  margin: 0.3rem 0 0;
+  font-weight: 650;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.transfer-iban {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.transfer-copy {
+  margin-top: 0.55rem;
+}
+
+.check-row {
+  display: flex !important;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 500 !important;
+  color: var(--ink) !important;
+}
+
+.check-row input {
+  width: auto;
+}
+
+.rsvp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.rsvp-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--bg);
+  border-radius: 10px;
+  font-size: 0.92rem;
+}
+
+.rsvp-list span {
+  color: var(--ink-soft);
+}
+
+.event-footnote {
+  margin: 0.85rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
 @media (max-width: 720px) {
   .app-header {
     flex-direction: column;

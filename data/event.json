@@ -1,0 +1,24 @@
+{
+  "title": "Spotkanie rodziny Potrykus",
+  "date": "2026-10-03",
+  "dateLabel": "3 października 2026",
+  "place": "Pensjonat Bałtycki Relax",
+  "city": "Jastrzębia Góra",
+  "address": "",
+  "description": "Rodzinne spotkanie potomków Potrykusa. Zapisy pomagają nam zorganizować miejsca i wspólny budżet.",
+  "organizers": [
+    "Elżbieta Lieder",
+    "Anna Leśniak",
+    "Maria Lieske"
+  ],
+  "transfer": {
+    "recipient": "Do uzupełnienia przez organizatorów",
+    "iban": "",
+    "bank": "",
+    "titleTemplate": "Spotkanie Potrykus – Imię Nazwisko",
+    "amountHint": "Kwotę i termin wpłaty podamy na grupie / tu po ustaleniu",
+    "notes": "Numer konta uzupełnimy w aplikacji, gdy organizatorzy go potwierdzą. Na razie prosimy o zapis — przelew po ogłoszeniu numeru."
+  },
+  "rsvpDeadline": "2026-09-15",
+  "contactNote": "Pytania: grupa WhatsApp „Spotkanie rodziny Potrykus” albo zakładka Zgłoś."
+}

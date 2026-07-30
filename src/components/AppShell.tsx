@@ -91,6 +91,12 @@ export function AppShell({
             Lista
           </Link>
           <Link
+            href="/spotkanie"
+            className={pathname.startsWith("/spotkanie") ? "is-active" : ""}
+          >
+            Spotkanie
+          </Link>
+          <Link
             href="/zglos"
             className={`nav-link-compact${pathname.startsWith("/zglos") ? " is-active" : ""}`}
           >
