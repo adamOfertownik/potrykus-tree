@@ -373,6 +373,29 @@ input {
   max-width: 440px;
 }
 
+.toolbar--tree .person-search {
+  max-width: none;
+  width: 100%;
+}
+
+.person-search__row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.person-search__row .person-search__field {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-inline {
+  flex-shrink: 0;
+  white-space: nowrap;
+  align-self: stretch;
+  padding-inline: 0.85rem;
+}
+
 .person-search__label {
   display: block;
   font-size: 0.72rem;

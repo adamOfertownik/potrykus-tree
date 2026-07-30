@@ -15,6 +15,8 @@ type Props = {
   className?: string;
   /** Ask "who are you" before searching */
   requireIdentity?: boolean;
+  /** Extra control on the same row as the search input (e.g. Od korzenia) */
+  trailing?: React.ReactNode;
 };
 
 export function PersonSearch({
@@ -23,6 +25,7 @@ export function PersonSearch({
   onSelect,
   className = "",
   requireIdentity = true,
+  trailing,
 }: Props) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -116,48 +119,51 @@ export function PersonSearch({
             </button>
           )}
         </div>
-        <div className="person-search__field">
-          <span className="person-search__icon" aria-hidden>
-            ⌕
-          </span>
-          <input
-            id={`${listId}-input`}
-            type="search"
-            role="combobox"
-            aria-expanded={open && matches.length > 0}
-            aria-controls={listId}
-            aria-autocomplete="list"
-            autoComplete="off"
-            placeholder={placeholder}
-            value={query}
-            onChange={(e) => {
-              if (!ensureIdentity()) {
+        <div className="person-search__row">
+          <div className="person-search__field">
+            <span className="person-search__icon" aria-hidden>
+              ⌕
+            </span>
+            <input
+              id={`${listId}-input`}
+              type="search"
+              role="combobox"
+              aria-expanded={open && matches.length > 0}
+              aria-controls={listId}
+              aria-autocomplete="list"
+              autoComplete="off"
+              placeholder={placeholder}
+              value={query}
+              onChange={(e) => {
+                if (!ensureIdentity()) {
+                  setQuery(e.target.value);
+                  return;
+                }
                 setQuery(e.target.value);
-                return;
-              }
-              setQuery(e.target.value);
-              setOpen(true);
-            }}
-            onFocus={() => {
-              if (!ensureIdentity()) return;
-              setOpen(true);
-            }}
-            onKeyDown={onKeyDown}
-            className="person-search__input"
-          />
-          {query && (
-            <button
-              type="button"
-              className="person-search__clear"
-              aria-label="Wyczyść"
-              onClick={() => {
-                setQuery("");
-                setOpen(false);
+                setOpen(true);
               }}
-            >
-              ×
-            </button>
-          )}
+              onFocus={() => {
+                if (!ensureIdentity()) return;
+                setOpen(true);
+              }}
+              onKeyDown={onKeyDown}
+              className="person-search__input"
+            />
+            {query && (
+              <button
+                type="button"
+                className="person-search__clear"
+                aria-label="Wyczyść"
+                onClick={() => {
+                  setQuery("");
+                  setOpen(false);
+                }}
+              >
+                ×
+              </button>
+            )}
+          </div>
+          {trailing}
         </div>
         {open && matches.length > 0 && (
           <ul id={listId} role="listbox" className="person-search__results">

@@ -54,7 +54,7 @@ export function TreePageClient() {
 
   return (
     <AppShell peopleCount={people.length} exportRootId={effectiveRoot}>
-      <section className="toolbar">
+      <section className="toolbar toolbar--tree">
         <PersonSearch
           people={people}
           placeholder="Szukaj w drzewie…"
@@ -62,19 +62,19 @@ export function TreePageClient() {
             setRootId(p.id);
             router.replace(`/drzewo?root=${encodeURIComponent(p.id)}`);
           }}
+          trailing={
+            <button
+              type="button"
+              className="btn btn-secondary btn-inline"
+              onClick={() => {
+                setRootId(meta?.rootPersonId || null);
+                router.replace("/drzewo");
+              }}
+            >
+              Od korzenia
+            </button>
+          }
         />
-        <div className="toolbar-actions">
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => {
-              setRootId(meta?.rootPersonId || null);
-              router.replace("/drzewo");
-            }}
-          >
-            Od korzenia
-          </button>
-        </div>
       </section>
 
       <div className="tree-scroll tree-scroll--chart">
