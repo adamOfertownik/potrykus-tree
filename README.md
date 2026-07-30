@@ -1,20 +1,45 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Drzewo Potrykus
 
-# Run and deploy your AI Studio app
+Prywatne drzewo genealogiczne rodziny **Potrykus**.  
+Twórca: **Adam Lieske**
 
-This contains everything you need to run your app locally.
+## Stack
 
-View your app in AI Studio: https://ai.studio/apps/drive/1czB0xBOV5ZTT6fq-kxqomNMivKFxeR0o
+- Next.js 16 (App Router)
+- TanStack Query
+- Lokalna baza w pliku `data/family.json`
+- Dostęp kodem rodzinnym (bez konta użytkownika)
 
-## Run Locally
+## Uruchomienie
 
-**Prerequisites:**  Node.js
+```bash
+npm install
+npm run dev
+```
 
+Otwórz [http://localhost:3000](http://localhost:3000)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Kod rodzinny (domyślny)
+
+```
+PotrykusRodzina
+```
+
+Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessCodeHash`.
+
+## Funkcje
+
+- Widok drzewa z powiązaniami (inspiracja MyHeritage)
+- Karty osób: imię, nazwisko, nazwisko rodowe, daty, zdjęcie
+- Widok listy hierarchicznej (jak w dokumentach rodzinnych)
+- Eksport PDF: lista powiązań + duży format A0
+- Numery telefonów tylko po odblokowaniu kodem
+
+## Dane
+
+Seed: `npm run seed` (skrypt `scripts/generate-seed.mjs`)  
+Edycja ręczna: `data/family.json`
+
+## Docelowo (sklep)
+
+Architektura gotowa pod Capacitorem / PWA — ten sam Next.js + lokalny plik / sync później.

@@ -1,0 +1,756 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #e7efe8;
+  --bg-deep: #d5e4d8;
+  --ink: #1a2e24;
+  --ink-soft: #3d5a4c;
+  --panel: #f7faf7;
+  --line: #b7c9bc;
+  --accent: #0f6b5c;
+  --accent-strong: #0a4f44;
+  --male: #2f6fed;
+  --female: #c45b7a;
+  --shadow: 0 10px 30px rgba(26, 46, 36, 0.08);
+  --radius: 14px;
+  --font-display: var(--font-display), Georgia, serif;
+  --font-body: var(--font-body), "Segoe UI", sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, #cfe3d4 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, #dce9df 0%, transparent 45%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ——— Gate ——— */
+.gate {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.gate-atmosphere {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(15, 107, 92, 0.18), transparent 40%),
+    radial-gradient(circle at 70% 60%, rgba(45, 90, 60, 0.12), transparent 35%);
+  animation: drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2%, 2%, 0) scale(1.05);
+  }
+}
+
+.gate-panel {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 2.5rem 2rem 2rem;
+  background: color-mix(in srgb, var(--panel) 92%, white);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  animation: rise 0.7s ease both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.gate-brand {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 8vw, 3.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--accent-strong);
+}
+
+.gate-title {
+  margin: 0.85rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.gate-lead {
+  margin: 0.75rem 0 1.5rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  font-size: 0.95rem;
+}
+
+.gate-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.gate-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  background: white;
+  color: var(--ink);
+}
+
+.gate-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, white);
+  border-color: var(--accent);
+}
+
+.gate-cta {
+  border: 0;
+  border-radius: 12px;
+  padding: 0.95rem 1rem;
+  background: var(--accent);
+  color: white;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.gate-cta:hover:not(:disabled) {
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+.gate-cta:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.gate-error {
+  margin: 0.75rem 0 0;
+  color: #8b2e3b;
+  font-size: 0.9rem;
+}
+
+.gate-footer {
+  margin-top: 1.75rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* ——— Shell ——— */
+.app-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  background: color-mix(in srgb, var(--panel) 85%, transparent);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.brand-link {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  letter-spacing: -0.02em;
+  color: var(--accent-strong);
+}
+
+.people-count {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.app-nav a,
+.nav-logout {
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+
+.app-nav a.is-active {
+  background: white;
+  color: var(--accent-strong);
+  box-shadow: 0 1px 0 var(--line);
+}
+
+.app-main {
+  flex: 1;
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  padding: 1rem 1rem 2rem;
+}
+
+.app-footer {
+  padding: 0.85rem 1.25rem 1.25rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.loading-screen {
+  min-height: 50dvh;
+  display: grid;
+  place-items: center;
+  color: var(--ink-soft);
+}
+
+/* ——— Toolbar / search ——— */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1 1 240px;
+  max-width: 420px;
+}
+
+.search-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background: white;
+}
+
+.search-results {
+  position: absolute;
+  z-index: 30;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  max-height: 280px;
+  overflow: auto;
+}
+
+.search-results a {
+  display: block;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+}
+
+.search-results a:hover {
+  background: var(--bg);
+}
+
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-secondary {
+  background: white;
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.banner-error {
+  background: #fde8ec;
+  color: #8b2e3b;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+}
+
+/* ——— Tree ——— */
+.tree-scroll {
+  overflow: auto;
+  padding: 1rem 0.5rem 2rem;
+  min-height: 60dvh;
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 30%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 27px,
+      color-mix(in srgb, var(--line) 35%, transparent) 28px
+    );
+}
+
+.tree-canvas {
+  display: inline-block;
+  min-width: 100%;
+  padding: 1rem 2rem 2rem;
+}
+
+.tree-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tree-couple {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.tree-spouse-line {
+  width: 28px;
+  height: 2px;
+  background: #8aa193;
+  flex-shrink: 0;
+}
+
+.tree-node-wrap.is-focus .person-card {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tree-descendants {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.tree-stem {
+  width: 2px;
+  height: 22px;
+  background: #8aa193;
+}
+
+.tree-children {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+  position: relative;
+  padding-top: 0;
+}
+
+.tree-children::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  background: #8aa193;
+}
+
+.tree-children:has(> :only-child)::before {
+  display: none;
+}
+
+.tree-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  padding-top: 18px;
+}
+
+.tree-child-connector {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 18px;
+  background: #8aa193;
+}
+
+/* ——— Person card ——— */
+.person-card {
+  width: 168px;
+  text-align: center;
+  background: white;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.7rem 0.55rem 0.85rem;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  position: relative;
+  color: inherit;
+}
+
+.person-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(26, 46, 36, 0.12);
+}
+
+.person-card--male {
+  border-color: color-mix(in srgb, var(--male) 55%, white);
+}
+
+.person-card--female {
+  border-color: color-mix(in srgb, var(--female) 55%, white);
+}
+
+.person-card--compact {
+  width: 150px;
+  padding: 0.55rem 0.4rem 0.7rem;
+}
+
+.person-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-deep);
+  display: grid;
+  place-items: center;
+}
+
+.person-card__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.person-card__silhouette {
+  width: 28px;
+  height: 28px;
+  border-radius: 50% 50% 42% 42%;
+  background: color-mix(in srgb, var(--ink-soft) 35%, white);
+  position: relative;
+}
+
+.person-card__silhouette::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 18px;
+  border-radius: 18px 18px 0 0;
+  background: color-mix(in srgb, var(--ink-soft) 35%, white);
+}
+
+.person-card__silhouette.large {
+  width: 56px;
+  height: 56px;
+}
+
+.person-card__name {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.person-card__dates,
+.person-card__meta {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+.person-card__gender-mark {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 9px;
+  border-radius: 0 0 12px 12px;
+}
+
+.person-card--male .person-card__gender-mark {
+  background: var(--male);
+}
+
+.person-card--female .person-card__gender-mark {
+  background: var(--female);
+}
+
+.person-card--unknown .person-card__gender-mark {
+  background: #8aa193;
+}
+
+/* ——— List view ——— */
+.genealogy-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0 2rem;
+  background: color-mix(in srgb, white 70%, transparent);
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.genealogy-item {
+  position: relative;
+  padding: 0.45rem 1rem;
+  border-left: 2px solid color-mix(in srgb, var(--line) 80%, transparent);
+  margin-left: 0.5rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.genealogy-item.is-spouse {
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.genealogy-gen {
+  font-weight: 700;
+  margin-right: 0.35rem;
+}
+
+.genealogy-spouse {
+  font-style: italic;
+  margin-right: 0.35rem;
+}
+
+.genealogy-name {
+  font-weight: 650;
+}
+
+.genealogy-name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.genealogy-date {
+  color: var(--ink-soft);
+  font-size: 0.9em;
+}
+
+/* ——— Person detail ——— */
+.person-detail {
+  background: color-mix(in srgb, white 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 20px;
+  padding: 1.25rem 1.25rem 2rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.person-detail__header {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-bottom: 1.75rem;
+}
+
+.person-detail__avatar {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg-deep);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.person-detail__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.person-detail h1 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  letter-spacing: -0.02em;
+}
+
+.person-detail__maiden,
+.person-detail__dates,
+.person-detail__phone,
+.person-detail__notes {
+  margin: 0.25rem 0;
+  color: var(--ink-soft);
+}
+
+.person-detail__header .btn {
+  margin-top: 0.85rem;
+}
+
+.person-relations {
+  margin-top: 1.5rem;
+}
+
+.person-relations h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+.relation-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.person-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin: 1.75rem 0 0;
+}
+
+.person-facts div {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 0.75rem 0.9rem;
+}
+
+.person-facts dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+.person-facts dd {
+  margin: 0.25rem 0 0;
+  font-weight: 650;
+}
+
+.empty-hint {
+  color: var(--ink-soft);
+  margin: 0.5rem 0;
+}
+
+@media (max-width: 720px) {
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-nav {
+    justify-content: space-between;
+  }
+
+  .tree-children {
+    gap: 0.65rem;
+  }
+
+  .person-card,
+  .person-card--compact {
+    width: 132px;
+  }
+}
