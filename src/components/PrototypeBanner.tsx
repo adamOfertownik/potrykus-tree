@@ -4,10 +4,7 @@ export function PrototypeBanner() {
   return (
     <aside className="prototype-banner" role="status">
       <strong>Prototyp</strong>
-      <span>
-        Zgłoszenia zmian nigdzie jeszcze nie trafiają — brak podpiętej bazy.
-        Dam znać, gdy podłączymy przechowywanie.
-      </span>
+      <span>Zgłoszenia nie idą jeszcze do bazy — dam znać.</span>
     </aside>
   );
 }
