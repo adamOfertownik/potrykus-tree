@@ -11,6 +11,8 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onIdentified: (name: string, personId?: string) => void;
+  /** When true, no “Później” — need identity after unlock */
+  compulsory?: boolean;
 };
 
 export function WhoAreYouDialog({
@@ -18,6 +20,7 @@ export function WhoAreYouDialog({
   open,
   onClose,
   onIdentified,
+  compulsory = false,
 }: Props) {
   const [query, setQuery] = useState("");
   const [manual, setManual] = useState("");
@@ -30,9 +33,7 @@ export function WhoAreYouDialog({
   useEffect(() => {
     if (!open) return;
     const existing = loadReporter();
-    if (existing?.name) {
-      setManual(existing.name);
-    }
+    if (existing?.name) setManual(existing.name);
   }, [open]);
 
   if (!open) return null;
@@ -41,10 +42,10 @@ export function WhoAreYouDialog({
     <div className="modal-backdrop" role="dialog" aria-modal="true">
       <div className="modal-card">
         <header className="modal-card__head">
-          <h2>Kim jesteś?</h2>
+          <h2>Kim jesteś w rodzinie?</h2>
           <p>
-            Zanim wyszukasz — powiedz nam, kto korzysta z drzewa. Dzięki temu
-            wiemy, kto proponuje zmiany.
+            Zapamiętamy Cię na tym telefonie — zgłoszenia, zapisy i „kto kim”
+            będą od razu pod Ciebie. Bez konta, bez hasła.
           </p>
         </header>
 
@@ -57,6 +58,7 @@ export function WhoAreYouDialog({
           placeholder="Np. Adam Lieske…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          autoFocus
         />
 
         {matches.length > 0 && (
@@ -88,9 +90,11 @@ export function WhoAreYouDialog({
         />
 
         <div className="modal-actions">
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
-            Później
-          </button>
+          {!compulsory && (
+            <button type="button" className="btn btn-secondary" onClick={onClose}>
+              Anuluj
+            </button>
+          )}
           <button
             type="button"
             className="btn btn-primary"
@@ -101,7 +105,7 @@ export function WhoAreYouDialog({
               onIdentified(name);
             }}
           >
-            To ja
+            To ja — zapamiętaj
           </button>
         </div>
       </div>

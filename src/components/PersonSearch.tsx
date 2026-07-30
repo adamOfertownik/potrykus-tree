@@ -4,8 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
-import { loadReporter, saveReporter } from "@/lib/reporter";
-import { WhoAreYouDialog } from "@/components/WhoAreYouDialog";
+import { useIdentity } from "@/components/IdentityProvider";
 import { MissingPersonForm } from "@/components/MissingPersonForm";
 
 type Props = {
@@ -13,9 +12,8 @@ type Props = {
   placeholder?: string;
   onSelect: (person: Person) => void;
   className?: string;
-  /** Ask "who are you" before searching */
+  /** @deprecated identity is collected after unlock */
   requireIdentity?: boolean;
-  /** Extra control on the same row as the search input (e.g. Od korzenia) */
   trailing?: React.ReactNode;
 };
 
@@ -24,26 +22,15 @@ export function PersonSearch({
   placeholder = "Szukaj osoby…",
   onSelect,
   className = "",
-  requireIdentity = true,
   trailing,
 }: Props) {
+  const { identity, promptIdentity } = useIdentity();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
-  const [whoOpen, setWhoOpen] = useState(false);
   const [missingOpen, setMissingOpen] = useState(false);
-  const [reporterName, setReporterName] = useState("");
-  const [reporterPersonId, setReporterPersonId] = useState<string | undefined>();
   const wrapRef = useRef<HTMLDivElement>(null);
   const listId = useId();
-
-  useEffect(() => {
-    const r = loadReporter();
-    if (r) {
-      setReporterName(r.name);
-      setReporterPersonId(r.personId);
-    }
-  }, []);
 
   const matches = useMemo(
     () =>
@@ -63,15 +50,7 @@ export function PersonSearch({
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  const ensureIdentity = () => {
-    if (!requireIdentity) return true;
-    if (reporterName.trim()) return true;
-    setWhoOpen(true);
-    return false;
-  };
-
   const pick = (person: Person) => {
-    if (!ensureIdentity()) return;
     onSelect(person);
     setQuery("");
     setOpen(false);
@@ -100,24 +79,16 @@ export function PersonSearch({
           <label className="person-search__label" htmlFor={`${listId}-input`}>
             Szukaj
           </label>
-          {reporterName ? (
+          {identity?.name ? (
             <button
               type="button"
               className="person-search__who"
-              onClick={() => setWhoOpen(true)}
-              title="Zmień, kto korzysta z wyszukiwarki"
+              onClick={promptIdentity}
+              title="Zmień, kim jesteś na tym urządzeniu"
             >
-              Szuka: <strong>{reporterName}</strong>
+              To ty: <strong>{identity.name}</strong>
             </button>
-          ) : (
-            <button
-              type="button"
-              className="person-search__who person-search__who--ask"
-              onClick={() => setWhoOpen(true)}
-            >
-              Kim jesteś?
-            </button>
-          )}
+          ) : null}
         </div>
         <div className="person-search__row">
           <div className="person-search__field">
@@ -135,17 +106,10 @@ export function PersonSearch({
               placeholder={placeholder}
               value={query}
               onChange={(e) => {
-                if (!ensureIdentity()) {
-                  setQuery(e.target.value);
-                  return;
-                }
                 setQuery(e.target.value);
                 setOpen(true);
               }}
-              onFocus={() => {
-                if (!ensureIdentity()) return;
-                setOpen(true);
-              }}
+              onFocus={() => setOpen(true)}
               onKeyDown={onKeyDown}
               className="person-search__input"
             />
@@ -201,7 +165,6 @@ export function PersonSearch({
               type="button"
               className="btn btn-primary"
               onClick={() => {
-                if (!ensureIdentity()) return;
                 setMissingOpen(true);
                 setOpen(false);
               }}
@@ -212,28 +175,11 @@ export function PersonSearch({
         )}
       </div>
 
-      <WhoAreYouDialog
-        people={people}
-        open={whoOpen}
-        onClose={() => setWhoOpen(false)}
-        onIdentified={(name, personId) => {
-          setReporterName(name);
-          setReporterPersonId(personId);
-          saveReporter({ name, personId });
-          setWhoOpen(false);
-          // If they picked themselves from tree, jump to that person
-          if (personId) {
-            const me = people.find((p) => p.id === personId);
-            if (me) onSelect(me);
-          }
-        }}
-      />
-
       <MissingPersonForm
         open={missingOpen}
         searchedQuery={query}
-        reporterName={reporterName || "Anonim"}
-        reporterPersonId={reporterPersonId}
+        reporterName={identity?.name || "Anonim"}
+        reporterPersonId={identity?.personId}
         onClose={() => setMissingOpen(false)}
         onSubmitted={() => {}}
       />

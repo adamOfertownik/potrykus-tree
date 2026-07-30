@@ -7,11 +7,21 @@ export type ReporterIdentity = {
   personId?: string;
 };
 
+/** Persists across visits on this device (cheap “to ja”). */
 export function loadReporter(): ReporterIdentity | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = sessionStorage.getItem(REPORTER_KEY);
-    if (!raw) return null;
+    const raw = localStorage.getItem(REPORTER_KEY);
+    if (!raw) {
+      // migrate from older sessionStorage key if present
+      const legacy = sessionStorage.getItem(REPORTER_KEY);
+      if (legacy) {
+        localStorage.setItem(REPORTER_KEY, legacy);
+        sessionStorage.removeItem(REPORTER_KEY);
+        return JSON.parse(legacy) as ReporterIdentity;
+      }
+      return null;
+    }
     return JSON.parse(raw) as ReporterIdentity;
   } catch {
     return null;
@@ -19,9 +29,19 @@ export function loadReporter(): ReporterIdentity | null {
 }
 
 export function saveReporter(identity: ReporterIdentity) {
-  sessionStorage.setItem(REPORTER_KEY, JSON.stringify(identity));
+  localStorage.setItem(REPORTER_KEY, JSON.stringify(identity));
+  try {
+    sessionStorage.removeItem(REPORTER_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function clearReporter() {
-  sessionStorage.removeItem(REPORTER_KEY);
+  localStorage.removeItem(REPORTER_KEY);
+  try {
+    sessionStorage.removeItem(REPORTER_KEY);
+  } catch {
+    /* ignore */
+  }
 }

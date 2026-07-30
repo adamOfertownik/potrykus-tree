@@ -7,21 +7,22 @@ import { useFamily, useLogout } from "@/lib/hooks";
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
+import { IdentityProvider, useIdentity } from "@/components/IdentityProvider";
 
-export function AppShell({
+function AppShellInner({
   children,
   peopleCount,
   exportRootId,
 }: {
   children: React.ReactNode;
   peopleCount?: number;
-  /** Optional root for PDF export (defaults to family root) */
   exportRootId?: string;
 }) {
   const pathname = usePathname();
   const logout = useLogout();
   const family = useFamily(true);
   const { scale, setScale } = useTextScale();
+  const { identity, promptIdentity } = useIdentity();
   const [menuOpen, setMenuOpen] = useState(false);
   const [pdfBusy, setPdfBusy] = useState<"list" | "a0" | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
@@ -94,6 +95,20 @@ export function AppShell({
             </button>
             {menuOpen && (
               <div className="nav-menu__panel" role="menu">
+                <p className="nav-menu__label">To ty</p>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    promptIdentity();
+                  }}
+                >
+                  {identity?.name
+                    ? `${identity.name} · zmień`
+                    : "Kim jesteś?"}
+                </button>
+                <div className="nav-menu__sep" />
                 <p className="nav-menu__label">Wielkość tekstu</p>
                 {(
                   [
@@ -194,5 +209,27 @@ export function AppShell({
         Twórca: Adam Lieske · dane lokalne · dostęp kodem rodzinnym
       </footer>
     </div>
+  );
+}
+
+export function AppShell({
+  children,
+  peopleCount,
+  exportRootId,
+}: {
+  children: React.ReactNode;
+  peopleCount?: number;
+  exportRootId?: string;
+}) {
+  const family = useFamily(true);
+  const people = family.data?.people ?? [];
+  const enabled = Boolean(family.data && !family.isLoading);
+
+  return (
+    <IdentityProvider people={people} enabled={enabled}>
+      <AppShellInner peopleCount={peopleCount} exportRootId={exportRootId}>
+        {children}
+      </AppShellInner>
+    </IdentityProvider>
   );
 }
