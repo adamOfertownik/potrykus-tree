@@ -6,7 +6,6 @@ import { AppShell } from "@/components/AppShell";
 import { FamilyChartView } from "@/components/FamilyChartView";
 import { PersonSearch } from "@/components/PersonSearch";
 import { useAuthStatus, useFamily } from "@/lib/hooks";
-import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
@@ -17,8 +16,6 @@ export function TreePageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [rootId, setRootId] = useState<string | null>(null);
-  const [pdfBusy, setPdfBusy] = useState<"list" | "a0" | null>(null);
-  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     const root = searchParams.get("root");
@@ -55,40 +52,8 @@ export function TreePageClient() {
     );
   }
 
-  const onExportList = async () => {
-    setPdfError(null);
-    setPdfBusy("list");
-    try {
-      await exportListPdf(
-        people,
-        effectiveRoot,
-        meta?.title || "Drzewo Potrykus",
-      );
-    } catch (e) {
-      setPdfError((e as Error).message);
-    } finally {
-      setPdfBusy(null);
-    }
-  };
-
-  const onExportA0 = async () => {
-    setPdfError(null);
-    setPdfBusy("a0");
-    try {
-      await exportTreeA0Pdf(
-        people,
-        effectiveRoot,
-        meta?.title || "Drzewo Potrykus",
-      );
-    } catch (e) {
-      setPdfError((e as Error).message);
-    } finally {
-      setPdfBusy(null);
-    }
-  };
-
   return (
-    <AppShell peopleCount={people.length}>
+    <AppShell peopleCount={people.length} exportRootId={effectiveRoot}>
       <section className="toolbar">
         <PersonSearch
           people={people}
@@ -109,30 +74,8 @@ export function TreePageClient() {
           >
             Od korzenia
           </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            disabled={pdfBusy !== null}
-            onClick={onExportList}
-          >
-            {pdfBusy === "list" ? "PDF…" : "PDF lista"}
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={pdfBusy !== null}
-            onClick={onExportA0}
-          >
-            {pdfBusy === "a0" ? "A0…" : "PDF A0"}
-          </button>
         </div>
       </section>
-
-      {pdfError && (
-        <p className="banner-error" role="alert">
-          {pdfError}
-        </p>
-      )}
 
       <div className="tree-scroll tree-scroll--chart">
         {effectiveRoot ? (

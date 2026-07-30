@@ -8,7 +8,6 @@ import { PersonSearch } from "@/components/PersonSearch";
 import { useAuthStatus, useFamily } from "@/lib/hooks";
 import { buildDescendantList } from "@/lib/list";
 import { displayName, formatPolishDate } from "@/lib/db-client";
-import { exportListPdf } from "@/lib/pdf";
 import { useRouter } from "next/navigation";
 
 export function ListPageClient() {
@@ -16,7 +15,6 @@ export function ListPageClient() {
   const unlocked = Boolean(auth.data?.unlocked);
   const family = useFamily(unlocked);
   const [highlightId, setHighlightId] = useState<string | null>(null);
-  const [pdfBusy, setPdfBusy] = useState(false);
   const router = useRouter();
 
   const people = family.data?.people ?? [];
@@ -45,7 +43,7 @@ export function ListPageClient() {
   }
 
   return (
-    <AppShell peopleCount={people.length}>
+    <AppShell peopleCount={people.length} exportRootId={rootId}>
       <section className="toolbar">
         <PersonSearch
           people={people}
@@ -56,27 +54,6 @@ export function ListPageClient() {
             el?.scrollIntoView({ behavior: "smooth", block: "center" });
           }}
         />
-        <div className="toolbar-actions">
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={pdfBusy}
-            onClick={async () => {
-              setPdfBusy(true);
-              try {
-                await exportListPdf(
-                  people,
-                  rootId,
-                  family.data?.meta.title || "Drzewo Potrykus",
-                );
-              } finally {
-                setPdfBusy(false);
-              }
-            }}
-          >
-            {pdfBusy ? "Generuję PDF…" : "Pobierz PDF listy"}
-          </button>
-        </div>
       </section>
 
       <div className="genealogy-panel">
@@ -84,6 +61,7 @@ export function ListPageClient() {
           <h1>Lista potomków</h1>
           <p>
             Hierarchia z widocznymi powiązaniami — jak w dokumencie rodzinnym.
+            PDF pobierzesz z menu u góry.
           </p>
         </header>
 

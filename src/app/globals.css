@@ -251,6 +251,90 @@ input {
   box-shadow: 0 1px 0 var(--line);
 }
 
+.nav-menu {
+  position: relative;
+}
+
+.nav-menu__trigger {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 650;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.nav-menu__trigger.is-open {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.nav-menu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 50;
+  min-width: 210px;
+  padding: 0.4rem;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 0.15rem;
+}
+
+.nav-menu__label {
+  margin: 0;
+  padding: 0.35rem 0.65rem 0.15rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.nav-menu__panel button {
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.nav-menu__panel button:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+.nav-menu__panel button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.nav-menu__sep {
+  height: 1px;
+  margin: 0.25rem 0.4rem;
+  background: var(--line);
+}
+
+.nav-menu__danger {
+  color: #8b2e3b !important;
+}
+
+.banner-error--bar {
+  margin: 0;
+  border-radius: 0;
+}
+
 .app-main {
   flex: 1;
   width: min(1400px, 100%);
