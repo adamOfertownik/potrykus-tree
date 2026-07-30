@@ -13,8 +13,9 @@
   --female: #c45b7a;
   --shadow: 0 10px 30px rgba(26, 46, 36, 0.08);
   --radius: 14px;
-  --font-display: var(--font-display), Georgia, serif;
-  --font-body: var(--font-body), "Segoe UI", sans-serif;
+  /* next/font sets --font-display / --font-body on <html> — do not redeclare same names */
+  --font-display-stack: var(--font-display), "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-body-stack: var(--font-body), "Segoe UI", system-ui, sans-serif;
   --text-scale: 1;
   --touch: 2.75rem; /* ~44px at 16px — senior-friendly tap target */
 }
@@ -22,7 +23,7 @@
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--ink);
-  --font-sans: var(--font-body);
+  --font-sans: var(--font-body-stack);
 }
 
 * {
@@ -48,7 +49,7 @@ body {
     radial-gradient(ellipse 80% 50% at 10% -10%, #cfe3d4 0%, transparent 55%),
     radial-gradient(ellipse 60% 40% at 100% 0%, #dce9df 0%, transparent 45%),
     linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
-  font-family: var(--font-body);
+  font-family: var(--font-body-stack);
   font-size: 1rem;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -127,7 +128,7 @@ input {
 
 .gate-brand {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-display-stack);
   font-size: clamp(2.4rem, 8vw, 3.4rem);
   line-height: 0.95;
   letter-spacing: -0.03em;
@@ -209,10 +210,10 @@ input {
 
 .app-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 1.25rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  padding: 0.7rem 1rem 0.75rem;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
   background: color-mix(in srgb, var(--panel) 85%, transparent);
   backdrop-filter: blur(10px);
@@ -221,28 +222,53 @@ input {
   z-index: 20;
 }
 
+.app-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .app-header__brand {
   display: flex;
   align-items: baseline;
-  gap: 0.75rem;
+  gap: 0.55rem;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .brand-link {
-  font-family: var(--font-display);
-  font-size: 1.55rem;
+  font-family: var(--font-display-stack);
+  font-size: clamp(1.15rem, 4.2vw, 1.45rem);
   letter-spacing: -0.02em;
   color: var(--accent-strong);
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .people-count {
-  font-size: 0.8rem;
+  flex-shrink: 0;
+  font-size: 0.75rem;
   color: var(--ink-soft);
+  white-space: nowrap;
 }
 
 .app-nav {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.1rem;
+}
+
+.app-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .app-nav a,
@@ -250,13 +276,15 @@ input {
   border: 0;
   background: transparent;
   color: var(--ink-soft);
-  padding: 0.55rem 0.75rem;
-  min-height: var(--touch);
+  padding: 0.45rem 0.7rem;
+  min-height: 2.5rem;
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .app-nav a.is-active {
@@ -267,21 +295,23 @@ input {
 
 .nav-menu {
   position: relative;
+  flex-shrink: 0;
 }
 
 .nav-menu__trigger {
   border: 1px solid var(--line);
   background: white;
   color: var(--ink);
-  padding: 0.45rem 0.75rem;
-  min-height: var(--touch);
+  padding: 0.4rem 0.7rem;
+  min-height: 2.5rem;
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 650;
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
+  white-space: nowrap;
 }
 
 .nav-menu__trigger.is-open {
@@ -625,6 +655,12 @@ input {
   color: var(--ink);
 }
 
+.family-chart-host .card text,
+.family-chart-host .card .card-text,
+.family-chart-host .card-inner text {
+  font-size: 13px !important;
+}
+
 /* Relationship lines — visible on light background */
 .family-chart-host svg.main_svg .link,
 .family-chart-host svg .link {
@@ -863,7 +899,7 @@ input {
 
 .genealogy-panel__head h1 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-display-stack);
   font-size: 1.55rem;
   letter-spacing: -0.02em;
 }
@@ -1057,7 +1093,7 @@ input {
 
 .person-detail h1 {
   margin: 0 0 0.35rem;
-  font-family: var(--font-display);
+  font-family: var(--font-display-stack);
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   letter-spacing: -0.02em;
 }
@@ -1155,6 +1191,11 @@ input {
   justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 0.35rem;
+  min-width: 0;
+}
+
+.person-search__label {
+  flex-shrink: 0;
 }
 
 .person-search__who {
@@ -1164,6 +1205,12 @@ input {
   font-size: 0.78rem;
   cursor: pointer;
   padding: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 65%;
+  text-align: right;
 }
 
 .person-search__who--ask {
@@ -1211,7 +1258,7 @@ input {
 
 .modal-card__head h2 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-display-stack);
   font-size: 1.45rem;
 }
 
@@ -1333,20 +1380,22 @@ input {
   resize: vertical;
 }
 
-/* Prefer wrapping over clipping when system text is large */
+/* Mobile: stack search + action so layout never crushes */
 @media (max-width: 720px) {
-  .btn-inline {
-    white-space: normal;
-    line-height: 1.2;
-    max-width: 7.5rem;
-  }
-
   .person-search__row {
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .person-search__row .btn-inline {
-    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
+    white-space: nowrap;
+    justify-content: center;
+  }
+
+  .people-count {
+    display: none;
   }
 }
 
@@ -1396,7 +1445,7 @@ input {
 
 .change-panel__head h1 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-display-stack);
   font-size: 1.7rem;
 }
 
@@ -1481,7 +1530,7 @@ input {
 
 .event-hero h1 {
   margin: 0.35rem 0 0.5rem;
-  font-family: var(--font-display);
+  font-family: var(--font-display-stack);
   font-size: clamp(1.7rem, 5vw, 2.3rem);
   letter-spacing: -0.02em;
   color: var(--accent-strong);
@@ -1627,17 +1676,25 @@ input {
   line-height: 1.4;
 }
 
-@media (max-width: 720px) {
+@media (min-width: 900px) {
   .app-header {
-    flex-direction: column;
-    align-items: stretch;
+    padding: 0.85rem 1.25rem 0.75rem;
+  }
+
+  .brand-link {
+    font-size: 1.45rem;
   }
 
   .app-nav {
-    justify-content: space-between;
-    flex-wrap: wrap;
+    overflow: visible;
   }
 
+  .people-count {
+    display: inline;
+  }
+}
+
+@media (max-width: 720px) {
   .tree-children {
     gap: 0.65rem;
   }
@@ -1645,5 +1702,14 @@ input {
   .person-card,
   .person-card--compact {
     width: 132px;
+  }
+
+  .app-main {
+    padding: 0.85rem 0.75rem 1.75rem;
+  }
+
+  .family-chart-wrap {
+    min-height: 420px;
+    height: calc(100dvh - 220px);
   }
 }

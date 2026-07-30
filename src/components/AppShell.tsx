@@ -71,39 +71,15 @@ export function AppShell({
     <div className="app-shell">
       <PrototypeBanner />
       <header className="app-header">
-        <div className="app-header__brand">
-          <Link href="/drzewo" className="brand-link">
-            Drzewo Potrykus
-          </Link>
-          {typeof peopleCount === "number" && (
-            <span className="people-count">{peopleCount} osób</span>
-          )}
-        </div>
-        <nav className="app-nav">
-          <Link
-            href="/drzewo"
-            className={pathname.startsWith("/drzewo") ? "is-active" : ""}
-          >
-            Drzewo
-          </Link>
-          <Link
-            href="/lista"
-            className={pathname.startsWith("/lista") ? "is-active" : ""}
-          >
-            Lista
-          </Link>
-          <Link
-            href="/spotkanie"
-            className={pathname.startsWith("/spotkanie") ? "is-active" : ""}
-          >
-            Spotkanie
-          </Link>
-          <Link
-            href="/zglos"
-            className={`nav-link-compact${pathname.startsWith("/zglos") ? " is-active" : ""}`}
-          >
-            Zgłoś
-          </Link>
+        <div className="app-header__top">
+          <div className="app-header__brand">
+            <Link href="/drzewo" className="brand-link">
+              Drzewo Potrykus
+            </Link>
+            {typeof peopleCount === "number" && (
+              <span className="people-count">{peopleCount} osób</span>
+            )}
+          </div>
 
           <div className="nav-menu" ref={menuRef}>
             <button
@@ -171,6 +147,33 @@ export function AppShell({
               </div>
             )}
           </div>
+        </div>
+
+        <nav className="app-nav" aria-label="Główne">
+          <Link
+            href="/drzewo"
+            className={pathname.startsWith("/drzewo") ? "is-active" : ""}
+          >
+            Drzewo
+          </Link>
+          <Link
+            href="/lista"
+            className={pathname.startsWith("/lista") ? "is-active" : ""}
+          >
+            Lista
+          </Link>
+          <Link
+            href="/spotkanie"
+            className={pathname.startsWith("/spotkanie") ? "is-active" : ""}
+          >
+            Spotkanie
+          </Link>
+          <Link
+            href="/zglos"
+            className={pathname.startsWith("/zglos") ? "is-active" : ""}
+          >
+            Zgłoś
+          </Link>
         </nav>
       </header>
 
