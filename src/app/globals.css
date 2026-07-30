@@ -968,6 +968,246 @@ input {
   margin: 0.5rem 0;
 }
 
+/* ——— Prototype banner ——— */
+.prototype-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  align-items: baseline;
+  padding: 0.65rem 1.25rem;
+  background: #fff6e8;
+  color: #6b4a1b;
+  border-bottom: 1px solid #efd7a8;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.prototype-banner strong {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+}
+
+/* ——— Search identity ——— */
+.person-search__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.person-search__who {
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.person-search__who--ask {
+  color: var(--accent);
+  font-weight: 650;
+  text-decoration: underline;
+}
+
+.person-search__empty {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+}
+
+.person-search__empty p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+/* ——— Modals & forms ——— */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(20, 35, 28, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.modal-card {
+  width: min(480px, 100%);
+  max-height: min(90dvh, 900px);
+  overflow: auto;
+  background: #fbfdfb;
+  border-radius: 18px;
+  padding: 1.35rem 1.25rem 1.25rem;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+}
+
+.modal-card--wide {
+  width: min(720px, 100%);
+}
+
+.modal-card__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+}
+
+.modal-card__head p {
+  margin: 0.45rem 0 1rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.modal-success {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.modal-success .muted {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.field-label,
+.field-block,
+.change-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--ink-soft);
+}
+
+.field-input,
+.change-form input,
+.change-form select,
+.change-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 400;
+}
+
+.change-form textarea {
+  resize: vertical;
+}
+
+.field-divider {
+  margin: 0.85rem 0;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.who-matches {
+  list-style: none;
+  margin: 0.45rem 0 0;
+  padding: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.who-matches button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.who-matches button:hover {
+  background: var(--bg);
+}
+
+.change-panel {
+  background: color-mix(in srgb, white 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 18px;
+  padding: 1.25rem;
+}
+
+.change-panel__head h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+}
+
+.change-panel__head p {
+  margin: 0.45rem 0 1.1rem;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.change-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.change-form fieldset {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.85rem;
+  margin: 0;
+}
+
+.change-form legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.65rem;
+}
+
+.relative-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px dashed color-mix(in srgb, var(--line) 80%, transparent);
+}
+
+.selected-chip {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--accent-strong);
+}
+
+.banner-success {
+  background: #e5f5ea;
+  color: #1f5a36;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 720px) {
   .app-header {
     flex-direction: column;
@@ -976,6 +1216,7 @@ input {
 
   .app-nav {
     justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .tree-children {

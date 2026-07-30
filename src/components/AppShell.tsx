@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLogout } from "@/lib/hooks";
+import { PrototypeBanner } from "@/components/PrototypeBanner";
 
 export function AppShell({
   children,
@@ -16,6 +17,7 @@ export function AppShell({
 
   return (
     <div className="app-shell">
+      <PrototypeBanner />
       <header className="app-header">
         <div className="app-header__brand">
           <Link href="/drzewo" className="brand-link">
@@ -37,6 +39,12 @@ export function AppShell({
             className={pathname.startsWith("/lista") ? "is-active" : ""}
           >
             Lista
+          </Link>
+          <Link
+            href="/zglos"
+            className={pathname.startsWith("/zglos") ? "is-active" : ""}
+          >
+            Zgłoś zmianę
           </Link>
           <button
             type="button"
