@@ -3,6 +3,8 @@
 Prywatne drzewo genealogiczne rodziny **Potrykus**.  
 Twórca: **Adam Lieske**
 
+Repozytorium: `adamOfertownik/potrykus-family-tree`
+
 ## Stack
 
 - Next.js 16 (App Router)
