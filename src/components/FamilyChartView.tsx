@@ -78,7 +78,6 @@ export function FamilyChartView({
   const [selected, setSelected] = useState<Person | null>(null);
   const [editOp, setEditOp] = useState<GraphEditOp | null>(null);
   const [editNotice, setEditNotice] = useState<string | null>(null);
-  const peopleCount = people.length;
   /** Rebuild when links change, not only when a person is added */
   const peopleSig = people
     .map(
@@ -256,9 +255,9 @@ export function FamilyChartView({
       cardRef.current = null;
       el.innerHTML = "";
     };
-    // Full rebuild only when the person set changes — scale is handled below
+    // Full rebuild when people or links change — scale is handled below
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [peopleCount]);
+  }, [peopleSig]);
 
   // Text scale: resize cards without destroying the whole chart
   useEffect(() => {
