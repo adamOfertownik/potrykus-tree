@@ -75,31 +75,26 @@ function PickSlot({
 
 function KinshipInner({ people }: { people: Person[] }) {
   const { identity } = useIdentity();
-  const [personA, setPersonA] = useState<Person | null>(null);
-  const [personB, setPersonB] = useState<Person | null>(null);
-  const [prefilled, setPrefilled] = useState(false);
-
+  const myId = identity?.personId ?? null;
   const me = useMemo(
-    () =>
-      identity?.personId
-        ? people.find((p) => p.id === identity.personId) ?? null
-        : null,
-    [people, identity?.personId],
+    () => (myId ? people.find((p) => p.id === myId) ?? null : null),
+    [people, myId],
   );
 
-  useEffect(() => {
-    if (prefilled || !me) return;
-    setPersonA(me);
-    setPrefilled(true);
-  }, [me, prefilled]);
+  // Slot A starts as you (once the identity is known) until it is changed
+  const [pickA, setPickA] = useState<Person | null | undefined>(undefined);
+  const [personB, setPersonB] = useState<Person | null>(null);
+  const personA = pickA === undefined ? me : pickA;
 
   const result = useMemo(() => {
     if (!personA || !personB) return null;
     return describeKinship(people, personA.id, personB.id);
   }, [people, personA, personB]);
 
+  const setPersonA = (person: Person | null) => setPickA(person);
+
   const swap = () => {
-    setPersonA(personB);
+    setPickA(personB);
     setPersonB(personA);
   };
 

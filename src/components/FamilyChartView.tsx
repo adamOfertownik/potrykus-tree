@@ -12,8 +12,14 @@ type Props = {
   people: Person[];
   /** Stable tree center (family root or explicit search focus) */
   mainId: string;
-  /** Called only when user explicitly focuses a branch (search / modal action) */
+  /** Person to highlight without changing what the tree shows */
+  highlightId?: string | null;
+  /** Called when a card is tapped — the tree itself stays untouched */
+  onHighlight?: (id: string) => void;
+  /** Called only when user explicitly focuses a branch (modal action) */
   onFocusBranch?: (id: string) => void;
+  /** Called when the highlighted person is not part of the rendered tree */
+  onHighlightMissing?: (id: string) => void;
 };
 
 const SCALE_LAYOUT: Record<
@@ -25,18 +31,143 @@ const SCALE_LAYOUT: Record<
   xlarge: { w: 300, h: 112, xSpace: 350, ySpace: 330, font: 18 },
 };
 
-export function FamilyChartView({ people, mainId, onFocusBranch }: Props) {
+/** Minimum zoom when jumping to a searched person, so the card stays readable */
+const READABLE_ZOOM = 0.7;
+
+type ZoomTransform = {
+  k: number;
+  x: number;
+  y: number;
+  translate: (x: number, y: number) => ZoomTransform;
+  scale: (k: number) => ZoomTransform;
+};
+
+type ZoomHost = Element & {
+  __zoomObj?: { on: (type: string) => ((e: unknown) => void) | undefined };
+  __zoom?: ZoomTransform;
+};
+
+export function FamilyChartView({
+  people,
+  mainId,
+  highlightId = null,
+  onHighlight,
+  onFocusBranch,
+  onHighlightMissing,
+}: Props) {
+  const wrapRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof f3.createChart> | null>(null);
   const peopleRef = useRef(people);
   const mainIdRef = useRef(mainId);
-  peopleRef.current = people;
-  mainIdRef.current = mainId;
+  const highlightRef = useRef<string | null>(highlightId);
+  /** Set when the highlight came from a tap — no need to slide the view then */
+  const skipPanRef = useRef<string | null>(null);
 
   const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
-  const [highlightId, setHighlightId] = useState<string | null>(null);
   const peopleCount = people.length;
+
+  useEffect(() => {
+    peopleRef.current = people;
+    mainIdRef.current = mainId;
+    highlightRef.current = highlightId;
+  });
+
+  /** Bars above the canvas come and go — keep it inside the window */
+  const syncCanvasHeight = () => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const top = wrap.getBoundingClientRect().top;
+    const height = Math.max(360, window.innerHeight - top - 16);
+    wrap.style.height = `${height}px`;
+  };
+
+  useEffect(() => {
+    syncCanvasHeight();
+    window.addEventListener("resize", syncCanvasHeight);
+    return () => window.removeEventListener("resize", syncCanvasHeight);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    syncCanvasHeight();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId, mainId, scale, peopleCount]);
+
+  /** Card wrappers carry the tree datum in d3's __data__ — match on person id */
+  const findCardNodes = (id: string): Element[] => {
+    const el = containerRef.current;
+    if (!el) return [];
+    return Array.from(el.querySelectorAll(".card_cont")).filter((node) => {
+      const datum = (node as Element & { __data__?: { data?: { id?: string } } })
+        .__data__;
+      return datum?.data?.id === id;
+    });
+  };
+
+  const applyHighlight = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.querySelectorAll(".is-chart-highlight").forEach((node) => {
+      node.classList.remove("is-chart-highlight");
+    });
+    const id = highlightRef.current;
+    if (!id) return;
+    // Both the svg group and the html wrapper can back one person
+    findCardNodes(id).forEach((node) => {
+      node.classList.add("is-chart-highlight");
+    });
+  };
+
+  /** Drive the chart's own d3 zoom so svg links and html cards stay in sync */
+  const setViewTransform = (k: number, x: number, y: number): boolean => {
+    const svg = chartRef.current?.svg as ZoomHost | undefined;
+    if (!svg) return false;
+    const host: ZoomHost | null = svg.__zoomObj
+      ? svg
+      : ((svg.parentNode as ZoomHost | null) ?? null);
+    const zoomObj = host?.__zoomObj;
+    const current = host?.__zoom;
+    if (!host || !zoomObj || !current) return false;
+
+    const next = current
+      .scale(k / current.k)
+      .translate((x - current.x) / k, (y - current.y) / k);
+    host.__zoom = next;
+    zoomObj.on("zoom")?.({ transform: next });
+    return true;
+  };
+
+  const viewportRect = (): DOMRect | null => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    return rect && rect.width && rect.height ? rect : null;
+  };
+
+  /**
+   * Pan (and gently zoom in) to a card without re-rooting the tree.
+   * "missing" means the person is not part of the rendered tree at all.
+   */
+  const panToCard = (id: string): "ok" | "missing" | "unavailable" => {
+    const chart = chartRef.current;
+    if (!chart) return "unavailable";
+    const datum = chart.store.getTreeDatum?.(id);
+    if (!datum) return "missing";
+
+    const rect = viewportRect();
+    const currentK = (chart.svg as ZoomHost).__zoomObj
+      ? (chart.svg as ZoomHost).__zoom?.k
+      : ((chart.svg as ZoomHost).parentNode as ZoomHost | null)?.__zoom?.k;
+    if (!rect) return "unavailable";
+
+    const k = Math.max(currentK ?? 1, READABLE_ZOOM);
+    const ok = setViewTransform(
+      k,
+      rect.width / 2 - datum.x * k,
+      rect.height / 2 - datum.y * k,
+    );
+    return ok ? "ok" : "unavailable";
+  };
 
   useEffect(() => {
     const el = containerRef.current;
@@ -65,17 +196,7 @@ export function FamilyChartView({ people, mainId, onFocusBranch }: Props) {
         path.setAttribute("stroke-width", "2.5");
         path.setAttribute("fill", "none");
       });
-      // Mark selected card for CSS highlight without re-rooting
-      const hid = highlightId;
-      el.querySelectorAll(".card").forEach((node) => {
-        node.classList.remove("is-chart-selected");
-      });
-      if (hid) {
-        const cardEl =
-          el.querySelector(`[data-id="${hid}"]`) ||
-          el.querySelector(`.card[data-id="${hid}"]`);
-        cardEl?.classList.add("is-chart-selected");
-      }
+      applyHighlight();
     };
 
     const card = chart.setCardHtml();
@@ -98,15 +219,13 @@ export function FamilyChartView({ people, mainId, onFocusBranch }: Props) {
     card.setOnCardClick((_e: MouseEvent, d: { data?: { id?: string } }) => {
       const id = d?.data?.id;
       if (!id) return;
-      // Select + highlight only — keep full tree, do not re-filter branch
+      // Highlight + details only — the whole tree stays as it is
       const person = peopleRef.current.find((p) => p.id === id) ?? null;
-      setHighlightId(id);
+      skipPanRef.current = id;
+      highlightRef.current = id;
+      applyHighlight();
       setSelected(person);
-      el.querySelectorAll(".card").forEach((node) => {
-        node.classList.remove("is-chart-selected");
-      });
-      const target = (_e.target as HTMLElement | null)?.closest?.(".card");
-      target?.classList.add("is-chart-selected");
+      onHighlight?.(id);
     });
 
     chart.updateMainId(safeMain);
@@ -120,13 +239,55 @@ export function FamilyChartView({ people, mainId, onFocusBranch }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scale, peopleCount]);
 
-  // Explicit focus (search / “fokus w drzewie”) — recenter around person
+  // Explicit branch focus (deep link ?root=) — recenter the tree around a person
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart || !mainId) return;
     chart.updateMainId(mainId);
     chart.updateTree({ tree_position: "main_to_middle" });
   }, [mainId]);
+
+  // Highlight — mark the card and slide the view onto it
+  useEffect(() => {
+    if (!chartRef.current) return;
+    highlightRef.current = highlightId;
+    applyHighlight();
+    if (!highlightId) return;
+    if (skipPanRef.current === highlightId) {
+      // Tapped card is already on screen
+      skipPanRef.current = null;
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      const status = panToCard(highlightId);
+      applyHighlight();
+      // Only re-root when the person really is outside the rendered tree
+      if (status === "missing") onHighlightMissing?.(highlightId);
+    }, 80);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId, peopleCount, scale]);
+
+  /** Zoom out until every generation fits inside the visible canvas */
+  const fitWholeTree = () => {
+    const dim = chartRef.current?.store.getTree?.()?.dim;
+    const rect = viewportRect();
+    if (!dim || !rect || !dim.width || !dim.height) {
+      chartRef.current?.updateTree({ tree_position: "fit" });
+      return;
+    }
+    const pad = 24;
+    const k = Math.min(
+      (rect.width - pad * 2) / dim.width,
+      (rect.height - pad * 2) / dim.height,
+      1,
+    );
+    setViewTransform(
+      k,
+      k * dim.x_off + (rect.width - dim.width * k) / 2,
+      k * dim.y_off + (rect.height - dim.height * k) / 2,
+    );
+  };
 
   const goToPerson = () => {
     if (!selected) return;
@@ -139,21 +300,40 @@ export function FamilyChartView({ people, mainId, onFocusBranch }: Props) {
     if (!selected) return;
     const id = selected.id;
     setSelected(null);
-    setHighlightId(id);
     onFocusBranch?.(id);
   };
 
   return (
-    <div className="family-chart-wrap" id="family-tree-canvas">
+    <div className="family-chart-wrap" id="family-tree-canvas" ref={wrapRef}>
       <div
         ref={containerRef}
         id="FamilyChart"
         className={`f3 family-chart-host family-chart-host--${scale}`}
         data-text-scale={scale}
       />
+
+      <div className="family-chart-tools">
+        <button
+          type="button"
+          className="btn btn-secondary btn-mini"
+          onClick={fitWholeTree}
+        >
+          ⤢ Całe drzewo<span className="only-wide"> w kadrze</span>
+        </button>
+        {highlightId && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-mini"
+            onClick={() => panToCard(highlightId)}
+          >
+            ◎ <span className="only-wide">Wróć do </span>podświetlonej
+            <span className="only-wide"> osoby</span>
+          </button>
+        )}
+      </div>
+
       <p className="family-chart-hint">
-        Przeciągnij, aby przesunąć · scroll = zoom · klik = wybór (całe drzewo
-        zostaje)
+        Przeciągnij, aby przesunąć · scroll = zoom · klik = szczegóły osoby
       </p>
 
       {selected && (
@@ -226,7 +406,7 @@ export function FamilyChartView({ people, mainId, onFocusBranch }: Props) {
                   focusInTree();
                 }}
               >
-                Ustaw jako fokus w drzewie
+                Pokaż tylko tę gałąź
               </button>
               <button
                 type="button"

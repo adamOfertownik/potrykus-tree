@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useEffectEvent,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import type { Person } from "@/types/family";
 import {
@@ -26,11 +20,6 @@ type Ctx = {
 
 const IdentityContext = createContext<Ctx | null>(null);
 
-function readInitialIdentity(): ReporterIdentity | null {
-  if (typeof window === "undefined") return null;
-  return loadReporter();
-}
-
 export function IdentityProvider({
   people,
   enabled,
@@ -41,22 +30,18 @@ export function IdentityProvider({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [identity, setIdentityState] = useState<ReporterIdentity | null>(
-    readInitialIdentity,
-  );
+  const [identity, setIdentityState] = useState<ReporterIdentity | null>(null);
   const [ready, setReady] = useState(false);
   const [promptOpen, setPromptOpen] = useState(false);
 
-  const hydrate = useEffectEvent(() => {
+  // Read the stored identity once. loadReporter() returns a fresh object every
+  // call, so re-running this would loop the whole app through re-renders.
+  useEffect(() => {
     const saved = loadReporter();
     setIdentityState(saved);
     setReady(true);
     if (!saved?.name) setPromptOpen(true);
-  });
-
-  useEffect(() => {
-    hydrate();
-  }, [hydrate]);
+  }, []);
 
   useEffect(() => {
     if (!enabled || !ready || !people.length) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AccessGate } from "@/components/AccessGate";
 import { AppShell } from "@/components/AppShell";
 import { FamilyChartView } from "@/components/FamilyChartView";
@@ -8,7 +8,6 @@ import { PersonSearch } from "@/components/PersonSearch";
 import { useAuthStatus, useFamily } from "@/lib/hooks";
 import { useSearchParams } from "next/navigation";
 import { displayName } from "@/lib/db-client";
-import Link from "next/link";
 
 export function TreePageClient() {
   const auth = useAuthStatus();
@@ -16,14 +15,9 @@ export function TreePageClient() {
   const family = useFamily(unlocked);
   const searchParams = useSearchParams();
 
-  // Read ?root= on first paint — don't wait for useEffect (that centered on Franciszek)
-  const [rootId, setRootId] = useState<string | null>(
-    () => searchParams.get("root"),
-  );
-
-  useEffect(() => {
-    setRootId(searchParams.get("root"));
-  }, [searchParams]);
+  // Focus lives in the URL; every change of it goes through a full navigation
+  const rootId = searchParams.get("root");
+  const [highlightId, setHighlightId] = useState<string | null>(rootId);
 
   const people = family.data?.people ?? [];
   const meta = family.data?.meta;
@@ -34,14 +28,15 @@ export function TreePageClient() {
   const focusPerson = focusedAway
     ? people.find((p) => p.id === rootId) ?? null
     : null;
+  const highlightPerson = highlightId
+    ? people.find((p) => p.id === highlightId) ?? null
+    : null;
 
   const goFullTree = () => {
-    setRootId(null);
     window.location.assign("/drzewo");
   };
 
   const focusBranch = (id: string) => {
-    setRootId(id);
     window.location.assign(`/drzewo?root=${encodeURIComponent(id)}`);
   };
 
@@ -77,11 +72,8 @@ export function TreePageClient() {
         <PersonSearch
           people={people}
           placeholder="Szukaj w drzewie…"
-          onSelect={(p) => focusBranch(p.id)}
+          onSelect={(p) => setHighlightId(p.id)}
         />
-        <Link href="/pokrewienstwo" className="btn btn-secondary btn-inline">
-          Kto kim?
-        </Link>
       </section>
 
       {focusedAway && (
@@ -102,12 +94,40 @@ export function TreePageClient() {
         </div>
       )}
 
+      {highlightPerson && !focusedAway && (
+        <div className="tree-focus-bar tree-focus-bar--highlight" role="status">
+          <p>
+            Podświetlone: <strong>{displayName(highlightPerson)}</strong> — całe
+            drzewo zostaje widoczne
+          </p>
+          <div className="tree-focus-bar__actions">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => focusBranch(highlightPerson.id)}
+            >
+              Pokaż tylko tę gałąź
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setHighlightId(null)}
+            >
+              Wyczyść
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="tree-scroll tree-scroll--chart">
         {effectiveRoot ? (
           <FamilyChartView
             people={people}
             mainId={effectiveRoot}
+            highlightId={highlightId}
+            onHighlight={setHighlightId}
             onFocusBranch={focusBranch}
+            onHighlightMissing={focusBranch}
           />
         ) : (
           <p className="empty-hint">Brak danych drzewa.</p>

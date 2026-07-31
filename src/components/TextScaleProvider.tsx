@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useEffectEvent,
-} from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 export type TextScaleId = "normal" | "large" | "xlarge";
 
@@ -37,7 +31,7 @@ function applyScale(scale: TextScaleId) {
 export function TextScaleProvider({ children }: { children: React.ReactNode }) {
   const [scale, setScaleState] = useState<TextScaleId>("normal");
 
-  const hydrate = useEffectEvent(() => {
+  useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as TextScaleId | null;
       if (saved && saved in SCALE_VALUES) {
@@ -49,11 +43,7 @@ export function TextScaleProvider({ children }: { children: React.ReactNode }) {
       /* ignore */
     }
     applyScale("normal");
-  });
-
-  useEffect(() => {
-    hydrate();
-  }, [hydrate]);
+  }, []);
 
   const setScale = (next: TextScaleId) => {
     setScaleState(next);

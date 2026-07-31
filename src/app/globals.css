@@ -469,6 +469,16 @@ input {
   flex-shrink: 0;
 }
 
+.tree-focus-bar--highlight {
+  background: color-mix(in srgb, var(--accent) 6%, white);
+}
+
+.tree-focus-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 /* ——— Person search ——— */
 .person-search {
   position: relative;
@@ -724,12 +734,37 @@ input {
   font-size: var(--f3-card-font, 13px) !important;
 }
 
-.family-chart-host .card.is-chart-selected,
-.family-chart-host .card.is-chart-selected .card-inner,
-.family-chart-host .card.is-chart-selected .card-rect {
+.family-chart-host .card_cont.is-chart-highlight .card,
+.family-chart-host .card_cont.is-chart-highlight .card-inner,
+.family-chart-host .card_cont.is-chart-highlight .card-rect {
   outline: 3px solid var(--accent-strong);
   outline-offset: 2px;
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.family-chart-host .card_cont.is-chart-highlight {
+  animation: chart-highlight-pulse 1.4s ease-out 3;
+  z-index: 2;
+}
+
+.family-chart-host g.card_cont.is-chart-highlight .card-outline,
+.family-chart-host g.card_cont.is-chart-highlight .card-body-rect {
+  stroke: var(--accent-strong);
+  stroke-width: 4px;
+}
+
+@keyframes chart-highlight-pulse {
+  0% {
+    filter: drop-shadow(0 0 0 color-mix(in srgb, var(--accent) 70%, transparent));
+  }
+  50% {
+    filter: drop-shadow(
+      0 0 14px color-mix(in srgb, var(--accent) 70%, transparent)
+    );
+  }
+  100% {
+    filter: drop-shadow(0 0 0 color-mix(in srgb, var(--accent) 0%, transparent));
+  }
 }
 
 .family-chart-host--large .card,
@@ -774,6 +809,33 @@ input {
   font-size: 0.75rem;
   color: var(--ink-soft);
   pointer-events: none;
+}
+
+.family-chart-tools {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  pointer-events: none;
+}
+
+.family-chart-tools .btn-mini {
+  pointer-events: auto;
+  padding: 0.32rem 0.6rem;
+  font-size: 0.78rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 720px) {
+  .only-wide {
+    display: none;
+  }
 }
 
 .tree-canvas {
