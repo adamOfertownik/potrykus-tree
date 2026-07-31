@@ -7,6 +7,7 @@ import {
   useState,
   useEffectEvent,
 } from "react";
+import { useRouter } from "next/navigation";
 import type { Person } from "@/types/family";
 import {
   clearReporter,
@@ -34,6 +35,7 @@ export function IdentityProvider({
   enabled: boolean;
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [identity, setIdentityState] = useState<ReporterIdentity | null>(null);
   const [ready, setReady] = useState(false);
   const [promptOpen, setPromptOpen] = useState(false);
@@ -53,10 +55,14 @@ export function IdentityProvider({
     setPromptOpen(true);
   }, [enabled, ready, people.length, identity?.name]);
 
-  const setIdentity = (next: ReporterIdentity) => {
+  const setIdentity = (next: ReporterIdentity, opts?: { goToTree?: boolean }) => {
     saveReporter(next);
     setIdentityState(next);
     setPromptOpen(false);
+    if (opts?.goToTree !== false && next.personId) {
+      // Focus tree on “me” — same as searching yourself
+      router.push(`/drzewo?root=${encodeURIComponent(next.personId)}`);
+    }
   };
 
   const clearIdentity = () => {
@@ -69,7 +75,12 @@ export function IdentityProvider({
 
   return (
     <IdentityContext.Provider
-      value={{ identity, setIdentity, clearIdentity, promptIdentity }}
+      value={{
+        identity,
+        setIdentity: (id) => setIdentity(id, { goToTree: false }),
+        clearIdentity,
+        promptIdentity,
+      }}
     >
       {children}
       {enabled && (
@@ -81,7 +92,7 @@ export function IdentityProvider({
             if (identity?.name) setPromptOpen(false);
           }}
           onIdentified={(name, personId) => {
-            setIdentity({ name, personId });
+            setIdentity({ name, personId }, { goToTree: true });
           }}
         />
       )}

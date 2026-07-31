@@ -34,16 +34,18 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
 
   const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
+  const peopleCount = people.length;
 
   useEffect(() => {
     const el = containerRef.current;
-    if (!el || !people.length) return;
+    if (!el || !peopleRef.current.length) return;
 
     el.innerHTML = "";
     const layout = SCALE_LAYOUT[scale] ?? SCALE_LAYOUT.normal;
     el.style.setProperty("--f3-card-font", `${layout.font}px`);
 
-    const data = peopleToFamilyChartData(people);
+    const livePeople = peopleRef.current;
+    const data = peopleToFamilyChartData(livePeople);
     const safeMain = data.some((d) => d.id === mainId) ? mainId : data[0]?.id;
     if (!safeMain) return;
 
@@ -95,7 +97,9 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
       chartRef.current = null;
       el.innerHTML = "";
     };
-  }, [people, scale]);
+    // Recreate only when scale or dataset size changes — not on every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scale, peopleCount]);
 
   useEffect(() => {
     const chart = chartRef.current;

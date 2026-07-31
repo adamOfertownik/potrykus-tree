@@ -36,16 +36,57 @@ export function WhoAreYouDialog({
     if (existing?.name) setManual(existing.name);
   }, [open]);
 
+  const pickPerson = (p: Person) => {
+    const name = displayName(p);
+    saveReporter({ name, personId: p.id });
+    onIdentified(name, p.id);
+  };
+
+  const confirmManual = () => {
+    const name = manual.trim();
+    if (!name) return;
+    // Try to link to a person in the tree when name matches
+    const hit =
+      searchPeople(people, name).find(
+        (p) => displayName(p).toLowerCase() === name.toLowerCase(),
+      ) ||
+      searchPeople(people, name).find(
+        (p) =>
+          `${p.firstName} ${p.lastName}`.toLowerCase() === name.toLowerCase(),
+      );
+    if (hit) {
+      pickPerson(hit);
+      return;
+    }
+    saveReporter({ name });
+    onIdentified(name);
+  };
+
   if (!open) return null;
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
-      <div className="modal-card">
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      onMouseDown={(e) => {
+        // Don't let clicks fall through to the chart underneath
+        e.stopPropagation();
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+      }}
+    >
+      <div
+        className="modal-card"
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
         <header className="modal-card__head">
           <h2>Kim jesteś w rodzinie?</h2>
           <p>
-            Zapamiętamy Cię na tym telefonie — zgłoszenia, zapisy i „kto kim”
-            będą od razu pod Ciebie. Bez konta, bez hasła.
+            Wybierz siebie z listy — otworzymy Twoje miejsce w drzewie i
+            zapamiętamy Cię na tym telefonie.
           </p>
         </header>
 
@@ -67,13 +108,15 @@ export function WhoAreYouDialog({
               <li key={p.id}>
                 <button
                   type="button"
-                  onClick={() => {
-                    const name = displayName(p);
-                    saveReporter({ name, personId: p.id });
-                    onIdentified(name, p.id);
+                  className="who-matches__pick"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    pickPerson(p);
                   }}
                 >
-                  {displayName(p)}
+                  <span>{displayName(p)}</span>
+                  <span className="who-matches__go">To ja →</span>
                 </button>
               </li>
             ))}
@@ -87,11 +130,24 @@ export function WhoAreYouDialog({
           placeholder="Imię i nazwisko"
           value={manual}
           onChange={(e) => setManual(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              confirmManual();
+            }
+          }}
         />
 
         <div className="modal-actions">
           {!compulsory && (
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={(e) => {
+                e.preventDefault();
+                onClose();
+              }}
+            >
               Anuluj
             </button>
           )}
@@ -99,10 +155,9 @@ export function WhoAreYouDialog({
             type="button"
             className="btn btn-primary"
             disabled={!manual.trim()}
-            onClick={() => {
-              const name = manual.trim();
-              saveReporter({ name });
-              onIdentified(name);
+            onClick={(e) => {
+              e.preventDefault();
+              confirmManual();
             }}
           >
             To ja — zapamiętaj

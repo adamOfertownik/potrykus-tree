@@ -1475,23 +1475,41 @@ input {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: white;
-  max-height: 180px;
+  max-height: 220px;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.who-matches button {
+.who-matches button,
+.who-matches__pick {
   width: 100%;
   text-align: left;
   border: 0;
   background: transparent;
-  padding: 0.5rem 0.65rem;
+  padding: 0.75rem 0.75rem;
+  min-height: var(--touch);
   border-radius: 8px;
   cursor: pointer;
   color: inherit;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.who-matches button:hover {
+.who-matches button:hover,
+.who-matches__pick:hover,
+.who-matches__pick:active {
   background: var(--bg);
+}
+
+.who-matches__go {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent-strong);
 }
 
 .change-panel {
