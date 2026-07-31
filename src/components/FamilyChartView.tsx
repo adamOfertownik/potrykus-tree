@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
@@ -303,6 +304,117 @@ export function FamilyChartView({
     onFocusBranch?.(id);
   };
 
+  // Portal to <body> — the chart wrap has overflow:hidden + d3 zoom, which
+  // steals touch scrolls on mobile if the dialog stays inside it.
+  useEffect(() => {
+    if (!selected) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [selected]);
+
+  const personModal =
+    selected && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="modal-backdrop graph-person-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="graph-person-title"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelected(null);
+            }}
+          >
+            <div
+              className="modal-card graph-person-modal"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              <div className="graph-person-modal__scroll">
+                <header className="modal-card__head">
+                  <p className="graph-person-modal__label">Wybrana osoba</p>
+                  <h2 id="graph-person-title">{displayName(selected)}</h2>
+                  {selected.maidenName && (
+                    <p className="graph-person-modal__maiden">
+                      z d. {selected.maidenName}
+                    </p>
+                  )}
+                  <p className="modal-card__head p-reset">
+                    {lifespan(selected) || "Brak dat"}
+                  </p>
+                </header>
+
+                <dl className="graph-person-modal__facts">
+                  <div>
+                    <dt>Urodzenie</dt>
+                    <dd>{formatPolishDate(selected.birthDate) || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Zgon</dt>
+                    <dd>{formatPolishDate(selected.deathDate) || "—"}</dd>
+                  </div>
+                  <div>
+                    <dt>Płeć</dt>
+                    <dd>
+                      {selected.gender === "male"
+                        ? "mężczyzna"
+                        : selected.gender === "female"
+                          ? "kobieta"
+                          : "—"}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div className="modal-actions modal-actions--stack graph-person-modal__actions">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToPerson();
+                  }}
+                >
+                  Przejdź do widoku osoby
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    focusInTree();
+                  }}
+                >
+                  Pokaż tylko tę gałąź
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSelected(null);
+                  }}
+                >
+                  Zamknij
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div className="family-chart-wrap" id="family-tree-canvas" ref={wrapRef}>
       <div
@@ -336,93 +448,7 @@ export function FamilyChartView({
         Przeciągnij, aby przesunąć · scroll = zoom · klik = szczegóły osoby
       </p>
 
-      {selected && (
-        <div
-          className="modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="graph-person-title"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setSelected(null);
-          }}
-        >
-          <div
-            className="modal-card graph-person-modal"
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <header className="modal-card__head">
-              <p className="graph-person-modal__label">Wybrana osoba</p>
-              <h2 id="graph-person-title">{displayName(selected)}</h2>
-              {selected.maidenName && (
-                <p className="graph-person-modal__maiden">
-                  z d. {selected.maidenName}
-                </p>
-              )}
-              <p className="modal-card__head p-reset">
-                {lifespan(selected) || "Brak dat"}
-              </p>
-            </header>
-
-            <dl className="graph-person-modal__facts">
-              <div>
-                <dt>Urodzenie</dt>
-                <dd>{formatPolishDate(selected.birthDate) || "—"}</dd>
-              </div>
-              <div>
-                <dt>Zgon</dt>
-                <dd>{formatPolishDate(selected.deathDate) || "—"}</dd>
-              </div>
-              <div>
-                <dt>Płeć</dt>
-                <dd>
-                  {selected.gender === "male"
-                    ? "mężczyzna"
-                    : selected.gender === "female"
-                      ? "kobieta"
-                      : "—"}
-                </dd>
-              </div>
-            </dl>
-
-            <div className="modal-actions modal-actions--stack">
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  goToPerson();
-                }}
-              >
-                Przejdź do widoku osoby
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  focusInTree();
-                }}
-              >
-                Pokaż tylko tę gałąź
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setSelected(null);
-                }}
-              >
-                Zamknij
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {personModal}
     </div>
   );
 }
