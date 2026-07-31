@@ -158,6 +158,7 @@ export function EventPageClient() {
   }
 
   const { event, stats, rsvps } = eventQ.data;
+  const spotsLeft = stats.spotsLeft ?? Math.max(0, (stats.capacity ?? event.capacity) - stats.guestTotal);
   const iban = event.transfer.iban?.trim();
   const transferTitle = buildTransferTitle(
     event.transfer.titleTemplate,
@@ -428,9 +429,13 @@ export function EventPageClient() {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={busy || guests < 1}
+              disabled={busy || guests < 1 || guests > spotsLeft || spotsLeft < 1}
             >
-              {busy ? "Zapisuję…" : "Zapisz na spotkanie"}
+              {busy
+                ? "Zapisuję…"
+                : spotsLeft < 1
+                  ? "Brak wolnych miejsc"
+                  : "Zapisz na spotkanie"}
             </button>
           </form>
         </section>
