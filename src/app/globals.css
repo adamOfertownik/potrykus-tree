@@ -1348,6 +1348,9 @@ input {
 }
 
 .modal-card {
+  position: relative;
+  z-index: 2001;
+  pointer-events: auto;
   width: min(480px, 100%);
   max-height: min(90dvh, 900px);
   overflow: auto;
@@ -1380,6 +1383,13 @@ input {
   justify-content: flex-end;
   gap: 0.5rem;
   margin-top: 1rem;
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.modal-actions .btn {
+  pointer-events: auto;
 }
 
 .modal-actions--stack {
