@@ -12,6 +12,8 @@
     "Maria Lieske"
   ],
   "pricePerPersonPln": 250,
+  "registeredCount": 45,
+  "capacity": 150,
   "amenities": [
     {
       "id": "sea",

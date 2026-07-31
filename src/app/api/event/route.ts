@@ -16,7 +16,9 @@ export async function GET() {
   }
 
   const [event, rsvps] = await Promise.all([readEvent(), readRsvps()]);
-  const guestTotal = rsvps.reduce((sum, r) => sum + (r.guests || 1), 0);
+  const appGuests = rsvps.reduce((sum, r) => sum + (r.guests || 1), 0);
+  const guestTotal = event.registeredCount + appGuests;
+  const spotsLeft = Math.max(0, event.capacity - guestTotal);
   const amountTotal = rsvps.reduce((sum, r) => sum + (r.amountPln || 0), 0);
   const mode = storageMode();
 
@@ -24,8 +26,10 @@ export async function GET() {
     storage: mode,
     event,
     stats: {
-      rsvpCount: rsvps.length,
+      rsvpCount: event.registeredCount + rsvps.length,
       guestTotal,
+      capacity: event.capacity,
+      spotsLeft,
       amountTotal,
     },
     rsvps: rsvps.map((r) => ({
@@ -57,13 +61,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: msg }, { status: 400 });
     }
     const body = parsed.data;
-    const event = await readEvent();
+    const [event, existing] = await Promise.all([readEvent(), readRsvps()]);
     const breakdown = {
       adults: body.adults,
       children3to12: body.children3to12,
       childrenUnder3: body.childrenUnder3,
     };
     const guests = totalGuests(breakdown);
+    const appGuests = existing.reduce((sum, r) => sum + (r.guests || 1), 0);
+    const taken = event.registeredCount + appGuests;
+    if (taken + guests > event.capacity) {
+      const left = Math.max(0, event.capacity - taken);
+      return NextResponse.json(
+        {
+          error:
+            left === 0
+              ? `Brak wolnych miejsc (limit ${event.capacity} osób).`
+              : `Zostało tylko ${left} miejsc (limit ${event.capacity}).`,
+        },
+        { status: 409 },
+      );
+    }
     const amountPln = amountDuePln(breakdown, event.pricePerPersonPln);
 
     const draft: EventRsvp = {

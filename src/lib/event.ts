@@ -15,6 +15,8 @@ export async function readEvent(): Promise<FamilyEvent> {
     ...parsed,
     pricePerPersonPln:
       parsed.pricePerPersonPln ?? DEFAULT_PRICE_PER_PERSON_PLN,
+    registeredCount: parsed.registeredCount ?? 0,
+    capacity: parsed.capacity ?? 150,
     amenities: parsed.amenities ?? [],
     schedule: parsed.schedule ?? [],
   };

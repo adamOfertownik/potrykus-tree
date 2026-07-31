@@ -29,6 +29,10 @@ export interface FamilyEvent {
   description: string;
   organizers: string[];
   pricePerPersonPln: number;
+  /** Already registered outside the app (shown in stats) */
+  registeredCount: number;
+  /** Max people for the gathering */
+  capacity: number;
   amenities: EventAmenity[];
   schedule: EventScheduleItem[];
   transfer: EventTransfer;

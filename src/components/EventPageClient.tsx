@@ -20,7 +20,13 @@ import type { FamilyEvent } from "@/types/event";
 type EventApi = {
   storage?: string;
   event: FamilyEvent;
-  stats: { rsvpCount: number; guestTotal: number; amountTotal?: number };
+  stats: {
+    rsvpCount: number;
+    guestTotal: number;
+    capacity?: number;
+    spotsLeft?: number;
+    amountTotal?: number;
+  };
   rsvps: {
     id: string;
     createdAt: string;
@@ -255,7 +261,10 @@ export function EventPageClient() {
             <li>
               <span>Zapisy</span>
               <strong>
-                {stats.rsvpCount} zgłoszeń · {stats.guestTotal} osób
+                {stats.guestTotal} / {stats.capacity ?? event.capacity} osób
+                {typeof stats.spotsLeft === "number"
+                  ? ` · wolne ${stats.spotsLeft}`
+                  : ""}
               </strong>
             </li>
           </ul>
