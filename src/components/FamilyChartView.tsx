@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
@@ -27,7 +26,6 @@ const SCALE_LAYOUT: Record<
 };
 
 export function FamilyChartView({ people, mainId, onFocusBranch }: Props) {
-  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof f3.createChart> | null>(null);
   const peopleRef = useRef(people);
@@ -134,7 +132,7 @@ export function FamilyChartView({ people, mainId, onFocusBranch }: Props) {
     if (!selected) return;
     const id = selected.id;
     setSelected(null);
-    router.push(`/osoba/${encodeURIComponent(id)}`);
+    window.location.assign(`/osoba/${encodeURIComponent(id)}`);
   };
 
   const focusInTree = () => {

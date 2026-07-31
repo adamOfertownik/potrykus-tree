@@ -7,7 +7,6 @@ import {
   useState,
   useEffectEvent,
 } from "react";
-import { useRouter } from "next/navigation";
 import type { Person } from "@/types/family";
 import {
   clearReporter,
@@ -40,7 +39,6 @@ export function IdentityProvider({
   enabled: boolean;
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const [identity, setIdentityState] = useState<ReporterIdentity | null>(
     readInitialIdentity,
   );
@@ -51,7 +49,6 @@ export function IdentityProvider({
     const saved = loadReporter();
     setIdentityState(saved);
     setReady(true);
-    // Only ask when we truly have no saved identity
     if (!saved?.name) setPromptOpen(true);
   });
 
@@ -76,7 +73,10 @@ export function IdentityProvider({
     setIdentityState(next);
     setPromptOpen(false);
     if (opts?.goToTree && next.personId) {
-      router.push(`/drzewo?root=${encodeURIComponent(next.personId)}`);
+      // Hard navigation so tree mounts with ?root= already in the URL
+      window.location.assign(
+        `/drzewo?root=${encodeURIComponent(next.personId)}`,
+      );
     }
   };
 

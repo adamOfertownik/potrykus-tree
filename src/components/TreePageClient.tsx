@@ -7,7 +7,6 @@ import { FamilyChartView } from "@/components/FamilyChartView";
 import { PersonSearch } from "@/components/PersonSearch";
 import { useAuthStatus, useFamily } from "@/lib/hooks";
 import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
 import { displayName } from "@/lib/db-client";
 import Link from "next/link";
 
@@ -16,12 +15,14 @@ export function TreePageClient() {
   const unlocked = Boolean(auth.data?.unlocked);
   const family = useFamily(unlocked);
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const [rootId, setRootId] = useState<string | null>(null);
+
+  // Read ?root= on first paint — don't wait for useEffect (that centered on Franciszek)
+  const [rootId, setRootId] = useState<string | null>(
+    () => searchParams.get("root"),
+  );
 
   useEffect(() => {
-    const root = searchParams.get("root");
-    setRootId(root);
+    setRootId(searchParams.get("root"));
   }, [searchParams]);
 
   const people = family.data?.people ?? [];
@@ -36,12 +37,12 @@ export function TreePageClient() {
 
   const goFullTree = () => {
     setRootId(null);
-    router.replace("/drzewo");
+    window.location.assign("/drzewo");
   };
 
   const focusBranch = (id: string) => {
     setRootId(id);
-    router.replace(`/drzewo?root=${encodeURIComponent(id)}`);
+    window.location.assign(`/drzewo?root=${encodeURIComponent(id)}`);
   };
 
   if (auth.isLoading) {

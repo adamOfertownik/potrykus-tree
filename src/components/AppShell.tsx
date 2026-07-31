@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useFamily, useLogout } from "@/lib/hooks";
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
@@ -19,8 +18,8 @@ function AppShellInner({
   exportRootId?: string;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
   const logout = useLogout();
+  // router kept unused removal — hard nav for reliability
   const family = useFamily(true);
   const { scale, setScale } = useTextScale();
   const { identity, promptIdentity } = useIdentity();
@@ -75,9 +74,16 @@ function AppShellInner({
       <header className="app-header">
         <div className="app-header__top">
           <div className="app-header__brand">
-            <Link href="/drzewo" className="brand-link">
+            <a
+              href="/drzewo"
+              className="brand-link"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.assign("/drzewo");
+              }}
+            >
               Drzewo Potrykus
-            </Link>
+            </a>
             {typeof peopleCount === "number" && (
               <span className="people-count">{peopleCount} osób</span>
             )}
@@ -175,19 +181,19 @@ function AppShellInner({
               ["/pokrewienstwo", "Kto kim"],
             ] as const
           ).map(([href, label]) => (
-            <Link
+            <a
               key={href}
               href={href}
               className={pathname.startsWith(href) ? "is-active" : ""}
               onClick={(e) => {
-                // Force client navigation even if something ate the default click
                 e.preventDefault();
                 setMenuOpen(false);
-                router.push(href);
+                // Hard navigation — client router.push was no-op on mobile
+                window.location.assign(href);
               }}
             >
               {label}
-            </Link>
+            </a>
           ))}
         </nav>
       </header>
