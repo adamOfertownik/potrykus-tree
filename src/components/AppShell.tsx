@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useFamily, useLogout } from "@/lib/hooks";
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
@@ -19,6 +19,7 @@ function AppShellInner({
   exportRootId?: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const logout = useLogout();
   const family = useFamily(true);
   const { scale, setScale } = useTextScale();
@@ -165,36 +166,29 @@ function AppShellInner({
         </div>
 
         <nav className="app-nav" aria-label="Główne">
-          <Link
-            href="/drzewo"
-            className={pathname.startsWith("/drzewo") ? "is-active" : ""}
-          >
-            Drzewo
-          </Link>
-          <Link
-            href="/lista"
-            className={pathname.startsWith("/lista") ? "is-active" : ""}
-          >
-            Lista
-          </Link>
-          <Link
-            href="/spotkanie"
-            className={pathname.startsWith("/spotkanie") ? "is-active" : ""}
-          >
-            Spotkanie
-          </Link>
-          <Link
-            href="/zglos"
-            className={pathname.startsWith("/zglos") ? "is-active" : ""}
-          >
-            Zgłoś
-          </Link>
-          <Link
-            href="/pokrewienstwo"
-            className={pathname.startsWith("/pokrewienstwo") ? "is-active" : ""}
-          >
-            Kto kim
-          </Link>
+          {(
+            [
+              ["/drzewo", "Drzewo"],
+              ["/lista", "Lista"],
+              ["/spotkanie", "Spotkanie"],
+              ["/zglos", "Zgłoś"],
+              ["/pokrewienstwo", "Kto kim"],
+            ] as const
+          ).map(([href, label]) => (
+            <Link
+              key={href}
+              href={href}
+              className={pathname.startsWith(href) ? "is-active" : ""}
+              onClick={(e) => {
+                // Force client navigation even if something ate the default click
+                e.preventDefault();
+                setMenuOpen(false);
+                router.push(href);
+              }}
+            >
+              {label}
+            </Link>
+          ))}
         </nav>
       </header>
 

@@ -26,6 +26,11 @@ type Ctx = {
 
 const IdentityContext = createContext<Ctx | null>(null);
 
+function readInitialIdentity(): ReporterIdentity | null {
+  if (typeof window === "undefined") return null;
+  return loadReporter();
+}
+
 export function IdentityProvider({
   people,
   enabled,
@@ -36,13 +41,18 @@ export function IdentityProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [identity, setIdentityState] = useState<ReporterIdentity | null>(null);
+  const [identity, setIdentityState] = useState<ReporterIdentity | null>(
+    readInitialIdentity,
+  );
   const [ready, setReady] = useState(false);
   const [promptOpen, setPromptOpen] = useState(false);
 
   const hydrate = useEffectEvent(() => {
-    setIdentityState(loadReporter());
+    const saved = loadReporter();
+    setIdentityState(saved);
     setReady(true);
+    // Only ask when we truly have no saved identity
+    if (!saved?.name) setPromptOpen(true);
   });
 
   useEffect(() => {
@@ -51,16 +61,21 @@ export function IdentityProvider({
 
   useEffect(() => {
     if (!enabled || !ready || !people.length) return;
-    if (identity?.name) return;
+    if (identity?.name) {
+      setPromptOpen(false);
+      return;
+    }
     setPromptOpen(true);
   }, [enabled, ready, people.length, identity?.name]);
 
-  const setIdentity = (next: ReporterIdentity, opts?: { goToTree?: boolean }) => {
+  const applyIdentity = (
+    next: ReporterIdentity,
+    opts?: { goToTree?: boolean },
+  ) => {
     saveReporter(next);
     setIdentityState(next);
     setPromptOpen(false);
-    if (opts?.goToTree !== false && next.personId) {
-      // Focus tree on “me” — same as searching yourself
+    if (opts?.goToTree && next.personId) {
       router.push(`/drzewo?root=${encodeURIComponent(next.personId)}`);
     }
   };
@@ -77,25 +92,25 @@ export function IdentityProvider({
     <IdentityContext.Provider
       value={{
         identity,
-        setIdentity: (id) => setIdentity(id, { goToTree: false }),
+        setIdentity: (id) => applyIdentity(id, { goToTree: false }),
         clearIdentity,
         promptIdentity,
       }}
     >
       {children}
-      {enabled && (
+      {enabled && promptOpen ? (
         <WhoAreYouDialog
           people={people}
-          open={promptOpen}
+          open
           compulsory={!identity?.name}
           onClose={() => {
             if (identity?.name) setPromptOpen(false);
           }}
           onIdentified={(name, personId) => {
-            setIdentity({ name, personId }, { goToTree: true });
+            applyIdentity({ name, personId }, { goToTree: Boolean(personId) });
           }}
         />
-      )}
+      ) : null}
     </IdentityContext.Provider>
   );
 }

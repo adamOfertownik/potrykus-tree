@@ -206,6 +206,7 @@ input {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .app-header {
@@ -215,11 +216,24 @@ input {
   gap: 0.45rem;
   padding: 0.7rem 1rem 0.75rem;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
-  background: color-mix(in srgb, var(--panel) 85%, transparent);
+  background: color-mix(in srgb, var(--panel) 92%, white);
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
-  z-index: 20;
+  /* Above family-chart HTML/SVG layers (they use transforms + z-index) */
+  z-index: 1000;
+  isolation: isolate;
+  pointer-events: auto;
+  transform: translateZ(0);
+}
+
+.app-header a,
+.app-header button,
+.app-nav a {
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+  -webkit-tap-highlight-color: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .app-header__top {
@@ -392,6 +406,10 @@ input {
   width: min(1400px, 100%);
   margin: 0 auto;
   padding: 1rem 1rem 2rem;
+  position: relative;
+  z-index: 0;
+  /* Keep chart transforms from stealing clicks above the header */
+  isolation: isolate;
 }
 
 .app-footer {
@@ -658,18 +676,26 @@ input {
   overflow: hidden;
   min-height: calc(100dvh - 180px);
   background: #eef4ef;
+  position: relative;
+  z-index: 0;
 }
 
 .family-chart-wrap {
   position: relative;
   height: calc(100dvh - 180px);
   min-height: 520px;
+  overflow: hidden;
+  z-index: 0;
+  touch-action: manipulation;
 }
 
 .family-chart-host {
   width: 100%;
   height: 100%;
   margin: 0 auto;
+  overflow: hidden !important;
+  position: relative;
+  z-index: 0;
   /* family-chart defaults to dark theme (white strokes) — force visible links */
   --background-color: #eef4ef;
   --text-color: #1a2e24;
@@ -677,6 +703,20 @@ input {
   --male-color: #2f6fed;
   background-color: var(--background-color) !important;
   color: var(--text-color) !important;
+}
+
+.family-chart-host #f3Canvas,
+.family-chart-host #htmlSvg {
+  overflow: hidden !important;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Library injects an empty top bar — don't let it eat taps */
+.family-chart-host .f3-nav-cont {
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
 }
 
 .family-chart-host .card {
@@ -1292,7 +1332,7 @@ input {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 80;
+  z-index: 2000;
   background: rgba(20, 35, 28, 0.45);
   display: grid;
   place-items: center;
