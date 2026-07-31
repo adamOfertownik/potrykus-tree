@@ -1,7 +1,7 @@
 /* Drzewo Potrykus — shell offline. Never use Response.error() (causes ERR_FAILED). */
-const CACHE = "potrykus-v2";
-/** Avoid "/" — it 307-redirects and Cache.addAll fails on redirects. */
-const PRECACHE = ["/drzewo", "/lista", "/manifest.webmanifest"];
+const CACHE = "potrykus-v3";
+/** Real shell pages only (no redirects — Cache API rejects redirected responses). */
+const PRECACHE = ["/", "/drzewo", "/lista", "/manifest.webmanifest"];
 
 function offlinePage() {
   return new Response(

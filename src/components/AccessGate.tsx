@@ -3,13 +3,23 @@
 import { useState } from "react";
 import { useUnlock } from "@/lib/hooks";
 
-export function AccessGate() {
+type Props = {
+  /** Where to go after a successful unlock (full navigation — reliable on mobile). */
+  afterUnlockHref?: string;
+};
+
+export function AccessGate({ afterUnlockHref = "/drzewo" }: Props) {
   const [code, setCode] = useState("");
   const unlock = useUnlock();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    unlock.mutate(code);
+    unlock.mutate(code, {
+      onSuccess: () => {
+        // Hard navigation avoids soft-router + stale SW quirks for first visit
+        window.location.assign(afterUnlockHref);
+      },
+    });
   };
 
   return (

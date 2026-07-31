@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { HomePageClient } from "@/components/HomePageClient";
 
 export default function HomePage() {
-  redirect("/drzewo");
+  return <HomePageClient />;
 }
