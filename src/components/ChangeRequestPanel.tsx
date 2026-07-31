@@ -29,6 +29,7 @@ export function ChangeRequestPanel({ people }: Props) {
   const [targetPersonId, setTargetPersonId] = useState<string | undefined>();
   const [targetPersonName, setTargetPersonName] = useState("");
   const [message, setMessage] = useState("");
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -63,7 +64,12 @@ export function ChangeRequestPanel({ people }: Props) {
         reporterPhone: reporterPhone.trim() || undefined,
         targetPersonId,
         targetPersonName: targetPersonName.trim() || undefined,
-        message: message.trim(),
+        message: [
+          message.trim(),
+          photoUrl ? `Zdjęcie: ${photoUrl}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
       };
       const res = await fetch("/api/submissions", {
         method: "POST",
@@ -74,9 +80,12 @@ export function ChangeRequestPanel({ people }: Props) {
       if (!res.ok) throw new Error(data.error || "Błąd zapisu");
       setSuccess(
         data.warning ||
-          "Zapisano lokalnie. Prototyp — zgłoszenie nie idzie jeszcze do bazy.",
+          (data.storage === "neon"
+            ? "Zapisano w bazie. Dziękujemy!"
+            : "Zapisano lokalnie (brak DATABASE_URL)."),
       );
       setMessage("");
+      setPhotoUrl(null);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -90,10 +99,7 @@ export function ChangeRequestPanel({ people }: Props) {
         <h1>Zgłoś zmianę</h1>
         <p>
           Poprawka, brakująca osoba, zdjęcie, daty — napisz, co zmienić i kto
-          zgłasza.{" "}
-          <strong>
-            Prototyp: zgłoszenia nie trafiają jeszcze do trwałej bazy.
-          </strong>
+          zgłasza.
         </p>
       </header>
 
@@ -180,6 +186,42 @@ export function ChangeRequestPanel({ people }: Props) {
             placeholder="Np. data urodzenia to 12 maj 1964, a nie 1965…"
           />
         </label>
+
+        {(kind === "photo" || kind === "missing_person") && (
+          <label className="field-block">
+            Zdjęcie (opcjonalnie)
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setBusy(true);
+                setError(null);
+                try {
+                  const body = new FormData();
+                  body.append("file", file);
+                  const res = await fetch("/api/photos/upload", {
+                    method: "POST",
+                    body,
+                  });
+                  const data = await res.json();
+                  if (!res.ok) throw new Error(data.error || "Upload nieudany");
+                  setPhotoUrl(data.url);
+                } catch (err) {
+                  setError((err as Error).message);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            />
+            {photoUrl && (
+              <span className="selected-chip">
+                Wgrano: <a href={photoUrl}>{photoUrl}</a>
+              </span>
+            )}
+          </label>
+        )}
 
         {error && (
           <p className="banner-error" role="alert">

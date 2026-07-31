@@ -18,7 +18,22 @@ export async function writeFamilyDb(db: FamilyDatabase): Promise<void> {
   await writeFile(FAMILY_PATH, JSON.stringify(db, null, 2), "utf-8");
 }
 
+/**
+ * Env wins in production; data/config.json is the local/dev fallback.
+ * Prefer SESSION_SECRET + ACCESS_CODE_HASH so the file can stay out of prod secrets.
+ */
 export async function readConfig(): Promise<FamilyConfig> {
-  const raw = await readFile(CONFIG_PATH, "utf-8");
-  return JSON.parse(raw) as FamilyConfig;
+  const file = JSON.parse(
+    await readFile(CONFIG_PATH, "utf-8"),
+  ) as FamilyConfig;
+
+  return {
+    accessCodeHash:
+      process.env.ACCESS_CODE_HASH?.trim() || file.accessCodeHash,
+    sessionSecret: process.env.SESSION_SECRET?.trim() || file.sessionSecret,
+    cookieName:
+      process.env.COOKIE_NAME?.trim() ||
+      file.cookieName ||
+      "potrykus_family_session",
+  };
 }

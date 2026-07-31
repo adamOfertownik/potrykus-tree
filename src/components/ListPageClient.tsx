@@ -1,57 +1,40 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
-import { AccessGate } from "@/components/AccessGate";
-import { AppShell } from "@/components/AppShell";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AuthedPage } from "@/components/AuthedPage";
 import { PersonSearch } from "@/components/PersonSearch";
-import { useAuthStatus, useFamily } from "@/lib/hooks";
 import { buildDescendantList } from "@/lib/list";
 import { displayName, formatPolishDate } from "@/lib/db-client";
-import { useRouter } from "next/navigation";
+import type { Person } from "@/types/family";
 
-export function ListPageClient() {
-  const auth = useAuthStatus();
-  const unlocked = Boolean(auth.data?.unlocked);
-  const family = useFamily(unlocked);
+function ListInner({
+  people,
+  rootId,
+}: {
+  people: Person[];
+  rootId: string;
+}) {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const router = useRouter();
-
-  const people = family.data?.people ?? [];
-  const rootId = family.data?.meta.rootPersonId ?? "";
-
-  const entries = useMemo(() => {
-    if (!people.length || !rootId) return [];
-    return buildDescendantList(people, rootId);
-  }, [people, rootId]);
-
-  if (auth.isLoading) return <div className="loading-screen">Ładowanie…</div>;
-  if (!auth.data?.unlocked) return <AccessGate />;
-  if (family.isLoading) {
-    return (
-      <AppShell>
-        <div className="loading-screen">Wczytywanie listy…</div>
-      </AppShell>
-    );
-  }
-  if (!family.data) {
-    return (
-      <AppShell>
-        <div className="loading-screen">Brak danych.</div>
-      </AppShell>
-    );
-  }
+  const entries = useMemo(
+    () =>
+      people.length && rootId ? buildDescendantList(people, rootId) : [],
+    [people, rootId],
+  );
 
   return (
-    <AppShell peopleCount={people.length} exportRootId={rootId}>
+    <>
       <section className="toolbar">
         <PersonSearch
           people={people}
           placeholder="Szukaj na liście…"
           onSelect={(p) => {
             setHighlightId(p.id);
-            const el = document.getElementById(`list-person-${p.id}`);
-            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+            document
+              .getElementById(`list-person-${p.id}`)
+              ?.scrollIntoView({ behavior: "smooth", block: "center" });
           }}
         />
       </section>
@@ -76,9 +59,7 @@ export function ListPageClient() {
               <li
                 key={`${entry.person.id}-${entry.isSpouse ? "s" : "p"}-${entry.depth}`}
                 id={
-                  entry.isSpouse
-                    ? undefined
-                    : `list-person-${entry.person.id}`
+                  entry.isSpouse ? undefined : `list-person-${entry.person.id}`
                 }
                 className={[
                   "genealogy-item",
@@ -122,18 +103,8 @@ export function ListPageClient() {
                   >
                     {displayName(entry.person)}
                   </Link>
-                  {birth && (
-                    <span className="genealogy-date">
-                      {" "}
-                      u. {birth}
-                    </span>
-                  )}
-                  {death && (
-                    <span className="genealogy-date">
-                      {" "}
-                      z. {death}
-                    </span>
-                  )}
+                  {birth && <span className="genealogy-date"> u. {birth}</span>}
+                  {death && <span className="genealogy-date"> z. {death}</span>}
                   {!entry.isSpouse && (
                     <button
                       type="button"
@@ -154,6 +125,16 @@ export function ListPageClient() {
           })}
         </ol>
       </div>
-    </AppShell>
+    </>
+  );
+}
+
+export function ListPageClient() {
+  return (
+    <AuthedPage loadingLabel="Wczytywanie listy…">
+      {({ people, family }) => (
+        <ListInner people={people} rootId={family.meta.rootPersonId ?? ""} />
+      )}
+    </AuthedPage>
   );
 }

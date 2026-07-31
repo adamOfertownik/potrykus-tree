@@ -1,7 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { usePathname, useRouter } from "next/navigation";
 import type { Person } from "@/types/family";
 import {
   clearReporter,
@@ -30,12 +35,11 @@ export function IdentityProvider({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [identity, setIdentityState] = useState<ReporterIdentity | null>(null);
   const [ready, setReady] = useState(false);
   const [promptOpen, setPromptOpen] = useState(false);
 
-  // Read the stored identity once. loadReporter() returns a fresh object every
-  // call, so re-running this would loop the whole app through re-renders.
   useEffect(() => {
     const saved = loadReporter();
     setIdentityState(saved);
@@ -57,13 +61,9 @@ export function IdentityProvider({
     setIdentityState(next);
     setPromptOpen(false);
 
-    // Jump to your own branch only from the tree — other pages (np. Kto kim)
-    // need to stay where they are.
     const onTree = pathname === "/" || pathname.startsWith("/drzewo");
     if (onTree && next.personId) {
-      window.location.assign(
-        `/drzewo?root=${encodeURIComponent(next.personId)}`,
-      );
+      router.replace(`/drzewo?root=${encodeURIComponent(next.personId)}`);
     }
   };
 

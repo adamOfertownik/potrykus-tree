@@ -4,9 +4,25 @@ import {
   createSessionToken,
   verifyAccessCode,
 } from "@/lib/auth";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 export async function POST(request: Request) {
   try {
+    const ip = clientIp(request);
+    const limited = rateLimit(`unlock:${ip}`, 5, 10 * 60 * 1000);
+    if (!limited.ok) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Za dużo prób. Spróbuj za ${limited.retryAfterSec} s.`,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limited.retryAfterSec) },
+        },
+      );
+    }
+
     const body = (await request.json()) as { code?: string };
     const code = body.code?.trim() ?? "";
     if (!code) {

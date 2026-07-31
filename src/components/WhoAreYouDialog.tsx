@@ -5,13 +5,13 @@ import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
 import { displayName } from "@/lib/db-client";
 import { loadReporter, saveReporter } from "@/lib/reporter";
+import { Modal } from "@/components/Modal";
 
 type Props = {
   people: Person[];
   open: boolean;
   onClose: () => void;
   onIdentified: (name: string, personId?: string) => void;
-  /** When true, no “Później” — need identity after unlock */
   compulsory?: boolean;
 };
 
@@ -45,7 +45,6 @@ export function WhoAreYouDialog({
   const confirmManual = () => {
     const name = manual.trim();
     if (!name) return;
-    // Try to link to a person in the tree when name matches
     const hit =
       searchPeople(people, name).find(
         (p) => displayName(p).toLowerCase() === name.toLowerCase(),
@@ -62,108 +61,83 @@ export function WhoAreYouDialog({
     onIdentified(name);
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      className="modal-backdrop"
-      role="dialog"
-      aria-modal="true"
-      onMouseDown={(e) => {
-        // Don't let clicks fall through to the chart underneath
-        e.stopPropagation();
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-      }}
+    <Modal
+      open={open}
+      onClose={onClose}
+      compulsory={compulsory}
+      labelledBy="who-are-you-title"
     >
-      <div
-        className="modal-card"
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="modal-card__head">
-          <h2>Kim jesteś w rodzinie?</h2>
-          <p>
-            Wybierz siebie z listy — otworzymy Twoje miejsce w drzewie i
-            zapamiętamy Cię na tym telefonie.
-          </p>
-        </header>
+      <header className="modal-card__head">
+        <h2 id="who-are-you-title">Kim jesteś w rodzinie?</h2>
+        <p>
+          Wybierz siebie z listy — otworzymy Twoje miejsce w drzewie i
+          zapamiętamy Cię na tym telefonie.
+        </p>
+      </header>
 
-        <label className="field-label" htmlFor="who-search">
-          Znajdź siebie w drzewie
-        </label>
-        <input
-          id="who-search"
-          className="field-input"
-          placeholder="Np. Adam Lieske…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          autoFocus
-        />
+      <label className="field-label" htmlFor="who-search">
+        Znajdź siebie w drzewie
+      </label>
+      <input
+        id="who-search"
+        className="field-input"
+        placeholder="Np. Adam Lieske…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        autoFocus
+      />
 
-        {matches.length > 0 && (
-          <ul className="who-matches">
-            {matches.map((p) => (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  className="who-matches__pick"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    pickPerson(p);
-                  }}
-                >
-                  <span>{displayName(p)}</span>
-                  <span className="who-matches__go">To ja →</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+      {matches.length > 0 && (
+        <ul className="who-matches">
+          {matches.map((p) => (
+            <li key={p.id}>
+              <button
+                type="button"
+                className="who-matches__pick"
+                onClick={(e) => {
+                  e.preventDefault();
+                  pickPerson(p);
+                }}
+              >
+                <span>{displayName(p)}</span>
+                <span className="who-matches__go">To ja →</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
-        <div className="field-divider">albo wpisz imię i nazwisko</div>
+      <div className="field-divider">albo wpisz imię i nazwisko</div>
 
-        <input
-          className="field-input"
-          placeholder="Imię i nazwisko"
-          value={manual}
-          onChange={(e) => setManual(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              confirmManual();
-            }
-          }}
-        />
+      <input
+        className="field-input"
+        placeholder="Imię i nazwisko"
+        value={manual}
+        onChange={(e) => setManual(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            confirmManual();
+          }
+        }}
+      />
 
-        <div className="modal-actions">
-          {!compulsory && (
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={(e) => {
-                e.preventDefault();
-                onClose();
-              }}
-            >
-              Anuluj
-            </button>
-          )}
-          <button
-            type="button"
-            className="btn btn-primary"
-            disabled={!manual.trim()}
-            onClick={(e) => {
-              e.preventDefault();
-              confirmManual();
-            }}
-          >
-            To ja — zapamiętaj
+      <div className="modal-actions">
+        {!compulsory && (
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
+            Anuluj
           </button>
-        </div>
+        )}
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={!manual.trim()}
+          onClick={confirmManual}
+        >
+          To ja — zapamiętaj
+        </button>
       </div>
-    </div>
+    </Modal>
   );
 }

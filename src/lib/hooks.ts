@@ -15,7 +15,10 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 export function useAuthStatus() {
   return useQuery({
     queryKey: ["auth-status"],
-    queryFn: () => fetchJson<{ unlocked: boolean }>("/api/auth/status"),
+    queryFn: () =>
+      fetchJson<{ unlocked: boolean; storage?: "neon" | "file" }>(
+        "/api/auth/status",
+      ),
   });
 }
 

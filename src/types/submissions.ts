@@ -38,8 +38,7 @@ export interface ChangeSubmission {
     phone?: string;
   };
   relatives?: RelativeDraft[];
-  /** Prototype: not sent to remote DB yet */
-  status: "local_only";
+  status: "new" | "reviewed" | "accepted" | "rejected" | "local_only";
 }
 
 export interface SubmissionPayload {

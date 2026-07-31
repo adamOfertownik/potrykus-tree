@@ -1,26 +1,32 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useFamily, useLogout } from "@/lib/hooks";
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { IdentityProvider, useIdentity } from "@/components/IdentityProvider";
+import type { Person } from "@/types/family";
 
 function AppShellInner({
   children,
+  people,
   peopleCount,
   exportRootId,
+  metaTitle,
+  metaRootId,
 }: {
   children: React.ReactNode;
+  people: Person[];
   peopleCount?: number;
   exportRootId?: string;
+  metaTitle?: string;
+  metaRootId?: string;
 }) {
   const pathname = usePathname();
   const logout = useLogout();
-  // router kept unused removal — hard nav for reliability
-  const family = useFamily(true);
   const { scale, setScale } = useTextScale();
   const { identity, promptIdentity } = useIdentity();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -28,9 +34,7 @@ function AppShellInner({
   const [pdfError, setPdfError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const people = family.data?.people ?? [];
-  const meta = family.data?.meta;
-  const rootId = exportRootId || meta?.rootPersonId || "";
+  const rootId = exportRootId || metaRootId || "";
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -45,7 +49,7 @@ function AppShellInner({
     setPdfError(null);
     setPdfBusy("list");
     try {
-      await exportListPdf(people, rootId, meta?.title || "Drzewo Potrykus");
+      await exportListPdf(people, rootId, metaTitle || "Drzewo Potrykus");
       setMenuOpen(false);
     } catch (e) {
       setPdfError((e as Error).message);
@@ -59,7 +63,7 @@ function AppShellInner({
     setPdfError(null);
     setPdfBusy("a0");
     try {
-      await exportTreeA0Pdf(people, rootId, meta?.title || "Drzewo Potrykus");
+      await exportTreeA0Pdf(people, rootId, metaTitle || "Drzewo Potrykus");
       setMenuOpen(false);
     } catch (e) {
       setPdfError((e as Error).message);
@@ -74,16 +78,9 @@ function AppShellInner({
       <header className="app-header">
         <div className="app-header__top">
           <div className="app-header__brand">
-            <a
-              href="/drzewo"
-              className="brand-link"
-              onClick={(e) => {
-                e.preventDefault();
-                window.location.assign("/drzewo");
-              }}
-            >
+            <Link href="/drzewo" className="brand-link">
               Drzewo Potrykus
-            </a>
+            </Link>
             {typeof peopleCount === "number" && (
               <span className="people-count">{peopleCount} osób</span>
             )}
@@ -176,24 +173,20 @@ function AppShellInner({
             [
               ["/drzewo", "Drzewo"],
               ["/lista", "Lista"],
+              ["/urodziny", "Urodziny"],
               ["/spotkanie", "Spotkanie"],
               ["/zglos", "Zgłoś"],
               ["/pokrewienstwo", "Kto kim"],
             ] as const
           ).map(([href, label]) => (
-            <a
+            <Link
               key={href}
               href={href}
               className={pathname.startsWith(href) ? "is-active" : ""}
-              onClick={(e) => {
-                e.preventDefault();
-                setMenuOpen(false);
-                // Hard navigation — client router.push was no-op on mobile
-                window.location.assign(href);
-              }}
+              onClick={() => setMenuOpen(false)}
             >
               {label}
-            </a>
+            </Link>
           ))}
         </nav>
       </header>
@@ -227,7 +220,13 @@ export function AppShell({
 
   return (
     <IdentityProvider people={people} enabled={enabled}>
-      <AppShellInner peopleCount={peopleCount} exportRootId={exportRootId}>
+      <AppShellInner
+        people={people}
+        peopleCount={peopleCount}
+        exportRootId={exportRootId}
+        metaTitle={family.data?.meta?.title}
+        metaRootId={family.data?.meta?.rootPersonId}
+      >
         {children}
       </AppShellInner>
     </IdentityProvider>

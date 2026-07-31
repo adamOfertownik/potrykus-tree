@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { isSessionValid } from "@/lib/auth";
 import { appendRsvp, readEvent, readRsvps } from "@/lib/event";
-import type { EventRsvp, RsvpPayload } from "@/types/event";
+import { storageMode } from "@/lib/sql";
+import { rsvpPayloadSchema } from "@/lib/validation";
+import type { EventRsvp } from "@/types/event";
 
 export async function GET() {
   const unlocked = await isSessionValid();
@@ -11,17 +13,15 @@ export async function GET() {
 
   const [event, rsvps] = await Promise.all([readEvent(), readRsvps()]);
   const guestTotal = rsvps.reduce((sum, r) => sum + (r.guests || 1), 0);
+  const mode = storageMode();
 
   return NextResponse.json({
-    prototype: true,
-    warning:
-      "Prototyp: zapisy nie trafiają do trwałej bazy — damy znać po podłączeniu.",
+    storage: mode,
     event,
     stats: {
       rsvpCount: rsvps.length,
       guestTotal,
     },
-    // Don't expose full phone list publicly in list — only counts for family
     rsvps: rsvps.map((r) => ({
       id: r.id,
       createdAt: r.createdAt,
@@ -39,41 +39,38 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = (await request.json()) as RsvpPayload;
-    if (!body.fullName?.trim()) {
-      return NextResponse.json(
-        { error: "Podaj imię i nazwisko." },
-        { status: 400 },
-      );
+    const json = await request.json();
+    const parsed = rsvpPayloadSchema.safeParse(json);
+    if (!parsed.success) {
+      const msg =
+        parsed.error.issues[0]?.message || "Nieprawidłowe dane zapisu.";
+      return NextResponse.json({ error: msg }, { status: 400 });
     }
-    const guests = Number(body.guests);
-    if (!Number.isFinite(guests) || guests < 1 || guests > 20) {
-      return NextResponse.json(
-        { error: "Podaj liczbę osób (1–20)." },
-        { status: 400 },
-      );
-    }
+    const body = parsed.data;
 
-    const rsvp: EventRsvp = {
-      id: `rsvp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    const draft: EventRsvp = {
+      id: `rsvp-${Date.now()}`,
       createdAt: new Date().toISOString(),
-      fullName: body.fullName.trim(),
+      fullName: body.fullName,
       personId: body.personId,
-      phone: body.phone?.trim() || undefined,
-      guests,
-      notes: body.notes?.trim() || undefined,
-      willTransfer: Boolean(body.willTransfer),
-      status: "local_only",
+      phone: body.phone || undefined,
+      guests: body.guests,
+      notes: body.notes || undefined,
+      willTransfer: body.willTransfer,
+      status: "new",
     };
 
-    await appendRsvp(rsvp);
+    const saved = await appendRsvp(draft);
+    const mode = storageMode();
 
     return NextResponse.json({
       ok: true,
-      prototype: true,
+      storage: mode,
+      id: saved.id,
       warning:
-        "Zapisano lokalnie na prototypie. Zapisy NIE trafiają jeszcze do trwałej bazy.",
-      id: rsvp.id,
+        mode === "file"
+          ? "Zapisano lokalnie (brak DATABASE_URL). Na produkcji ustaw Neon."
+          : undefined,
     });
   } catch {
     return NextResponse.json(

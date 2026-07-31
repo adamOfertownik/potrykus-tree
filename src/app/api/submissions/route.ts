@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { isSessionValid } from "@/lib/auth";
 import { appendSubmission, readSubmissions } from "@/lib/submissions";
-import type { ChangeSubmission, SubmissionPayload } from "@/types/submissions";
+import { storageMode } from "@/lib/sql";
+import { submissionPayloadSchema } from "@/lib/validation";
+import type { ChangeSubmission } from "@/types/submissions";
 
 export async function GET() {
   const unlocked = await isSessionValid();
@@ -9,10 +11,9 @@ export async function GET() {
     return NextResponse.json({ error: "Brak dostępu." }, { status: 401 });
   }
   const submissions = await readSubmissions();
+  const mode = storageMode();
   return NextResponse.json({
-    prototype: true,
-    warning:
-      "Prototyp: zgłoszenia nie trafiają do trwałej bazy — damy znać, gdy podłączymy.",
+    storage: mode,
     count: submissions.length,
     submissions,
   });
@@ -25,43 +26,41 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = (await request.json()) as SubmissionPayload;
-    if (!body.reporterName?.trim()) {
-      return NextResponse.json(
-        { error: "Podaj, kto zgłasza zmianę." },
-        { status: 400 },
-      );
+    const json = await request.json();
+    const parsed = submissionPayloadSchema.safeParse(json);
+    if (!parsed.success) {
+      const msg =
+        parsed.error.issues[0]?.message || "Nieprawidłowe dane zgłoszenia.";
+      return NextResponse.json({ error: msg }, { status: 400 });
     }
-    if (!body.message?.trim() && !body.self?.firstName) {
-      return NextResponse.json(
-        { error: "Dodaj opis zmiany albo swoje dane." },
-        { status: 400 },
-      );
-    }
+    const body = parsed.data;
 
-    const submission: ChangeSubmission = {
-      id: `sub-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    const draft: ChangeSubmission = {
+      id: `sub-${Date.now()}`,
       createdAt: new Date().toISOString(),
-      kind: body.kind || "other",
-      reporterName: body.reporterName.trim(),
+      kind: body.kind,
+      reporterName: body.reporterName,
       reporterPersonId: body.reporterPersonId,
-      reporterPhone: body.reporterPhone?.trim() || undefined,
+      reporterPhone: body.reporterPhone || undefined,
       targetPersonId: body.targetPersonId,
-      targetPersonName: body.targetPersonName?.trim() || undefined,
-      message: (body.message || "").trim(),
+      targetPersonName: body.targetPersonName || undefined,
+      message: body.message || "",
       self: body.self,
       relatives: body.relatives?.filter((r) => r.firstName?.trim()),
-      status: "local_only",
+      status: "new",
     };
 
-    await appendSubmission(submission);
+    const saved = await appendSubmission(draft);
+    const mode = storageMode();
 
     return NextResponse.json({
       ok: true,
-      prototype: true,
+      storage: mode,
+      id: saved.id,
       warning:
-        "Zapisano lokalnie na serwerze prototypu. Zgłoszenie NIE trafia jeszcze do trwałej bazy — damy znać.",
-      id: submission.id,
+        mode === "file"
+          ? "Zapisano lokalnie (brak DATABASE_URL). Na produkcji ustaw Neon."
+          : undefined,
     });
   } catch {
     return NextResponse.json(

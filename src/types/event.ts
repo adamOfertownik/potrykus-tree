@@ -30,7 +30,7 @@ export interface EventRsvp {
   guests: number;
   notes?: string;
   willTransfer: boolean;
-  status: "local_only";
+  status: "new" | "confirmed" | "cancelled" | "local_only";
 }
 
 export interface RsvpPayload {

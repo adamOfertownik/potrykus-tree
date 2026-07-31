@@ -102,6 +102,11 @@ export function PersonSearch({
               aria-expanded={open && matches.length > 0}
               aria-controls={listId}
               aria-autocomplete="list"
+              aria-activedescendant={
+                open && matches[active]
+                  ? `${listId}-opt-${matches[active].id}`
+                  : undefined
+              }
               autoComplete="off"
               placeholder={placeholder}
               value={query}
@@ -139,7 +144,12 @@ export function PersonSearch({
                 .filter(Boolean)
                 .join(" – ");
               return (
-                <li key={p.id} role="option" aria-selected={i === active}>
+                <li
+                  key={p.id}
+                  id={`${listId}-opt-${p.id}`}
+                  role="option"
+                  aria-selected={i === active}
+                >
                   <button
                     type="button"
                     className={`person-search__item${i === active ? " is-active" : ""}`}

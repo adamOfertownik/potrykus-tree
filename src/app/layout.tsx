@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Source_Sans_3 } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/components/Providers";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 const display = Fraunces({
@@ -58,6 +59,7 @@ export default function RootLayout({
     <html lang="pl" className={`${display.variable} ${body.variable} h-full`}>
       <body className="min-h-full antialiased">
         <Providers>{children}</Providers>
+        <ServiceWorkerRegister />
         <Analytics />
       </body>
     </html>

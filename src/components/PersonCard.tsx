@@ -29,7 +29,7 @@ export function PersonCard({ person, compact, href, onClick }: Props) {
       <div className="person-card__avatar" aria-hidden>
         {person.photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={person.photoUrl} alt="" />
+            <img src={person.photoUrl} alt={displayName(person)} />
         ) : (
           <span className="person-card__silhouette" />
         )}

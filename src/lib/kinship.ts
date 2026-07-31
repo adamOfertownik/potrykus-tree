@@ -491,11 +491,3 @@ export function describeKinship(
     path: [],
   };
 }
-
-/** Small helper exported for reuse */
-export function relatedChildren(
-  people: Person[],
-  personId: string,
-): string[] {
-  return getChildrenIds(people, personId);
-}

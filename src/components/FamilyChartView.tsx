@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
@@ -56,9 +57,13 @@ export function FamilyChartView({
   onFocusBranch,
   onHighlightMissing,
 }: Props) {
+  const router = useRouter();
   const wrapRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof f3.createChart> | null>(null);
+  const cardRef = useRef<ReturnType<
+    ReturnType<typeof f3.createChart>["setCardHtml"]
+  > | null>(null);
   const peopleRef = useRef(people);
   const mainIdRef = useRef(mainId);
   const highlightRef = useRef<string | null>(highlightId);
@@ -201,6 +206,7 @@ export function FamilyChartView({
     };
 
     const card = chart.setCardHtml();
+    cardRef.current = card;
     card.setCardDim({
       w: layout.w,
       h: layout.h,
@@ -220,7 +226,6 @@ export function FamilyChartView({
     card.setOnCardClick((_e: MouseEvent, d: { data?: { id?: string } }) => {
       const id = d?.data?.id;
       if (!id) return;
-      // Highlight + details only — the whole tree stays as it is
       const person = peopleRef.current.find((p) => p.id === id) ?? null;
       skipPanRef.current = id;
       highlightRef.current = id;
@@ -235,10 +240,35 @@ export function FamilyChartView({
 
     return () => {
       chartRef.current = null;
+      cardRef.current = null;
       el.innerHTML = "";
     };
+    // Full rebuild only when the person set changes — scale is handled below
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scale, peopleCount]);
+  }, [peopleCount]);
+
+  // Text scale: resize cards without destroying the whole chart
+  useEffect(() => {
+    const chart = chartRef.current;
+    const card = cardRef.current;
+    const el = containerRef.current;
+    if (!chart || !card || !el) return;
+    const layout = SCALE_LAYOUT[scale] ?? SCALE_LAYOUT.normal;
+    el.style.setProperty("--f3-card-font", `${layout.font}px`);
+    chart.setCardXSpacing(layout.xSpace);
+    chart.setCardYSpacing(layout.ySpace);
+    card.setCardDim({
+      w: layout.w,
+      h: layout.h,
+      text_x: 75,
+      text_y: 15,
+      img_w: 60,
+      img_h: 60,
+      img_x: 5,
+      img_y: 5,
+    });
+    chart.updateTree({ tree_position: "inherit" });
+  }, [scale]);
 
   // Explicit branch focus (deep link ?root=) — recenter the tree around a person
   useEffect(() => {
@@ -294,7 +324,7 @@ export function FamilyChartView({
     if (!selected) return;
     const id = selected.id;
     setSelected(null);
-    window.location.assign(`/osoba/${encodeURIComponent(id)}`);
+    router.push(`/osoba/${encodeURIComponent(id)}`);
   };
 
   const focusInTree = () => {

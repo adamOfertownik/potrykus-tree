@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { AccessGate } from "@/components/AccessGate";
-import { AppShell } from "@/components/AppShell";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AuthedPage } from "@/components/AuthedPage";
 import { PersonSearch } from "@/components/PersonSearch";
-import { useAuthStatus, useFamily } from "@/lib/hooks";
 import { describeKinship } from "@/lib/kinship";
 import { displayName } from "@/lib/db-client";
 import type { Person } from "@/types/family";
@@ -38,18 +38,12 @@ function PickSlot({
       {selected ? (
         <div className="kinship-pick__chosen">
           <strong>{displayName(selected)}</strong>
-          <a
+          <Link
             href={`/osoba/${encodeURIComponent(selected.id)}`}
             className="btn-text"
-            onClick={(e) => {
-              e.preventDefault();
-              window.location.assign(
-                `/osoba/${encodeURIComponent(selected.id)}`,
-              );
-            }}
           >
             Profil
-          </a>
+          </Link>
         </div>
       ) : (
         <>
@@ -75,15 +69,23 @@ function PickSlot({
 
 function KinshipInner({ people }: { people: Person[] }) {
   const { identity } = useIdentity();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const myId = identity?.personId ?? null;
   const me = useMemo(
     () => (myId ? people.find((p) => p.id === myId) ?? null : null),
     [people, myId],
   );
 
-  // Slot A starts as you (once the identity is known) until it is changed
-  const [pickA, setPickA] = useState<Person | null | undefined>(undefined);
-  const [personB, setPersonB] = useState<Person | null>(null);
+  const initialA =
+    people.find((p) => p.id === searchParams.get("a")) ?? undefined;
+  const initialB =
+    people.find((p) => p.id === searchParams.get("b")) ?? null;
+
+  const [pickA, setPickA] = useState<Person | null | undefined>(
+    initialA ?? undefined,
+  );
+  const [personB, setPersonB] = useState<Person | null>(initialB);
   const personA = pickA === undefined ? me : pickA;
 
   const result = useMemo(() => {
@@ -206,7 +208,7 @@ function KinshipInner({ people }: { people: Person[] }) {
               type="button"
               className="btn btn-secondary"
               onClick={() =>
-                window.location.assign(
+                router.push(
                   `/drzewo?root=${encodeURIComponent(personA.id)}`,
                 )
               }
@@ -217,7 +219,7 @@ function KinshipInner({ people }: { people: Person[] }) {
               type="button"
               className="btn btn-secondary"
               onClick={() =>
-                window.location.assign(
+                router.push(
                   `/drzewo?root=${encodeURIComponent(personB.id)}`,
                 )
               }
@@ -238,35 +240,9 @@ function KinshipInner({ people }: { people: Person[] }) {
 }
 
 export function KinshipPageClient() {
-  const auth = useAuthStatus();
-  const unlocked = Boolean(auth.data?.unlocked);
-  const family = useFamily(unlocked);
-  const people = family.data?.people ?? [];
-
-  if (auth.isLoading) {
-    return <div className="loading-screen">Ładowanie…</div>;
-  }
-  if (!auth.data?.unlocked) {
-    return <AccessGate />;
-  }
-  if (family.isLoading) {
-    return (
-      <AppShell>
-        <div className="loading-screen">Wczytywanie…</div>
-      </AppShell>
-    );
-  }
-  if (family.isError || !family.data) {
-    return (
-      <AppShell>
-        <div className="loading-screen">Nie udało się wczytać danych.</div>
-      </AppShell>
-    );
-  }
-
   return (
-    <AppShell peopleCount={people.length}>
-      <KinshipInner people={people} />
-    </AppShell>
+    <AuthedPage>
+      {({ people }) => <KinshipInner people={people} />}
+    </AuthedPage>
   );
 }
