@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
@@ -11,8 +11,10 @@ import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 
 type Props = {
   people: Person[];
+  /** Stable tree center (family root or explicit search focus) */
   mainId: string;
-  onMainChange?: (id: string) => void;
+  /** Called only when user explicitly focuses a branch (search / modal action) */
+  onFocusBranch?: (id: string) => void;
 };
 
 const SCALE_LAYOUT: Record<
@@ -24,16 +26,18 @@ const SCALE_LAYOUT: Record<
   xlarge: { w: 300, h: 112, xSpace: 350, ySpace: 330, font: 18 },
 };
 
-export function FamilyChartView({ people, mainId, onMainChange }: Props) {
+export function FamilyChartView({ people, mainId, onFocusBranch }: Props) {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof f3.createChart> | null>(null);
-  const onMainChangeRef = useRef(onMainChange);
   const peopleRef = useRef(people);
-  onMainChangeRef.current = onMainChange;
+  const mainIdRef = useRef(mainId);
   peopleRef.current = people;
+  mainIdRef.current = mainId;
 
   const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(null);
   const peopleCount = people.length;
 
   useEffect(() => {
@@ -46,7 +50,10 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
 
     const livePeople = peopleRef.current;
     const data = peopleToFamilyChartData(livePeople);
-    const safeMain = data.some((d) => d.id === mainId) ? mainId : data[0]?.id;
+    const centerId = mainIdRef.current;
+    const safeMain = data.some((d) => d.id === centerId)
+      ? centerId
+      : data[0]?.id;
     if (!safeMain) return;
 
     const chart = f3.createChart(el, data);
@@ -60,6 +67,17 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
         path.setAttribute("stroke-width", "2.5");
         path.setAttribute("fill", "none");
       });
+      // Mark selected card for CSS highlight without re-rooting
+      const hid = highlightId;
+      el.querySelectorAll(".card").forEach((node) => {
+        node.classList.remove("is-chart-selected");
+      });
+      if (hid) {
+        const cardEl =
+          el.querySelector(`[data-id="${hid}"]`) ||
+          el.querySelector(`.card[data-id="${hid}"]`);
+        cardEl?.classList.add("is-chart-selected");
+      }
     };
 
     const card = chart.setCardHtml();
@@ -82,11 +100,15 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
     card.setOnCardClick((_e: MouseEvent, d: { data?: { id?: string } }) => {
       const id = d?.data?.id;
       if (!id) return;
-      onMainChangeRef.current?.(id);
-      chart.updateMainId(id);
-      chart.updateTree({ tree_position: "main_to_middle" });
+      // Select + highlight only — keep full tree, do not re-filter branch
       const person = peopleRef.current.find((p) => p.id === id) ?? null;
+      setHighlightId(id);
       setSelected(person);
+      el.querySelectorAll(".card").forEach((node) => {
+        node.classList.remove("is-chart-selected");
+      });
+      const target = (_e.target as HTMLElement | null)?.closest?.(".card");
+      target?.classList.add("is-chart-selected");
     });
 
     chart.updateMainId(safeMain);
@@ -97,16 +119,31 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
       chartRef.current = null;
       el.innerHTML = "";
     };
-    // Recreate only when scale or dataset size changes — not on every render
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scale, peopleCount]);
 
+  // Explicit focus (search / “fokus w drzewie”) — recenter around person
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart || !mainId) return;
     chart.updateMainId(mainId);
     chart.updateTree({ tree_position: "main_to_middle" });
   }, [mainId]);
+
+  const goToPerson = () => {
+    if (!selected) return;
+    const id = selected.id;
+    setSelected(null);
+    router.push(`/osoba/${encodeURIComponent(id)}`);
+  };
+
+  const focusInTree = () => {
+    if (!selected) return;
+    const id = selected.id;
+    setSelected(null);
+    setHighlightId(id);
+    onFocusBranch?.(id);
+  };
 
   return (
     <div className="family-chart-wrap" id="family-tree-canvas">
@@ -117,7 +154,8 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
         data-text-scale={scale}
       />
       <p className="family-chart-hint">
-        Przeciągnij, aby przesunąć · scroll = zoom · klik = wybór osoby
+        Przeciągnij, aby przesunąć · scroll = zoom · klik = wybór (całe drzewo
+        zostaje)
       </p>
 
       {selected && (
@@ -130,7 +168,11 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
             if (e.target === e.currentTarget) setSelected(null);
           }}
         >
-          <div className="modal-card graph-person-modal">
+          <div
+            className="modal-card graph-person-modal"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <header className="modal-card__head">
               <p className="graph-person-modal__label">Wybrana osoba</p>
               <h2 id="graph-person-title">{displayName(selected)}</h2>
@@ -166,24 +208,36 @@ export function FamilyChartView({ people, mainId, onMainChange }: Props) {
             </dl>
 
             <div className="modal-actions modal-actions--stack">
-              <Link
-                href={`/osoba/${selected.id}`}
+              <button
+                type="button"
                 className="btn btn-primary"
-                onClick={() => setSelected(null)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  goToPerson();
+                }}
               >
                 Przejdź do widoku osoby
-              </Link>
-              <Link
-                href={`/drzewo?root=${encodeURIComponent(selected.id)}`}
-                className="btn btn-secondary"
-                onClick={() => setSelected(null)}
-              >
-                Ustaw jako fokus w drzewie
-              </Link>
+              </button>
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => setSelected(null)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  focusInTree();
+                }}
+              >
+                Ustaw jako fokus w drzewie
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSelected(null);
+                }}
               >
                 Zamknij
               </button>

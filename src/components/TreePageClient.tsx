@@ -39,6 +39,11 @@ export function TreePageClient() {
     router.replace("/drzewo");
   };
 
+  const focusBranch = (id: string) => {
+    setRootId(id);
+    router.replace(`/drzewo?root=${encodeURIComponent(id)}`);
+  };
+
   if (auth.isLoading) {
     return <div className="loading-screen">Ładowanie…</div>;
   }
@@ -71,10 +76,7 @@ export function TreePageClient() {
         <PersonSearch
           people={people}
           placeholder="Szukaj w drzewie…"
-          onSelect={(p) => {
-            setRootId(p.id);
-            router.replace(`/drzewo?root=${encodeURIComponent(p.id)}`);
-          }}
+          onSelect={(p) => focusBranch(p.id)}
         />
         <Link href="/pokrewienstwo" className="btn btn-secondary btn-inline">
           Kto kim?
@@ -104,10 +106,7 @@ export function TreePageClient() {
           <FamilyChartView
             people={people}
             mainId={effectiveRoot}
-            onMainChange={(id) => {
-              setRootId(id);
-              router.replace(`/drzewo?root=${encodeURIComponent(id)}`);
-            }}
+            onFocusBranch={focusBranch}
           />
         ) : (
           <p className="empty-hint">Brak danych drzewa.</p>
