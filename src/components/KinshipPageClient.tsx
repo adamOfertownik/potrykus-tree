@@ -8,7 +8,6 @@ import { useAuthStatus, useFamily } from "@/lib/hooks";
 import { describeKinship } from "@/lib/kinship";
 import { displayName } from "@/lib/db-client";
 import type { Person } from "@/types/family";
-import Link from "next/link";
 import { useIdentity } from "@/components/IdentityProvider";
 
 function PickSlot({
@@ -17,12 +16,14 @@ function PickSlot({
   selected,
   onSelect,
   onClear,
+  meAction,
 }: {
   label: string;
   people: Person[];
   selected: Person | null;
   onSelect: (p: Person) => void;
   onClear: () => void;
+  meAction?: { name: string; onPick: () => void };
 }) {
   return (
     <div className="kinship-pick">
@@ -37,19 +38,36 @@ function PickSlot({
       {selected ? (
         <div className="kinship-pick__chosen">
           <strong>{displayName(selected)}</strong>
-          <Link
+          <a
             href={`/osoba/${encodeURIComponent(selected.id)}`}
             className="btn-text"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.assign(
+                `/osoba/${encodeURIComponent(selected.id)}`,
+              );
+            }}
           >
             Profil
-          </Link>
+          </a>
         </div>
       ) : (
-        <PersonSearch
-          people={people}
-          placeholder="Wybierz osobę…"
-          onSelect={onSelect}
-        />
+        <>
+          <PersonSearch
+            people={people}
+            placeholder="Wybierz osobę…"
+            onSelect={onSelect}
+          />
+          {meAction && (
+            <button
+              type="button"
+              className="btn-text kinship-pick__me"
+              onClick={meAction.onPick}
+            >
+              Wstaw mnie ({meAction.name})
+            </button>
+          )}
+        </>
       )}
     </div>
   );
@@ -61,19 +79,29 @@ function KinshipInner({ people }: { people: Person[] }) {
   const [personB, setPersonB] = useState<Person | null>(null);
   const [prefilled, setPrefilled] = useState(false);
 
+  const me = useMemo(
+    () =>
+      identity?.personId
+        ? people.find((p) => p.id === identity.personId) ?? null
+        : null,
+    [people, identity?.personId],
+  );
+
   useEffect(() => {
-    if (prefilled || !people.length || !identity?.personId) return;
-    const me = people.find((p) => p.id === identity.personId);
-    if (me) {
-      setPersonA(me);
-      setPrefilled(true);
-    }
-  }, [people, identity?.personId, prefilled]);
+    if (prefilled || !me) return;
+    setPersonA(me);
+    setPrefilled(true);
+  }, [me, prefilled]);
 
   const result = useMemo(() => {
     if (!personA || !personB) return null;
     return describeKinship(people, personA.id, personB.id);
   }, [people, personA, personB]);
+
+  const swap = () => {
+    setPersonA(personB);
+    setPersonB(personA);
+  };
 
   return (
     <section className="kinship-page">
@@ -87,15 +115,16 @@ function KinshipInner({ people }: { people: Person[] }) {
 
       <div className="kinship-picks">
         <PickSlot
-          label={
-            identity?.personId && personA?.id === identity.personId
-              ? "Ty (A)"
-              : "Osoba A"
-          }
+          label={me && personA?.id === me.id ? "Ty (A)" : "Osoba A"}
           people={people}
           selected={personA}
           onSelect={setPersonA}
           onClear={() => setPersonA(null)}
+          meAction={
+            me && personB?.id !== me.id
+              ? { name: displayName(me), onPick: () => setPersonA(me) }
+              : undefined
+          }
         />
         <PickSlot
           label="Osoba B"
@@ -103,8 +132,36 @@ function KinshipInner({ people }: { people: Person[] }) {
           selected={personB}
           onSelect={setPersonB}
           onClear={() => setPersonB(null)}
+          meAction={
+            me && personA?.id !== me.id
+              ? { name: displayName(me), onPick: () => setPersonB(me) }
+              : undefined
+          }
         />
       </div>
+
+      {(personA || personB) && (
+        <div className="kinship-toolbar">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={swap}
+            disabled={!personA || !personB}
+          >
+            ⇄ Zamień A i B
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => {
+              setPersonA(null);
+              setPersonB(null);
+            }}
+          >
+            Wyczyść
+          </button>
+        </div>
+      )}
 
       {result && personA && personB && (
         <div
@@ -140,7 +197,7 @@ function KinshipInner({ people }: { people: Person[] }) {
 
           {result.path.length > 1 && (
             <div className="kinship-result__path">
-              <span className="kinship-result__dir">Ścieżka</span>
+              <span className="kinship-result__dir">Ścieżka pokrewieństwa</span>
               <ol>
                 {result.path.map((name, i) => (
                   <li key={`${name}-${i}`}>{name}</li>
@@ -150,18 +207,28 @@ function KinshipInner({ people }: { people: Person[] }) {
           )}
 
           <div className="kinship-result__actions">
-            <Link
+            <button
+              type="button"
               className="btn btn-secondary"
-              href={`/drzewo?root=${encodeURIComponent(personA.id)}`}
+              onClick={() =>
+                window.location.assign(
+                  `/drzewo?root=${encodeURIComponent(personA.id)}`,
+                )
+              }
             >
               Drzewo od A
-            </Link>
-            <Link
+            </button>
+            <button
+              type="button"
               className="btn btn-secondary"
-              href={`/drzewo?root=${encodeURIComponent(personB.id)}`}
+              onClick={() =>
+                window.location.assign(
+                  `/drzewo?root=${encodeURIComponent(personB.id)}`,
+                )
+              }
             >
               Drzewo od B
-            </Link>
+            </button>
           </div>
         </div>
       )}

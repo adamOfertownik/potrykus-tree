@@ -7,6 +7,7 @@ import {
   useState,
   useEffectEvent,
 } from "react";
+import { usePathname } from "next/navigation";
 import type { Person } from "@/types/family";
 import {
   clearReporter,
@@ -39,6 +40,7 @@ export function IdentityProvider({
   enabled: boolean;
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const [identity, setIdentityState] = useState<ReporterIdentity | null>(
     readInitialIdentity,
   );
@@ -65,15 +67,15 @@ export function IdentityProvider({
     setPromptOpen(true);
   }, [enabled, ready, people.length, identity?.name]);
 
-  const applyIdentity = (
-    next: ReporterIdentity,
-    opts?: { goToTree?: boolean },
-  ) => {
+  const applyIdentity = (next: ReporterIdentity) => {
     saveReporter(next);
     setIdentityState(next);
     setPromptOpen(false);
-    if (opts?.goToTree && next.personId) {
-      // Hard navigation so tree mounts with ?root= already in the URL
+
+    // Jump to your own branch only from the tree — other pages (np. Kto kim)
+    // need to stay where they are.
+    const onTree = pathname === "/" || pathname.startsWith("/drzewo");
+    if (onTree && next.personId) {
       window.location.assign(
         `/drzewo?root=${encodeURIComponent(next.personId)}`,
       );
@@ -92,7 +94,7 @@ export function IdentityProvider({
     <IdentityContext.Provider
       value={{
         identity,
-        setIdentity: (id) => applyIdentity(id, { goToTree: false }),
+        setIdentity: applyIdentity,
         clearIdentity,
         promptIdentity,
       }}
@@ -107,7 +109,7 @@ export function IdentityProvider({
             if (identity?.name) setPromptOpen(false);
           }}
           onIdentified={(name, personId) => {
-            applyIdentity({ name, personId }, { goToTree: Boolean(personId) });
+            applyIdentity({ name, personId });
           }}
         />
       ) : null}
