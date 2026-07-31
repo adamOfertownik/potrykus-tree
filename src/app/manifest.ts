@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Potrykus",
     description:
       "Prywatne drzewo genealogiczne rodziny Potrykus — przeglądaj krewnych, zgłaszaj poprawki i spotkania rodzinne.",
-    start_url: "/",
+    start_url: "/drzewo",
     scope: "/",
     display: "standalone",
     background_color: "#0f1a12",

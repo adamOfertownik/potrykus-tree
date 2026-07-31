@@ -8,7 +8,7 @@ type Props = {
   afterUnlockHref?: string;
 };
 
-export function AccessGate({ afterUnlockHref = "/drzewo" }: Props) {
+export function AccessGate({ afterUnlockHref = "/" }: Props) {
   const [code, setCode] = useState("");
   const unlock = useUnlock();
 
@@ -16,7 +16,7 @@ export function AccessGate({ afterUnlockHref = "/drzewo" }: Props) {
     e.preventDefault();
     unlock.mutate(code, {
       onSuccess: () => {
-        // Hard navigation avoids soft-router + stale SW quirks for first visit
+        // Full reload into the unlocked app (avoids soft-router + stale SW)
         window.location.assign(afterUnlockHref);
       },
     });
