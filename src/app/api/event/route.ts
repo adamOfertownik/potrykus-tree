@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { isSessionValid } from "@/lib/auth";
 import { appendRsvp, readEvent, readRsvps } from "@/lib/event";
+import {
+  amountDuePln,
+  totalGuests,
+} from "@/lib/eventPricing";
 import { storageMode } from "@/lib/sql";
 import { rsvpPayloadSchema } from "@/lib/validation";
 import type { EventRsvp } from "@/types/event";
@@ -13,6 +17,7 @@ export async function GET() {
 
   const [event, rsvps] = await Promise.all([readEvent(), readRsvps()]);
   const guestTotal = rsvps.reduce((sum, r) => sum + (r.guests || 1), 0);
+  const amountTotal = rsvps.reduce((sum, r) => sum + (r.amountPln || 0), 0);
   const mode = storageMode();
 
   return NextResponse.json({
@@ -21,12 +26,17 @@ export async function GET() {
     stats: {
       rsvpCount: rsvps.length,
       guestTotal,
+      amountTotal,
     },
     rsvps: rsvps.map((r) => ({
       id: r.id,
       createdAt: r.createdAt,
       fullName: r.fullName,
       guests: r.guests,
+      adults: r.adults,
+      children3to12: r.children3to12,
+      childrenUnder3: r.childrenUnder3,
+      amountPln: r.amountPln,
       willTransfer: r.willTransfer,
     })),
   });
@@ -47,6 +57,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: msg }, { status: 400 });
     }
     const body = parsed.data;
+    const event = await readEvent();
+    const breakdown = {
+      adults: body.adults,
+      children3to12: body.children3to12,
+      childrenUnder3: body.childrenUnder3,
+    };
+    const guests = totalGuests(breakdown);
+    const amountPln = amountDuePln(breakdown, event.pricePerPersonPln);
 
     const draft: EventRsvp = {
       id: `rsvp-${Date.now()}`,
@@ -54,7 +72,11 @@ export async function POST(request: Request) {
       fullName: body.fullName,
       personId: body.personId,
       phone: body.phone || undefined,
-      guests: body.guests,
+      guests,
+      adults: body.adults,
+      children3to12: body.children3to12,
+      childrenUnder3: body.childrenUnder3,
+      amountPln,
       notes: body.notes || undefined,
       willTransfer: body.willTransfer,
       status: "new",
@@ -67,6 +89,8 @@ export async function POST(request: Request) {
       ok: true,
       storage: mode,
       id: saved.id,
+      amountPln: saved.amountPln,
+      guests: saved.guests,
       warning:
         mode === "file"
           ? "Zapisano lokalnie (brak DATABASE_URL). Na produkcji ustaw Neon."

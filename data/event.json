@@ -5,19 +5,79 @@
   "place": "Pensjonat Bałtycki Relax",
   "city": "Jastrzębia Góra",
   "address": "",
-  "description": "Rodzinne spotkanie potomków Potrykusa. Zapisy pomagają nam zorganizować miejsca i wspólny budżet.",
+  "description": "Rodzinne spotkanie potomków Potrykusa nad morzem. Zapisy i szybka płatność pomagają nam zarezerwować miejsca oraz wspólny budżet.",
   "organizers": [
     "Elżbieta Lieder",
     "Anna Leśniak",
     "Maria Lieske"
   ],
+  "pricePerPersonPln": 250,
+  "amenities": [
+    {
+      "id": "sea",
+      "title": "Jastrzębia Góra nad morzem",
+      "detail": "Spotkanie w Pensjonacie Bałtycki Relax — blisko Bałtyku, spacerem do plaży."
+    },
+    {
+      "id": "towel",
+      "title": "Własny ręcznik",
+      "detail": "Prosimy zabrać własny ręcznik (basen / plaża / sauna — wg oferty pensjonatu)."
+    },
+    {
+      "id": "album",
+      "title": "Zdjęcie do rodzinnego albumu",
+      "detail": "Na miejscu zrobimy wspólne zdjęcie — trafi do albumu dostępnego w tej aplikacji rodzinnej."
+    }
+  ],
+  "schedule": [
+    {
+      "time": "10:00",
+      "title": "Przyjazd i kawa",
+      "detail": "Zameldowanie, powitanie, kawa / herbata."
+    },
+    {
+      "time": "11:00",
+      "title": "Oficjalne powitanie",
+      "detail": "Krótko o rodzinie Potrykus i planie dnia."
+    },
+    {
+      "time": "11:30",
+      "title": "Zdjęcie rodzinne",
+      "detail": "Wspólne zdjęcie do albumu w aplikacji."
+    },
+    {
+      "time": "12:30",
+      "title": "Obiad",
+      "detail": "Wspólny posiłek w pensjonacie."
+    },
+    {
+      "time": "14:30",
+      "title": "Czas wolny nad morzem",
+      "detail": "Spacer na plażę, rozmowy, zabawy dla dzieci (własny ręcznik)."
+    },
+    {
+      "time": "16:30",
+      "title": "Podwieczorek i spotkania",
+      "detail": "Ciasto, kawa, poznawanie kuzynostwa."
+    },
+    {
+      "time": "18:30",
+      "title": "Kolacja",
+      "detail": "Wspólny wieczór przy stole."
+    },
+    {
+      "time": "20:30",
+      "title": "Zakończenie oficjalnej części",
+      "detail": "Podziękowania; kto zostaje — rozmowy w luźniejszej atmosferze."
+    }
+  ],
   "transfer": {
     "recipient": "Do uzupełnienia przez organizatorów",
     "iban": "",
     "bank": "",
-    "titleTemplate": "Spotkanie Potrykus – Imię Nazwisko",
-    "amountHint": "Kwotę i termin wpłaty podamy na grupie / tu po ustaleniu",
-    "notes": "Numer konta uzupełnimy w aplikacji, gdy organizatorzy go potwierdzą. Na razie prosimy o zapis — przelew po ogłoszeniu numeru."
+    "titleTemplate": "Spotkanie Potrykus – {name} – {guests} os.",
+    "amountHint": "250 zł od osoby (dorośli i dzieci 3–12 lat). Dzieci do 3. roku życia — bez opłaty.",
+    "notes": "Po wyborze liczby osób poniżej zobaczysz dokładną kwotę. Numer konta uzupełnimy w aplikacji, gdy organizatorzy go potwierdzą — wtedy wystarczy skopiować dane do przelewu."
   },
   "rsvpDeadline": "2026-09-15",
   "contactNote": "Pytania: grupa WhatsApp „Spotkanie rodziny Potrykus” albo zakładka Zgłoś."
