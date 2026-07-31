@@ -40,8 +40,15 @@ function AppShellInner({
     const onDoc = (e: MouseEvent) => {
       if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
     };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
     document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   const downloadList = async () => {
@@ -72,8 +79,18 @@ function AppShellInner({
     }
   };
 
+  const isTreeView = pathname.startsWith("/drzewo");
+  const navItems = [
+    ["/drzewo", "Drzewo"],
+    ["/lista", "Lista"],
+    ["/urodziny", "Urodziny"],
+    ["/spotkanie", "Spotkanie"],
+    ["/zglos", "Zgłoś"],
+    ["/pokrewienstwo", "Kto kim"],
+  ] as const;
+
   return (
-    <div className="app-shell">
+    <div className={`app-shell${isTreeView ? " app-shell--tree" : ""}`}>
       <PrototypeBanner />
       <header className="app-header">
         <div className="app-header__top">
@@ -92,13 +109,34 @@ function AppShellInner({
               className={`nav-menu__trigger${menuOpen ? " is-open" : ""}`}
               aria-expanded={menuOpen}
               aria-haspopup="menu"
+              aria-label={menuOpen ? "Zamknij menu" : "Otwórz menu"}
               onClick={() => setMenuOpen((v) => !v)}
             >
-              Menu
-              <span aria-hidden>▾</span>
+              <span className="nav-menu__burger" aria-hidden>
+                <span />
+                <span />
+                <span />
+              </span>
             </button>
             {menuOpen && (
               <div className="nav-menu__panel" role="menu">
+                <p className="nav-menu__label">Nawigacja</p>
+                {navItems.map(([href, label]) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    role="menuitem"
+                    className={
+                      pathname.startsWith(href)
+                        ? "nav-menu__link is-active"
+                        : "nav-menu__link"
+                    }
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {label}
+                  </Link>
+                ))}
+                <div className="nav-menu__sep" />
                 <p className="nav-menu__label">To ty</p>
                 <button
                   type="button"
@@ -167,28 +205,6 @@ function AppShellInner({
             )}
           </div>
         </div>
-
-        <nav className="app-nav" aria-label="Główne">
-          {(
-            [
-              ["/drzewo", "Drzewo"],
-              ["/lista", "Lista"],
-              ["/urodziny", "Urodziny"],
-              ["/spotkanie", "Spotkanie"],
-              ["/zglos", "Zgłoś"],
-              ["/pokrewienstwo", "Kto kim"],
-            ] as const
-          ).map(([href, label]) => (
-            <Link
-              key={href}
-              href={href}
-              className={pathname.startsWith(href) ? "is-active" : ""}
-              onClick={() => setMenuOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
       </header>
 
       {pdfError && (
@@ -198,9 +214,11 @@ function AppShellInner({
       )}
 
       <div className="app-main">{children}</div>
-      <footer className="app-footer">
-        Twórca: Adam Lieske · dane lokalne · dostęp kodem rodzinnym
-      </footer>
+      {!isTreeView && (
+        <footer className="app-footer">
+          Twórca: Adam Lieske · dane lokalne · dostęp kodem rodzinnym
+        </footer>
+      )}
     </div>
   );
 }

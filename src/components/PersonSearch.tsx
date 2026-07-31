@@ -12,6 +12,8 @@ type Props = {
   placeholder?: string;
   onSelect: (person: Person) => void;
   className?: string;
+  /** Hide label + identity row (tree view — identity lives in the menu) */
+  compact?: boolean;
   /** @deprecated identity is collected after unlock */
   requireIdentity?: boolean;
   trailing?: React.ReactNode;
@@ -22,6 +24,7 @@ export function PersonSearch({
   placeholder = "Szukaj osoby…",
   onSelect,
   className = "",
+  compact = false,
   trailing,
 }: Props) {
   const { identity, promptIdentity } = useIdentity();
@@ -74,22 +77,27 @@ export function PersonSearch({
 
   return (
     <>
-      <div className={`person-search ${className}`} ref={wrapRef}>
-        <div className="person-search__top">
-          <label className="person-search__label" htmlFor={`${listId}-input`}>
-            Szukaj
-          </label>
-          {identity?.name ? (
-            <button
-              type="button"
-              className="person-search__who"
-              onClick={promptIdentity}
-              title="Zmień, kim jesteś na tym urządzeniu"
-            >
-              To ty: <strong>{identity.name}</strong>
-            </button>
-          ) : null}
-        </div>
+      <div
+        className={`person-search${compact ? " person-search--compact" : ""} ${className}`}
+        ref={wrapRef}
+      >
+        {!compact && (
+          <div className="person-search__top">
+            <label className="person-search__label" htmlFor={`${listId}-input`}>
+              Szukaj
+            </label>
+            {identity?.name ? (
+              <button
+                type="button"
+                className="person-search__who"
+                onClick={promptIdentity}
+                title="Zmień, kim jesteś na tym urządzeniu"
+              >
+                To ty: <strong>{identity.name}</strong>
+              </button>
+            ) : null}
+          </div>
+        )}
         <div className="person-search__row">
           <div className="person-search__field">
             <span className="person-search__icon" aria-hidden>
@@ -99,6 +107,7 @@ export function PersonSearch({
               id={`${listId}-input`}
               type="search"
               role="combobox"
+              aria-label={compact ? "Szukaj w drzewie" : undefined}
               aria-expanded={open && matches.length > 0}
               aria-controls={listId}
               aria-autocomplete="list"
