@@ -4,6 +4,7 @@ export type ChangeKind =
   | "photo"
   | "dates"
   | "relatives"
+  | "graph_edit"
   | "other";
 
 export interface RelativeDraft {
@@ -14,6 +15,22 @@ export interface RelativeDraft {
   birthDate?: string;
   deathDate?: string;
   notes?: string;
+}
+
+export interface GraphEditPayload {
+  op: "add_child" | "link_spouse" | "reparent";
+  anchorPersonId: string;
+  relatedPersonId?: string;
+  secondParentId?: string;
+  replaceParentIds?: boolean;
+  newPerson?: {
+    firstName: string;
+    lastName: string;
+    gender: "male" | "female" | "unknown";
+    birthDate?: string;
+    maidenName?: string;
+  };
+  summary?: string;
 }
 
 export interface ChangeSubmission {
@@ -38,6 +55,7 @@ export interface ChangeSubmission {
     phone?: string;
   };
   relatives?: RelativeDraft[];
+  graphEdit?: GraphEditPayload;
   status: "new" | "reviewed" | "accepted" | "rejected" | "local_only";
 }
 
@@ -51,4 +69,5 @@ export interface SubmissionPayload {
   message: string;
   self?: ChangeSubmission["self"];
   relatives?: RelativeDraft[];
+  graphEdit?: GraphEditPayload;
 }

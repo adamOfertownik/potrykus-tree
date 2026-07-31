@@ -47,6 +47,7 @@ type Row = {
   payload: {
     self?: ChangeSubmission["self"];
     relatives?: ChangeSubmission["relatives"];
+    graphEdit?: ChangeSubmission["graphEdit"];
   } | null;
   status: string;
 };
@@ -67,6 +68,7 @@ function rowToSubmission(row: Row): ChangeSubmission {
     message: row.message,
     self: row.payload?.self,
     relatives: row.payload?.relatives,
+    graphEdit: row.payload?.graphEdit,
     status: row.status as ChangeSubmission["status"],
   };
 }
@@ -111,6 +113,7 @@ export async function appendSubmission(
       ${{
         self: submission.self ?? null,
         relatives: submission.relatives ?? null,
+        graphEdit: submission.graphEdit ?? null,
       }},
       ${"new"}
     )

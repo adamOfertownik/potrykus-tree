@@ -6,6 +6,7 @@ export const changeKindSchema = z.enum([
   "photo",
   "dates",
   "relatives",
+  "graph_edit",
   "other",
 ]);
 
@@ -18,6 +19,42 @@ export const relativeDraftSchema = z.object({
   deathDate: z.string().trim().max(32).optional(),
   notes: z.string().trim().max(500).optional(),
 });
+
+export const newPersonSchema = z.object({
+  firstName: z.string().trim().min(1).max(80),
+  lastName: z.string().trim().min(1).max(80),
+  gender: z.enum(["male", "female", "unknown"]),
+  birthDate: z.string().trim().max(32).optional(),
+  maidenName: z.string().trim().max(80).optional(),
+});
+
+export const graphMutationSchema = z
+  .object({
+    op: z.enum(["add_child", "link_spouse", "reparent"]),
+    anchorPersonId: z.string().trim().min(1).max(120),
+    relatedPersonId: z.string().trim().max(120).optional(),
+    newPerson: newPersonSchema.optional(),
+    secondParentId: z.string().trim().max(120).optional(),
+    replaceParentIds: z.boolean().optional().default(true),
+    reporterName: z.string().trim().min(1).max(120).optional(),
+    reporterPersonId: z.string().trim().max(120).optional(),
+  })
+  .superRefine((v, ctx) => {
+    if (!v.relatedPersonId && !v.newPerson) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Wybierz istniejącą osobę albo podaj dane nowej.",
+        path: ["relatedPersonId"],
+      });
+    }
+    if (v.relatedPersonId && v.newPerson) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Podaj albo istniejącą osobę, albo nową.",
+        path: ["relatedPersonId"],
+      });
+    }
+  });
 
 export const submissionPayloadSchema = z
   .object({
@@ -39,10 +76,27 @@ export const submissionPayloadSchema = z
       })
       .optional(),
     relatives: z.array(relativeDraftSchema).max(20).optional(),
+    graphEdit: z
+      .object({
+        op: z.enum(["add_child", "link_spouse", "reparent"]),
+        anchorPersonId: z.string().trim().min(1).max(120),
+        relatedPersonId: z.string().trim().max(120).optional(),
+        secondParentId: z.string().trim().max(120).optional(),
+        replaceParentIds: z.boolean().optional(),
+        newPerson: newPersonSchema.optional(),
+        summary: z.string().trim().max(500).optional(),
+      })
+      .optional(),
   })
-  .refine((v) => Boolean(v.message?.trim()) || Boolean(v.self?.firstName), {
-    message: "Dodaj opis zmiany albo swoje dane.",
-  });
+  .refine(
+    (v) =>
+      Boolean(v.message?.trim()) ||
+      Boolean(v.self?.firstName) ||
+      Boolean(v.graphEdit),
+    {
+      message: "Dodaj opis zmiany albo swoje dane.",
+    },
+  );
 
 export const rsvpPayloadSchema = z.object({
   fullName: z.string().trim().min(1).max(160),
