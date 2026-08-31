@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
-import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import {
   GraphEditWizard,
   type GraphEditOp,
 } from "@/components/GraphEditWizard";
+import { PersonTreeActionsModal } from "@/components/PersonTreeActionsModal";
 
 type Props = {
   people: Person[];
@@ -187,6 +186,16 @@ export function FamilyChartView({
     return ok ? "ok" : "unavailable";
   };
 
+  const openPersonActions = (id: string) => {
+    const person = peopleRef.current.find((p) => p.id === id) ?? null;
+    if (!person) return;
+    skipPanRef.current = id;
+    highlightRef.current = id;
+    applyHighlight();
+    setSelected(person);
+    onHighlight?.(id);
+  };
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el || !peopleRef.current.length) return;
@@ -238,12 +247,30 @@ export function FamilyChartView({
     card.setOnCardClick((_e: MouseEvent, d: { data?: { id?: string } }) => {
       const id = d?.data?.id;
       if (!id) return;
-      const person = peopleRef.current.find((p) => p.id === id) ?? null;
-      skipPanRef.current = id;
-      highlightRef.current = id;
-      applyHighlight();
-      setSelected(person);
-      onHighlight?.(id);
+      openPersonActions(id);
+    });
+    card.setOnCardUpdate(function (
+      this: HTMLElement,
+      d: { data?: { id?: string } },
+    ) {
+      const id = d?.data?.id;
+      if (!id) return;
+      let btn = this.querySelector<HTMLButtonElement>(".chart-card-plus");
+      if (!btn) {
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chart-card-plus";
+        btn.setAttribute("aria-label", "Dodaj powiązanie");
+        btn.title = "Dodaj powiązanie";
+        btn.textContent = "+";
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          openPersonActions(id);
+        });
+        this.classList.add("card_cont--addable");
+        this.appendChild(btn);
+      }
     });
 
     chart.updateMainId(safeMain);
@@ -363,137 +390,15 @@ export function FamilyChartView({
   }, [selected]);
 
   const personModal =
-    selected && !editOp && typeof document !== "undefined"
-      ? createPortal(
-          <div
-            className="modal-backdrop graph-person-backdrop"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="graph-person-title"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setSelected(null);
-            }}
-          >
-            <div
-              className="modal-card graph-person-modal"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
-              onTouchStart={(e) => e.stopPropagation()}
-            >
-              <div className="graph-person-modal__scroll">
-                <header className="modal-card__head">
-                  <p className="graph-person-modal__label">Wybrana osoba</p>
-                  <h2 id="graph-person-title">{displayName(selected)}</h2>
-                  {selected.maidenName && (
-                    <p className="graph-person-modal__maiden">
-                      z d. {selected.maidenName}
-                    </p>
-                  )}
-                  <p className="modal-card__head p-reset">
-                    {lifespan(selected) || "Brak dat"}
-                  </p>
-                </header>
-
-                <dl className="graph-person-modal__facts">
-                  <div>
-                    <dt>Urodzenie</dt>
-                    <dd>{formatPolishDate(selected.birthDate) || "—"}</dd>
-                  </div>
-                  <div>
-                    <dt>Zgon</dt>
-                    <dd>{formatPolishDate(selected.deathDate) || "—"}</dd>
-                  </div>
-                  <div>
-                    <dt>Płeć</dt>
-                    <dd>
-                      {selected.gender === "male"
-                        ? "mężczyzna"
-                        : selected.gender === "female"
-                          ? "kobieta"
-                          : "—"}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="modal-actions modal-actions--stack graph-person-modal__actions">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    goToPerson();
-                  }}
-                >
-                  Przejdź do widoku osoby
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    focusInTree();
-                  }}
-                >
-                  Pokaż tylko tę gałąź
-                </button>
-                <div className="graph-person-modal__edit">
-                  <p className="graph-person-modal__edit-label">
-                    Zarządzaj powiązaniami
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setEditOp("add_child");
-                    }}
-                  >
-                    Dodaj dziecko
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setEditOp("link_spouse");
-                    }}
-                  >
-                    Połącz z osobą
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setEditOp("reparent");
-                    }}
-                  >
-                    Przenieś w drzewie
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setSelected(null);
-                  }}
-                >
-                  Zamknij
-                </button>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )
-      : null;
+    selected && !editOp ? (
+      <PersonTreeActionsModal
+        person={selected}
+        onClose={() => setSelected(null)}
+        onEdit={(op) => setEditOp(op)}
+        onViewPerson={goToPerson}
+        onFocusBranch={focusInTree}
+      />
+    ) : null;
 
   return (
     <div className="family-chart-wrap" id="family-tree-canvas" ref={wrapRef}>
@@ -525,7 +430,7 @@ export function FamilyChartView({
       </div>
 
       <p className="family-chart-hint">
-        Przeciągnij, aby przesunąć · scroll = zoom · klik = szczegóły osoby
+        Przeciągnij, aby przesunąć · scroll = zoom · klik lub + = dodaj powiązanie
       </p>
 
       {editNotice && (

@@ -58,3 +58,41 @@ export function useLogout() {
     },
   });
 }
+
+export function useAdminAuthStatus() {
+  return useQuery({
+    queryKey: ["admin-auth-status"],
+    queryFn: () =>
+      fetchJson<{ loggedIn: boolean; email: string | null }>(
+        "/api/auth/admin/status",
+      ),
+  });
+}
+
+export function useAdminLogin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { email: string; password: string }) =>
+      fetchJson<{ ok: boolean; email: string }>("/api/auth/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["admin-auth-status"] });
+    },
+  });
+}
+
+export function useAdminLogout() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      fetchJson<{ ok: boolean }>("/api/auth/admin/logout", {
+        method: "POST",
+      }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["admin-auth-status"] });
+    },
+  });
+}

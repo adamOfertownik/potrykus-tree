@@ -6,7 +6,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "@neondatabase/serverless";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -17,7 +17,7 @@ if (!url) {
   process.exit(1);
 }
 
-const sql = neon(url);
+const pool = new Pool({ connectionString: url });
 const dir = join(root, "migrations");
 const files = readdirSync(dir)
   .filter((f) => f.endsWith(".sql"))
@@ -25,18 +25,13 @@ const files = readdirSync(dir)
 
 console.log(`Migrating ${files.length} file(s) against Neon…`);
 
-for (const file of files) {
-  const body = readFileSync(join(dir, file), "utf8");
-  // Split on semicolons that end statements; keep it simple for our migrations
-  const statements = body
-    .split(/;\s*\n/)
-    .map((s) => s.trim())
-    .filter((s) => s && !s.startsWith("--"));
-
-  console.log(`→ ${file} (${statements.length} statements)`);
-  for (const statement of statements) {
-    await sql.query(statement.endsWith(";") ? statement : `${statement};`);
+try {
+  for (const file of files) {
+    const body = readFileSync(join(dir, file), "utf8");
+    console.log(`→ ${file}`);
+    await pool.query(body);
   }
+  console.log("Done.");
+} finally {
+  await pool.end();
 }
-
-console.log("Done.");

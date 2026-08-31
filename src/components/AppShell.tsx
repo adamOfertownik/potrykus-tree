@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useFamily, useLogout } from "@/lib/hooks";
+import { useFamily, useLogout, useAdminAuthStatus, useAdminLogout } from "@/lib/hooks";
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
@@ -27,6 +27,9 @@ function AppShellInner({
 }) {
   const pathname = usePathname();
   const logout = useLogout();
+  const adminAuth = useAdminAuthStatus();
+  const adminLogout = useAdminLogout();
+  const isAdmin = Boolean(adminAuth.data?.loggedIn);
   const { scale, setScale } = useTextScale();
   const { identity, promptIdentity } = useIdentity();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -86,7 +89,21 @@ function AppShellInner({
             )}
           </div>
 
-          <div className="nav-menu" ref={menuRef}>
+          <div className="app-header__actions">
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                className={`app-header__login${pathname.startsWith("/admin") ? " is-active" : ""}`}
+              >
+                Zgłoszenia
+              </Link>
+            ) : (
+              <Link href="/login" className="app-header__login">
+                Logowanie
+              </Link>
+            )}
+
+            <div className="nav-menu" ref={menuRef}>
             <button
               type="button"
               className={`nav-menu__trigger${menuOpen ? " is-open" : ""}`}
@@ -152,6 +169,30 @@ function AppShellInner({
                   {pdfBusy === "a0" ? "Generuję…" : "PDF graf (A0)"}
                 </button>
                 <div className="nav-menu__sep" />
+                {isAdmin ? (
+                  <>
+                    <Link
+                      href="/admin"
+                      role="menuitem"
+                      className="nav-menu__link"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Zatwierdzanie zgłoszeń
+                    </Link>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      disabled={adminLogout.isPending}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        adminLogout.mutate();
+                      }}
+                    >
+                      Wyloguj administratora
+                    </button>
+                    <div className="nav-menu__sep" />
+                  </>
+                ) : null}
                 <button
                   type="button"
                   role="menuitem"
@@ -165,6 +206,7 @@ function AppShellInner({
                 </button>
               </div>
             )}
+          </div>
           </div>
         </div>
 
