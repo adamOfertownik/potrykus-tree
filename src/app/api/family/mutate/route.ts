@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isSessionValid } from "@/lib/auth";
+import { getAuthContext } from "@/lib/auth";
 import { getChildrenIds, readFamilyDb, writeFamilyDb } from "@/lib/db";
 import { applyGraphMutation } from "@/lib/familyMutations";
 import { appendSubmission } from "@/lib/submissions";
@@ -8,9 +8,15 @@ import type { FamilyPayload, PersonPublic } from "@/types/family";
 import type { ChangeSubmission } from "@/types/submissions";
 
 export async function POST(request: Request) {
-  const unlocked = await isSessionValid();
-  if (!unlocked) {
+  const ctx = await getAuthContext();
+  if (!ctx.unlocked) {
     return NextResponse.json({ error: "Brak dostępu." }, { status: 401 });
+  }
+  if (!ctx.canEdit) {
+    return NextResponse.json(
+      { error: "Tylko administrator może zmieniać drzewo." },
+      { status: 403 },
+    );
   }
 
   try {

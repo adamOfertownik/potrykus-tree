@@ -18,6 +18,9 @@ type AuthStatus = {
   auth?: {
     supabaseConfigured: boolean;
     method: "supabase" | "code" | null;
+    role: "viewer" | "admin";
+    canEdit: boolean;
+    email?: string;
   };
 };
 
@@ -26,6 +29,11 @@ export function useAuthStatus() {
     queryKey: ["auth-status"],
     queryFn: () => fetchJson<AuthStatus>("/api/auth/status"),
   });
+}
+
+export function useCanEdit() {
+  const auth = useAuthStatus();
+  return Boolean(auth.data?.auth?.canEdit);
 }
 
 export function useFamily(enabled = true) {

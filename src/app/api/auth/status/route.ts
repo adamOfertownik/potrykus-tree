@@ -1,22 +1,19 @@
 import { NextResponse } from "next/server";
-import {
-  isSessionValid,
-  isSupabaseConfigured,
-  isSupabaseSessionValid,
-} from "@/lib/auth";
+import { getAuthContext, isSupabaseConfigured } from "@/lib/auth";
 import { storageMode } from "@/lib/sql";
 
 export async function GET() {
-  const unlocked = await isSessionValid();
-  const supabase = isSupabaseConfigured();
-  const supabaseUser = supabase ? await isSupabaseSessionValid() : false;
+  const ctx = await getAuthContext();
 
   return NextResponse.json({
-    unlocked,
+    unlocked: ctx.unlocked,
     storage: storageMode(),
     auth: {
-      supabaseConfigured: supabase,
-      method: supabaseUser ? "supabase" : unlocked ? "code" : null,
+      supabaseConfigured: isSupabaseConfigured(),
+      method: ctx.method,
+      role: ctx.role,
+      canEdit: ctx.canEdit,
+      email: ctx.email,
     },
   });
 }

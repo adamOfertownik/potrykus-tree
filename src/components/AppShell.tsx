@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useFamily, useLogout } from "@/lib/hooks";
+import { useCanEdit, useFamily, useLogout } from "@/lib/hooks";
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
@@ -27,6 +27,7 @@ function AppShellInner({
 }) {
   const pathname = usePathname();
   const logout = useLogout();
+  const canEdit = useCanEdit();
   const { scale, setScale } = useTextScale();
   const { identity, promptIdentity } = useIdentity();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -83,6 +84,9 @@ function AppShellInner({
             </Link>
             {typeof peopleCount === "number" && (
               <span className="people-count">{peopleCount} osób</span>
+            )}
+            {canEdit && (
+              <span className="people-count people-count--admin">Admin</span>
             )}
           </div>
 
@@ -151,6 +155,19 @@ function AppShellInner({
                 >
                   {pdfBusy === "a0" ? "Generuję…" : "PDF graf (A0)"}
                 </button>
+                {canEdit && (
+                  <>
+                    <div className="nav-menu__sep" />
+                    <p className="nav-menu__label">Administracja</p>
+                    <Link
+                      href="/admin"
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Panel zgłoszeń
+                    </Link>
+                  </>
+                )}
                 <div className="nav-menu__sep" />
                 <button
                   type="button"
@@ -177,7 +194,8 @@ function AppShellInner({
               ["/spotkanie", "Spotkanie"],
               ["/zglos", "Zgłoś"],
               ["/pokrewienstwo", "Kto kim"],
-            ] as const
+              ...(canEdit ? [["/admin", "Admin"] as [string, string]] : []),
+            ] as [string, string][]
           ).map(([href, label]) => (
             <Link
               key={href}
@@ -199,7 +217,7 @@ function AppShellInner({
 
       <div className="app-main">{children}</div>
       <footer className="app-footer">
-        Twórca: Adam Lieske · dane lokalne · dostęp kontem lub kodem
+        Twórca: Adam Lieske · {canEdit ? "konto administratora" : "podgląd"}
       </footer>
     </div>
   );

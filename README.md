@@ -12,7 +12,8 @@ Twórca: **Adam Lieske**
 - Next.js 16 (App Router)
 - TanStack Query
 - Lokalna baza w pliku `data/family.json`
-- Dostęp kodem rodzinnym (bez konta użytkownika)
+- Logowanie: konto Supabase albo kod rodzinny
+- Role: **podgląd** (zwykły użytkownik) i **admin** (dodawanie osób / edycja drzewa)
 
 ## Uruchomienie
 
@@ -30,6 +31,15 @@ PotrykusRodzina
 ```
 
 Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessCodeHash`.
+
+### Logowanie Supabase + role
+
+1. Ustaw `NEXT_PUBLIC_SUPABASE_URL` i `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+2. Zwykły użytkownik: konto e-mail/hasło albo kod rodzinny — **tylko podgląd**.
+3. Admin (edycja drzewa, panel zgłoszeń) — jedno z:
+   - `ADMIN_EMAILS=twoj@email.pl` (Vercel / env)
+   - w Supabase: User → **App metadata** `{ "role": "admin" }`
+   - kod `ADMIN_CODE` wpisany w polu kodu rodzinnego (sesja JWT z rolą admin)
 
 ## Funkcje
 

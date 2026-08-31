@@ -71,8 +71,8 @@ export function AccessGate({ afterUnlockHref = "/" }: Props) {
         <h1 className="gate-title">Rodzinne archiwum</h1>
         <p className="gate-lead">
           {supabaseEnabled
-            ? "Zaloguj się kontem rodzinnym albo użyj kodu dostępu — dane genealogiczne nie są publiczne."
-            : "Dane genealogiczne i numery telefonów są chronione kodem rodzinnym — bez konta, ale też bez publicznego dostępu."}
+            ? "Zaloguj się kontem rodzinnym (podgląd) albo użyj kodu dostępu. Edycja drzewa jest tylko dla administratora."
+            : "Dane genealogiczne i numery telefonów są chronione kodem rodzinnym — bez publicznego dostępu. Edycja drzewa jest tylko dla administratora."}
         </p>
 
         {supabaseEnabled && (

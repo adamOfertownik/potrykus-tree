@@ -9,6 +9,7 @@ import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
+import { useCanEdit } from "@/lib/hooks";
 import {
   GraphEditWizard,
   type GraphEditOp,
@@ -75,6 +76,7 @@ export function FamilyChartView({
   const skipPanRef = useRef<string | null>(null);
 
   const { scale } = useTextScale();
+  const canEdit = useCanEdit();
   const [selected, setSelected] = useState<Person | null>(null);
   const [editOp, setEditOp] = useState<GraphEditOp | null>(null);
   const [editNotice, setEditNotice] = useState<string | null>(null);
@@ -439,44 +441,46 @@ export function FamilyChartView({
                 >
                   Pokaż tylko tę gałąź
                 </button>
-                <div className="graph-person-modal__edit">
-                  <p className="graph-person-modal__edit-label">
-                    Zarządzaj powiązaniami
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setEditOp("add_child");
-                    }}
-                  >
-                    Dodaj dziecko
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setEditOp("link_spouse");
-                    }}
-                  >
-                    Połącz z osobą
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setEditOp("reparent");
-                    }}
-                  >
-                    Przenieś w drzewie
-                  </button>
-                </div>
+                {canEdit && (
+                  <div className="graph-person-modal__edit">
+                    <p className="graph-person-modal__edit-label">
+                      Zarządzaj powiązaniami
+                    </p>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditOp("add_child");
+                      }}
+                    >
+                      Dodaj dziecko
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditOp("link_spouse");
+                      }}
+                    >
+                      Połącz z osobą
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setEditOp("reparent");
+                      }}
+                    >
+                      Przenieś w drzewie
+                    </button>
+                  </div>
+                )}
                 <button
                   type="button"
                   className="btn btn-secondary"
@@ -536,7 +540,7 @@ export function FamilyChartView({
 
       {personModal}
 
-      {selected && editOp && (
+      {canEdit && selected && editOp && (
         <GraphEditWizard
           open
           op={editOp}

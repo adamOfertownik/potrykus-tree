@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import {
   attachSessionCookie,
   createSessionToken,
+  isAdminCode,
   verifyAccessCode,
+  type AppRole,
 } from "@/lib/auth";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 
@@ -32,16 +34,22 @@ export async function POST(request: Request) {
       );
     }
 
-    const valid = await verifyAccessCode(code);
-    if (!valid) {
+    let role: AppRole | null = null;
+    if (isAdminCode(code)) {
+      role = "admin";
+    } else if (await verifyAccessCode(code)) {
+      role = "viewer";
+    }
+
+    if (!role) {
       return NextResponse.json(
         { ok: false, error: "Nieprawidłowy kod rodzinny." },
         { status: 401 },
       );
     }
 
-    const token = await createSessionToken();
-    const response = NextResponse.json({ ok: true });
+    const token = await createSessionToken(role);
+    const response = NextResponse.json({ ok: true, role });
     await attachSessionCookie(response, token);
     return response;
   } catch {

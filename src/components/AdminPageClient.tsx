@@ -1,55 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthedPage } from "@/components/AuthedPage";
+import { useCanEdit } from "@/lib/hooks";
 import type { ChangeSubmission } from "@/types/submissions";
 
 function AdminInner() {
-  const [code, setCode] = useState("");
-  const [unlocked, setUnlocked] = useState(false);
+  const canEdit = useCanEdit();
   const [items, setItems] = useState<ChangeSubmission[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
-  const load = async (adminCode: string) => {
+  useEffect(() => {
+    if (!canEdit) return;
+    let cancelled = false;
     setBusy(true);
     setError(null);
-    try {
-      const res = await fetch("/api/admin/submissions", {
-        headers: { "x-admin-code": adminCode },
+    void fetch("/api/admin/submissions")
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Błąd");
+        if (!cancelled) {
+          setItems(data.submissions || []);
+          setLoaded(true);
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError((e as Error).message);
+          setLoaded(false);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setBusy(false);
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Błąd");
-      setItems(data.submissions || []);
-      setUnlocked(true);
-    } catch (e) {
-      setError((e as Error).message);
-      setUnlocked(false);
-    } finally {
-      setBusy(false);
-    }
-  };
+    return () => {
+      cancelled = true;
+    };
+  }, [canEdit]);
 
-  const setStatus = async (
-    id: string,
-    status: ChangeSubmission["status"],
-  ) => {
+  const setStatus = async (id: string, status: ChangeSubmission["status"]) => {
     setBusy(true);
     setError(null);
     try {
       const res = await fetch("/api/admin/submissions", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-code": code,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd");
-      setItems((list) =>
-        list.map((s) => (s.id === id ? data.submission : s)),
-      );
+      setItems((list) => list.map((s) => (s.id === id ? data.submission : s)));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -57,47 +59,36 @@ function AdminInner() {
     }
   };
 
+  if (!canEdit) {
+    return (
+      <section className="admin-page">
+        <header className="admin-page__intro">
+          <h1>Panel zgłoszeń</h1>
+          <p>Ten widok jest tylko dla administratora.</p>
+        </header>
+        <p className="banner-error" role="alert">
+          Zaloguj się kontem admina, żeby przeglądać i akceptować zgłoszenia.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="admin-page">
       <header className="admin-page__intro">
         <h1>Panel zgłoszeń</h1>
-        <p>Przeglądaj i oznaczaj zgłoszenia z rodziny.</p>
+        <p>Przeglądaj i oznaczaj zgłoszenia z rodziny. Edycja drzewa jest w karcie osoby.</p>
       </header>
 
-      {!unlocked ? (
-        <form
-          className="change-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void load(code);
-          }}
-        >
-          <label className="field-block">
-            Kod admina
-            <input
-              type="password"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              autoComplete="off"
-              required
-            />
-          </label>
-          {error && (
-            <p className="banner-error" role="alert">
-              {error}
-            </p>
-          )}
-          <button type="submit" className="btn btn-primary" disabled={busy}>
-            {busy ? "Sprawdzam…" : "Otwórz"}
-          </button>
-        </form>
+      {error && (
+        <p className="banner-error" role="alert">
+          {error}
+        </p>
+      )}
+      {!loaded && busy ? (
+        <p className="empty-hint">Wczytywanie zgłoszeń…</p>
       ) : (
         <>
-          {error && (
-            <p className="banner-error" role="alert">
-              {error}
-            </p>
-          )}
           <p className="empty-hint">{items.length} zgłoszeń</p>
           <ul className="admin-list">
             {items.map((s) => (
@@ -147,9 +138,5 @@ function AdminInner() {
 }
 
 export function AdminPageClient() {
-  return (
-    <AuthedPage>
-      {() => <AdminInner />}
-    </AuthedPage>
-  );
+  return <AuthedPage>{() => <AdminInner />}</AuthedPage>;
 }

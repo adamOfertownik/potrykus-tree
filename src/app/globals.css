@@ -294,6 +294,11 @@ input {
   white-space: nowrap;
 }
 
+.people-count--admin {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
 .app-nav {
   display: flex;
   align-items: center;
@@ -381,7 +386,8 @@ input {
   color: var(--ink-soft);
 }
 
-.nav-menu__panel button {
+.nav-menu__panel button,
+.nav-menu__panel a[role="menuitem"] {
   border: 0;
   background: transparent;
   text-align: left;
@@ -392,9 +398,12 @@ input {
   color: var(--ink);
   font: inherit;
   font-size: 1rem;
+  text-decoration: none;
+  display: block;
 }
 
-.nav-menu__panel button:hover:not(:disabled) {
+.nav-menu__panel button:hover:not(:disabled),
+.nav-menu__panel a[role="menuitem"]:hover {
   background: var(--bg);
 }
 
