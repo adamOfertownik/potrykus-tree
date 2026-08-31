@@ -12,13 +12,19 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
+type AuthStatus = {
+  unlocked: boolean;
+  storage?: "neon" | "file";
+  auth?: {
+    supabaseConfigured: boolean;
+    method: "supabase" | "code" | null;
+  };
+};
+
 export function useAuthStatus() {
   return useQuery({
     queryKey: ["auth-status"],
-    queryFn: () =>
-      fetchJson<{ unlocked: boolean; storage?: "neon" | "file" }>(
-        "/api/auth/status",
-      ),
+    queryFn: () => fetchJson<AuthStatus>("/api/auth/status"),
   });
 }
 

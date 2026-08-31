@@ -3,11 +3,19 @@ import { compare } from "bcryptjs";
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 import { readConfig } from "@/lib/db";
+import { createClient } from "@/lib/supabase/server";
 
 const SESSION_TTL = "30d";
 
 function secretKey(secret: string) {
   return new TextEncoder().encode(secret);
+}
+
+export function isSupabaseConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  );
 }
 
 export async function verifyAccessCode(code: string): Promise<boolean> {
@@ -24,7 +32,7 @@ export async function createSessionToken(): Promise<string> {
     .sign(secretKey(config.sessionSecret));
 }
 
-export async function isSessionValid(): Promise<boolean> {
+async function isLegacySessionValid(): Promise<boolean> {
   try {
     const config = await readConfig();
     const jar = await cookies();
@@ -35,6 +43,22 @@ export async function isSessionValid(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export async function isSupabaseSessionValid(): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.getUser();
+    return !error && Boolean(data.user);
+  } catch {
+    return false;
+  }
+}
+
+export async function isSessionValid(): Promise<boolean> {
+  if (await isSupabaseSessionValid()) return true;
+  return isLegacySessionValid();
 }
 
 export async function attachSessionCookie(
@@ -62,4 +86,14 @@ export async function clearSessionOnResponse(
     path: "/",
     maxAge: 0,
   });
+}
+
+export async function signOutSupabase(): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  try {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+  } catch {
+    // ignore — legacy cookie may still be cleared separately
+  }
 }

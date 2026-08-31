@@ -199,7 +199,7 @@ function AppShellInner({
 
       <div className="app-main">{children}</div>
       <footer className="app-footer">
-        Twórca: Adam Lieske · dane lokalne · dostęp kodem rodzinnym
+        Twórca: Adam Lieske · dane lokalne · dostęp kontem lub kodem
       </footer>
     </div>
   );
