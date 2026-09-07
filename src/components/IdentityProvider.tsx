@@ -42,18 +42,20 @@ export function IdentityProvider({
 
   useEffect(() => {
     const saved = loadReporter();
-    setIdentityState(saved);
-    setReady(true);
-    if (!saved?.name) setPromptOpen(true);
+    const timer = window.setTimeout(() => {
+      setIdentityState(saved);
+      setReady(true);
+      if (!saved?.name) setPromptOpen(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     if (!enabled || !ready || !people.length) return;
-    if (identity?.name) {
-      setPromptOpen(false);
-      return;
-    }
-    setPromptOpen(true);
+    const timer = window.setTimeout(() => {
+      setPromptOpen(!identity?.name);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [enabled, ready, people.length, identity?.name]);
 
   const applyIdentity = (next: ReporterIdentity) => {

@@ -1336,6 +1336,16 @@ input {
   font-weight: 650;
 }
 
+.person-detail__report {
+  margin: 1rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.person-detail__report .btn-text {
+  font-weight: 650;
+}
+
 .empty-hint {
   color: var(--ink-soft);
   margin: 0.5rem 0;
@@ -1565,7 +1575,7 @@ input {
 
 .graph-plus-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
 }
 
@@ -1618,6 +1628,22 @@ input {
   font-size: 0.72rem;
   line-height: 1.25;
   color: var(--ink-soft);
+}
+
+.graph-plus-tile--report {
+  border-color: color-mix(in srgb, #b45309 28%, var(--line));
+  background: color-mix(in srgb, #b45309 7%, white);
+  color: #92400e;
+}
+
+.graph-plus-tile--report:hover,
+.graph-plus-tile--report:focus-visible {
+  border-color: color-mix(in srgb, #b45309 55%, var(--line));
+  background: color-mix(in srgb, #b45309 12%, white);
+}
+
+.graph-plus-tile--report .graph-plus-tile__icon {
+  background: #b45309;
 }
 
 .graph-person-modal__links {

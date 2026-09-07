@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AccessGate } from "@/components/AccessGate";
 import { AppShell } from "@/components/AppShell";
@@ -109,8 +109,11 @@ export function EventPageClient() {
     enabled: unlocked,
   });
 
-  const [fullName, setFullName] = useState("");
-  const [personId, setPersonId] = useState<string | undefined>();
+  const savedReporter = loadReporter();
+  const [fullName, setFullName] = useState(savedReporter?.name || "");
+  const [personId, setPersonId] = useState<string | undefined>(
+    savedReporter?.personId,
+  );
   const [phone, setPhone] = useState("");
   const [adults, setAdults] = useState(1);
   const [children3to12, setChildren3to12] = useState(0);
@@ -122,14 +125,6 @@ export function EventPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-
-  useEffect(() => {
-    const r = loadReporter();
-    if (r?.name) {
-      setFullName(r.name);
-      setPersonId(r.personId);
-    }
-  }, []);
 
   const people = family.data?.people ?? [];
   const matches = useMemo(

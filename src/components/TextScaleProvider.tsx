@@ -32,17 +32,20 @@ export function TextScaleProvider({ children }: { children: React.ReactNode }) {
   const [scale, setScaleState] = useState<TextScaleId>("normal");
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) as TextScaleId | null;
-      if (saved && saved in SCALE_VALUES) {
-        setScaleState(saved);
-        applyScale(saved);
-        return;
+    const timer = window.setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY) as TextScaleId | null;
+        if (saved && saved in SCALE_VALUES) {
+          setScaleState(saved);
+          applyScale(saved);
+          return;
+        }
+      } catch {
+        /* ignore */
       }
-    } catch {
-      /* ignore */
-    }
-    applyScale("normal");
+      applyScale("normal");
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const setScale = (next: TextScaleId) => {

@@ -11,6 +11,7 @@ type Props = {
   onEdit: (op: GraphEditOp) => void;
   onViewPerson: () => void;
   onFocusBranch: () => void;
+  onReport: () => void;
 };
 
 const ACTIONS: {
@@ -45,6 +46,7 @@ export function PersonTreeActionsModal({
   onEdit,
   onViewPerson,
   onFocusBranch,
+  onReport,
 }: Props) {
   if (typeof document === "undefined") return null;
 
@@ -91,6 +93,21 @@ export function PersonTreeActionsModal({
               <span className="graph-plus-tile__hint">{action.hint}</span>
             </button>
           ))}
+          <button
+            type="button"
+            className="graph-plus-tile graph-plus-tile--report"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onReport();
+            }}
+          >
+            <span className="graph-plus-tile__icon" aria-hidden>
+              !
+            </span>
+            <span className="graph-plus-tile__label">Błędne dane</span>
+            <span className="graph-plus-tile__hint">Zgłoś poprawkę</span>
+          </button>
         </div>
 
         <div className="graph-person-modal__links">
@@ -99,6 +116,9 @@ export function PersonTreeActionsModal({
           </button>
           <button type="button" className="btn-text" onClick={onFocusBranch}>
             Pokaż gałąź
+          </button>
+          <button type="button" className="btn-text" onClick={onReport}>
+            Zgłoś błędne dane
           </button>
           <button type="button" className="btn-text" onClick={onClose}>
             Zamknij

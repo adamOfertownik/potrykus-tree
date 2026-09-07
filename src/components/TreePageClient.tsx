@@ -1,21 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
 import { FamilyChartView } from "@/components/FamilyChartView";
 import { PersonSearch } from "@/components/PersonSearch";
+import { ReportPersonDataModal } from "@/components/ReportPersonDataModal";
 import { displayName } from "@/lib/db-client";
 
 export function TreePageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const rootId = searchParams.get("root");
-  const [highlightId, setHighlightId] = useState<string | null>(rootId);
-
-  useEffect(() => {
-    if (rootId) setHighlightId(rootId);
-  }, [rootId]);
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  const [reportId, setReportId] = useState<string | null>(null);
+  const highlightId = pickedId ?? rootId;
 
   return (
     <AuthedPage
@@ -33,14 +32,17 @@ export function TreePageClient() {
         const highlightPerson = highlightId
           ? people.find((p) => p.id === highlightId) ?? null
           : null;
+        const reportPerson = reportId
+          ? people.find((p) => p.id === reportId) ?? null
+          : null;
 
         const goFullTree = () => {
-          setHighlightId(null);
+          setPickedId(null);
           router.replace("/drzewo");
         };
 
         const focusBranch = (id: string) => {
-          setHighlightId(id);
+          setPickedId(id);
           router.replace(`/drzewo?root=${encodeURIComponent(id)}`);
         };
 
@@ -50,7 +52,7 @@ export function TreePageClient() {
               <PersonSearch
                 people={people}
                 placeholder="Szukaj w drzewie…"
-                onSelect={(p) => setHighlightId(p.id)}
+                onSelect={(p) => setPickedId(p.id)}
               />
             </section>
 
@@ -62,13 +64,24 @@ export function TreePageClient() {
                     {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
                   </strong>
                 </p>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={goFullTree}
-                >
-                  ← Pełne drzewo
-                </button>
+                <div className="tree-focus-bar__actions">
+                  {focusPerson && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setReportId(focusPerson.id)}
+                    >
+                      Zgłoś błędne dane
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={goFullTree}
+                  >
+                    ← Pełne drzewo
+                  </button>
+                </div>
               </div>
             )}
 
@@ -85,6 +98,13 @@ export function TreePageClient() {
                   <button
                     type="button"
                     className="btn btn-secondary"
+                    onClick={() => setReportId(highlightPerson.id)}
+                  >
+                    Zgłoś błędne dane
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
                     onClick={() => focusBranch(highlightPerson.id)}
                   >
                     Pokaż tylko tę gałąź
@@ -92,7 +112,7 @@ export function TreePageClient() {
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => setHighlightId(null)}
+                    onClick={() => setPickedId(null)}
                   >
                     Wyczyść
                   </button>
@@ -106,7 +126,7 @@ export function TreePageClient() {
                   people={people}
                   mainId={effectiveRoot}
                   highlightId={highlightId}
-                  onHighlight={setHighlightId}
+                  onHighlight={setPickedId}
                   onFocusBranch={focusBranch}
                   onHighlightMissing={focusBranch}
                 />
@@ -114,6 +134,14 @@ export function TreePageClient() {
                 <p className="empty-hint">Brak danych drzewa.</p>
               )}
             </div>
+
+            {reportPerson && (
+              <ReportPersonDataModal
+                open
+                person={reportPerson}
+                onClose={() => setReportId(null)}
+              />
+            )}
           </>
         );
       }}
