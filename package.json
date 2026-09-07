@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "node scripts/generate-seed.mjs",
+    "import-md": "node scripts/import-md.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "db:create-admin": "node scripts/create-admin.mjs",
     "test:e2e": "playwright test"
@@ -37,6 +38,7 @@
     "eslint-config-next": "16.2.12",
     "playwright": "^1.62.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   }
 }

@@ -1,7 +1,8 @@
 /**
- * Seed generator for Potrykus family tree.
- * Data transcribed from printed genealogical pages (Franciszek Xawery Potrykus descendants).
- * Run: node scripts/generate-seed.mjs
+ * Seed generator for Potrykus family tree (legacy fallback).
+ * Canonical tree: data/snapshots/drzewo-potrykus.md
+ * Apply with: npx tsx scripts/apply-markdown-snapshot.ts
+ * Run (overwrites family.json with this hardcoded script): node scripts/generate-seed.mjs
  */
 import { writeFileSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
