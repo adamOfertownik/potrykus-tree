@@ -27,6 +27,7 @@ export function RegisterGate({ afterRegisterHref = "/drzewo" }: Props) {
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (invite.data?.enabled === false) return;
     register.mutate(
       { email, password, inviteCode, displayName: displayName || undefined },
       {
