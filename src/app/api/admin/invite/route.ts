@@ -3,10 +3,11 @@ import { applySchemaMigrations } from "@/lib/bootstrap";
 import { requireAdminSession } from "@/lib/auth";
 import { hasDb } from "@/lib/sql";
 import {
+  absoluteAccessLink,
   clearAccessLink,
   generateInviteToken,
   getAccessLinksStatus,
-  pathForAccessLink,
+  inviteShareMeta,
   setAccessLink,
   type AccessLinkKind,
 } from "@/lib/invite";
@@ -29,6 +30,7 @@ export async function GET() {
     enabled: links.member.enabled,
     updatedAt: links.member.updatedAt,
     storage: hasDb() ? "neon" : "file",
+    ...inviteShareMeta(),
   });
 }
 
@@ -70,12 +72,15 @@ export async function PUT(request: Request) {
   }
   try {
     await setAccessLink(kind, token);
+    const share = absoluteAccessLink(kind, token, request);
     return NextResponse.json({
       ok: true,
       type: kind,
       enabled: true,
       token,
-      path: pathForAccessLink(kind, token),
+      path: share.path,
+      url: share.url,
+      vercelPreview: share.vercelPreview,
     });
   } catch (err) {
     const message =

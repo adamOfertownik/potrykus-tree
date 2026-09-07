@@ -75,6 +75,15 @@ Potem:
 3. W `/admin` ustaw **hasło do drzewa** (dla rodziny bez kont) oraz **dwa linki kont**: admin i standard.
 4. Zdjęcia (opcjonalnie): Vercel Storage → Blob.
 
+### Linki `/register` i logowanie Vercel
+
+Adres podglądu (`projekt-xxxxx-….vercel.app`) jest domyślnie za **Vercel Authentication**. W incognito rodzina nie zobaczy rejestracji — tylko okno logowania Vercel.
+
+- **Nie wysyłaj** linku z hashem w hoście (np. `potrykus-tree-jt48m1bro-…`).
+- W Vercel: projekt → **Deployment Protection** → **Vercel Authentication** → wyłącz. Aplikacja i tak wymaga hasła / klucza `?k=`.
+- Albo zmerguj na produkcję i wyślij `https://<produkcja>/register?k=…`.
+- Opcjonalnie ustaw `NEXT_PUBLIC_APP_URL` na ten publiczny adres — panel admina wklei go w kopiowane linki.
+
 ## Funkcje
 
 - Widok drzewa na bibliotece [family-chart](https://github.com/donatso/family-chart) (zoom, pan, fokus)
