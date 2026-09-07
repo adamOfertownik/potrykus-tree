@@ -15,6 +15,69 @@ export function pathForAccessLink(kind: AccessLinkKind, token: string): string {
   return `/register?k=${k}`;
 }
 
+/** Production / custom host for family links. Preview URLs stay behind Vercel login. */
+export function publicShareOrigin(): string | null {
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!raw) return null;
+  try {
+    const href = raw.includes("://") ? raw : `https://${raw}`;
+    return new URL(href).origin;
+  } catch {
+    return null;
+  }
+}
+
+export function isVercelPreviewDeployment(): boolean {
+  return process.env.VERCEL_ENV === "preview";
+}
+
+/** Preview host without a public origin: incognito hits Vercel Authentication. */
+export function familyShareBlockedByVercelAuth(): boolean {
+  return isVercelPreviewDeployment() && !publicShareOrigin();
+}
+
+function originFromRequest(request: Request): string | null {
+  const header = request.headers.get("origin")?.trim();
+  if (header) {
+    try {
+      return new URL(header).origin;
+    } catch {
+      /* ignore */
+    }
+  }
+  try {
+    return new URL(request.url).origin;
+  } catch {
+    return null;
+  }
+}
+
+export function absoluteAccessLink(
+  kind: AccessLinkKind,
+  token: string,
+  request: Request,
+): { path: string; url: string; vercelPreview: boolean } {
+  const path = pathForAccessLink(kind, token);
+  const origin = (
+    publicShareOrigin() ||
+    originFromRequest(request) ||
+    ""
+  ).replace(/\/$/, "");
+  return {
+    path,
+    url: origin ? `${origin}${path}` : path,
+    vercelPreview: familyShareBlockedByVercelAuth(),
+  };
+}
+
+export function inviteShareMeta() {
+  return {
+    shareOrigin: publicShareOrigin(),
+    vercelPreview: isVercelPreviewDeployment(),
+    familyLinksBlockedByVercelAuth: familyShareBlockedByVercelAuth(),
+  };
+}
+
 type SettingsRow = {
   invite_code_hash: string | null;
   invite_updated_at: string | null;

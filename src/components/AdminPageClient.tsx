@@ -224,6 +224,9 @@ function AdminPanel({ email }: { email: string }) {
         admin: LinkStatus;
         view: LinkStatus;
         enabled: boolean;
+        familyLinksBlockedByVercelAuth?: boolean;
+        vercelPreview?: boolean;
+        shareOrigin?: string | null;
       }>("/api/admin/invite"),
   });
 
@@ -238,6 +241,8 @@ function AdminPanel({ email }: { email: string }) {
         type: AccessLinkKind;
         token?: string;
         path?: string;
+        url?: string;
+        vercelPreview?: boolean;
       }>("/api/admin/invite", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -246,10 +251,13 @@ function AdminPanel({ email }: { email: string }) {
     onSuccess: (data) => {
       setInviteCodes((prev) => ({ ...prev, [data.type]: "" }));
       if (data.path) {
-        const url = `${window.location.origin}${data.path}`;
+        const url =
+          data.url || `${window.location.origin}${data.path}`;
         setInviteLinks((prev) => ({ ...prev, [data.type]: url }));
         setNotice(
-          "Skopiuj link teraz. W bazie zostaje tylko hash — po odświeżeniu panelu samego adresu stąd nie odzyskasz (hasło własne pamiętasz Ty).",
+          data.vercelPreview
+            ? "Skopiuj link, ale nie wysyłaj tego adresu rodzinie: podgląd Vercel wymaga logowania Vercel (incognito = okno logowania, nie rejestracja). Wyłącz Vercel Authentication albo ustaw NEXT_PUBLIC_APP_URL na produkcję."
+            : "Skopiuj link teraz. W bazie zostaje tylko hash — po odświeżeniu panelu samego adresu stąd nie odzyskasz (hasło własne pamiętasz Ty).",
         );
       } else {
         setNotice("Zapisano klucz (w bazie jest tylko hash).");
@@ -416,6 +424,17 @@ function AdminPanel({ email }: { email: string }) {
           Osobno wyślij link adminom i (opcjonalnie) osobom, które mają mieć
           zwykłe konto.
         </p>
+        {inviteQ.data?.familyLinksBlockedByVercelAuth ? (
+          <p className="admin-banner" role="status">
+            Ten panel jest na <strong>podglądzie Vercel</strong>. Link z hashem
+            w adresie (np. <code>…-jt48m1bro-…vercel.app</code>) w oknie
+            incognito otwiera <strong>logowanie Vercel</strong>, nie rejestrację.
+            Rodzina nie ma konta Vercel. W projekcie: Deployment Protection →
+            Vercel Authentication → wyłącz (drzewo i tak chroni hasło / klucz z
+            aplikacji). Albo zmerguj na produkcję i ustaw{" "}
+            <code>NEXT_PUBLIC_APP_URL</code> na publiczny adres.
+          </p>
+        ) : null}
         <InviteKindForm
           kind="view"
           title="Hasło / link do drzewa (bez konta)"
