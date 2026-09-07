@@ -4,11 +4,23 @@ import { SignJWT } from "jose";
 export const E2E_SESSION_SECRET = "potrykus-e2e-session-secret";
 export const E2E_COOKIE_NAME = "potrykus_family_session";
 
-export async function sessionCookie(role: "member" | "admin" = "member") {
+export async function sessionCookie(
+  role: "guest" | "member" | "admin" = "member",
+) {
   const token = await new SignJWT({
     role,
-    userId: role === "admin" ? "e2e-admin" : "e2e-member",
-    email: role === "admin" ? "admin@example.com" : "member@example.com",
+    userId:
+      role === "admin"
+        ? "e2e-admin"
+        : role === "guest"
+          ? "guest"
+          : "e2e-member",
+    email:
+      role === "admin"
+        ? "admin@example.com"
+        : role === "guest"
+          ? ""
+          : "member@example.com",
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

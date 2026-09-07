@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useAuthStatus, useFirstAdmin, useLogin } from "@/lib/hooks";
+import { useAuthStatus, useFirstAdmin, useLogin, useViewUnlock } from "@/lib/hooks";
 
 type Props = {
   /** Where to go after a successful login (full navigation — reliable on mobile). */
@@ -15,8 +15,10 @@ export function AccessGate({ afterLoginHref, needsFirstAdmin }: Props) {
   const firstAdmin = Boolean(needsFirstAdmin ?? auth.data?.needsFirstAdmin);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [viewCode, setViewCode] = useState("");
   const login = useLogin();
   const setup = useFirstAdmin();
+  const viewUnlock = useViewUnlock();
   const pending = login.isPending || setup.isPending;
 
   const goAfterAuth = (role: string) => {
@@ -59,7 +61,7 @@ export function AccessGate({ afterLoginHref, needsFirstAdmin }: Props) {
         <p className="gate-lead">
           {firstAdmin
             ? "Nie ma jeszcze żadnego konta w bazie. Ustaw swój e-mail i hasło (min. 8 znaków). Aplikacja sama utworzy tabele w Neon. Nie ma kodu rodzinnego."
-            : "Prywatne archiwum rodziny. Wejdź e-mailem i hasłem albo załóż konto linkiem zaproszenia."}
+            : "Prywatne archiwum. Admin loguje się e-mailem. Reszta rodziny może wejść samym hasłem do drzewa — bez konta."}
         </p>
         <form className="gate-form" onSubmit={onSubmit}>
           <label htmlFor="family-email" className="field-block">
@@ -104,6 +106,43 @@ export function AccessGate({ afterLoginHref, needsFirstAdmin }: Props) {
             {(error as Error).message || "Nie udało się."}
           </p>
         )}
+        {!firstAdmin ? (
+          <form
+            className="gate-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              viewUnlock.mutate(viewCode.trim(), {
+                onSuccess: () => goAfterAuth("guest"),
+              });
+            }}
+          >
+            <p className="gate-lead">Bez konta — tylko hasło do drzewa</p>
+            <label htmlFor="family-view-code" className="field-block">
+              Hasło rodzinne
+              <input
+                id="family-view-code"
+                type="password"
+                autoComplete="off"
+                value={viewCode}
+                onChange={(e) => setViewCode(e.target.value)}
+                className="gate-input"
+                required
+              />
+            </label>
+            <button
+              type="submit"
+              className="gate-cta"
+              disabled={viewUnlock.isPending || viewCode.trim().length < 1}
+            >
+              {viewUnlock.isPending ? "Otwieram…" : "Pokaż drzewo bez konta"}
+            </button>
+            {viewUnlock.isError ? (
+              <p className="gate-error" role="alert">
+                {(viewUnlock.error as Error).message}
+              </p>
+            ) : null}
+          </form>
+        ) : null}
         <footer className="gate-footer">
           {firstAdmin ? (
             <>
@@ -111,7 +150,9 @@ export function AccessGate({ afterLoginHref, needsFirstAdmin }: Props) {
             </>
           ) : (
             <>
-              Nie masz konta? <Link href="/register">Zarejestruj się</Link>
+              Link z zaproszenia? <Link href="/register">Załóż konto</Link>
+              <span className="gate-footer__sep">·</span>
+              <Link href="/wejscie">Tylko drzewo</Link>
               <span className="gate-footer__sep">·</span>
               Twórca: <strong>Adam Lieske</strong>
             </>

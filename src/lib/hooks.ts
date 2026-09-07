@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FamilyPayload } from "@/types/family";
-import type { UserRole } from "@/types/auth";
+import type { AuthRole, UserRole } from "@/types/auth";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -15,7 +15,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 
 export type AuthStatus = {
   unlocked: boolean;
-  role: UserRole | null;
+  role: AuthRole | null;
   email: string | null;
   storage?: "neon" | "file";
   needsFirstAdmin?: boolean;
@@ -94,6 +94,22 @@ export function useRegister() {
           body: JSON.stringify(input),
         },
       ),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["auth-status"] });
+      await qc.invalidateQueries({ queryKey: ["family"] });
+    },
+  });
+}
+
+export function useViewUnlock() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) =>
+      fetchJson<{ ok: boolean; role: "guest" }>("/api/auth/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      }),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["auth-status"] });
       await qc.invalidateQueries({ queryKey: ["family"] });

@@ -12,19 +12,6 @@ const DATA_DIR = path.join(process.cwd(), "data");
 const FAMILY_PATH = path.join(DATA_DIR, "family.json");
 const CONFIG_PATH = path.join(DATA_DIR, "config.json");
 
-function emptyFamily(): FamilyDatabase {
-  return {
-    meta: {
-      title: "Drzewo rodziny Potrykus",
-      rootPersonId: "wincenty-potrykus-1810",
-      creator: "Adam Lieske",
-      updatedAt: new Date().toISOString(),
-      description: "Dane drzewa w Neon. Wgraj plik .md w panelu admina.",
-    },
-    people: [],
-  };
-}
-
 export function familyFromMarkdown(markdown: string): FamilyDatabase {
   return parsePotrykusMarkdown(markdown);
 }
@@ -70,6 +57,61 @@ export async function ensureFamilySeeded(): Promise<void> {
   } catch {
     // table might not exist yet — caller should migrate first
   }
+}
+
+export type FamilyStorageInfo = {
+  source: "neon" | "markdown";
+  peopleCount: number;
+  graphTable: boolean;
+};
+
+export async function inspectFamilyStorage(): Promise<FamilyStorageInfo> {
+  const bundled = bundledFamilyFromMarkdown();
+  if (!hasDb()) {
+    return {
+      source: "markdown",
+      peopleCount: bundled.people.length,
+      graphTable: false,
+    };
+  }
+  try {
+    const sql = getSql();
+    const rows = (await sql`
+      SELECT payload FROM family_graph WHERE id = 'default' LIMIT 1
+    `) as { payload: FamilyDatabase }[];
+    const payload = rows[0]?.payload;
+    if (payload?.people?.length) {
+      return {
+        source: "neon",
+        peopleCount: payload.people.length,
+        graphTable: true,
+      };
+    }
+    return {
+      source: "markdown",
+      peopleCount: bundled.people.length,
+      graphTable: true,
+    };
+  } catch {
+    return {
+      source: "markdown",
+      peopleCount: bundled.people.length,
+      graphTable: false,
+    };
+  }
+}
+
+export async function persistBundledFamilyToNeon(): Promise<FamilyStorageInfo> {
+  if (!hasDb()) {
+    throw new Error("Brak połączenia z Neon.");
+  }
+  const { applySchemaMigrations } = await import("@/lib/bootstrap");
+  await applySchemaMigrations();
+  const existing = await readFamilyFromNeon();
+  if (!existing) {
+    await writeFamilyToNeon(bundledFamilyFromMarkdown());
+  }
+  return inspectFamilyStorage();
 }
 
 export async function readFamilyDb(): Promise<FamilyDatabase> {

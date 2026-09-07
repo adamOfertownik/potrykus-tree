@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
+import { applySchemaMigrations } from "@/lib/bootstrap";
 import { requireAdminSession } from "@/lib/auth";
 import { hasDb } from "@/lib/sql";
 import {
-  clearInviteCode,
+  clearAccessLink,
   generateInviteToken,
-  getInviteStatus,
-  setInviteCode,
+  getAccessLinksStatus,
+  pathForAccessLink,
+  setAccessLink,
+  type AccessLinkKind,
 } from "@/lib/invite";
 import { z } from "zod";
 
@@ -13,15 +16,26 @@ export async function GET() {
   if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
   }
-  const status = await getInviteStatus();
+  if (hasDb()) {
+    try {
+      await applySchemaMigrations();
+    } catch {
+      /* columns may already exist */
+    }
+  }
+  const links = await getAccessLinksStatus();
   return NextResponse.json({
-    enabled: status.enabled,
-    updatedAt: status.updatedAt,
+    ...links,
+    enabled: links.member.enabled,
+    updatedAt: links.member.updatedAt,
     storage: hasDb() ? "neon" : "file",
   });
 }
 
+const kinds = ["member", "admin", "view"] as const;
+
 const putSchema = z.object({
+  type: z.enum(kinds),
   generate: z.boolean().optional(),
   code: z.string().trim().min(8).max(200).optional(),
 });
@@ -30,13 +44,21 @@ export async function PUT(request: Request) {
   if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
   }
+  if (hasDb()) {
+    try {
+      await applySchemaMigrations();
+    } catch {
+      /* continue */
+    }
+  }
   const parsed = putSchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Podaj klucz (min. 8 znaków) albo wygeneruj link." },
+      { error: "Wybierz typ linku i podaj klucz (min. 8 znaków) albo wygeneruj." },
       { status: 400 },
     );
   }
+  const kind: AccessLinkKind = parsed.data.type;
   const token = parsed.data.generate
     ? generateInviteToken()
     : parsed.data.code?.trim();
@@ -47,12 +69,13 @@ export async function PUT(request: Request) {
     );
   }
   try {
-    await setInviteCode(token);
+    await setAccessLink(kind, token);
     return NextResponse.json({
       ok: true,
+      type: kind,
       enabled: true,
       token,
-      path: `/register?k=${encodeURIComponent(token)}`,
+      path: pathForAccessLink(kind, token),
     });
   } catch (err) {
     const message =
@@ -61,10 +84,18 @@ export async function PUT(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   if (!(await requireAdminSession())) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
   }
-  await clearInviteCode();
-  return NextResponse.json({ ok: true, enabled: false });
+  const type = new URL(request.url).searchParams.get("type");
+  const parsed = z.enum(kinds).safeParse(type);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Podaj type=member|admin|view." },
+      { status: 400 },
+    );
+  }
+  await clearAccessLink(parsed.data);
+  return NextResponse.json({ ok: true, type: parsed.data, enabled: false });
 }

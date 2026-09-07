@@ -8,6 +8,25 @@ import type { ChangeSubmission } from "@/types/submissions";
 import type { UserRole } from "@/types/auth";
 import { useAuthStatus, useLogout } from "@/lib/hooks";
 
+type AccessLinkKind = "member" | "admin" | "view";
+
+type LinkStatus = { enabled: boolean; updatedAt: string | null };
+
+type AdminStatus = {
+  storage: "neon" | "file";
+  tree: {
+    source: "neon" | "markdown";
+    peopleCount: number;
+    graphTable: boolean;
+  };
+  users: { admin: number; member: number };
+  links: {
+    member: LinkStatus;
+    admin: LinkStatus;
+    view: LinkStatus;
+  };
+};
+
 type UserRow = {
   id: string;
   email: string;
@@ -28,6 +47,110 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
+function InviteKindForm({
+  title,
+  hint,
+  kind,
+  enabled,
+  link,
+  code,
+  onCode,
+  onGenerate,
+  onSave,
+  onClear,
+  pending,
+}: {
+  title: string;
+  hint: string;
+  kind: AccessLinkKind;
+  enabled: boolean;
+  link: string;
+  code: string;
+  onCode: (value: string) => void;
+  onGenerate: () => void;
+  onSave: () => void;
+  onClear: () => void;
+  pending: boolean;
+}) {
+  return (
+    <div className="admin-card">
+      <div className="admin-card__head">
+        <strong>{title}</strong>
+        <span className="admin-card__status">
+          {enabled ? "włączony" : "wyłączony"}
+        </span>
+      </div>
+      <p className="empty-hint">{hint}</p>
+      {link ? (
+        <label className="field-block">
+          Link do skopiowania
+          <input
+            className="gate-input"
+            readOnly
+            value={link}
+            onFocus={(e) => e.currentTarget.select()}
+          />
+        </label>
+      ) : null}
+      {link ? (
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => {
+            void navigator.clipboard.writeText(link);
+          }}
+        >
+          Kopiuj link
+        </button>
+      ) : null}
+      <form
+        className="admin-user-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave();
+        }}
+      >
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={pending}
+          onClick={onGenerate}
+        >
+          {pending ? "Zapisuję…" : "Wygeneruj nowy link"}
+        </button>
+        <label className="field-block">
+          Albo własne hasło / klucz (min. 8 znaków)
+          <input
+            type="password"
+            className="gate-input"
+            value={code}
+            onChange={(e) => onCode(e.target.value)}
+            minLength={8}
+            autoComplete="new-password"
+          />
+        </label>
+        <button
+          type="submit"
+          className="btn btn-secondary"
+          disabled={pending || code.trim().length < 8}
+        >
+          Zapisz własne
+        </button>
+        {enabled ? (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled={pending}
+            onClick={onClear}
+          >
+            Wyłącz {kind === "view" ? "hasło" : "ten link"}
+          </button>
+        ) : null}
+      </form>
+    </div>
+  );
+}
+
 function AdminPanel({ email }: { email: string }) {
   const logout = useLogout();
   const router = useRouter();
@@ -37,8 +160,12 @@ function AdminPanel({ email }: { email: string }) {
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState<UserRole>("member");
   const [newName, setNewName] = useState("");
-  const [inviteLink, setInviteLink] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
+  const [inviteLinks, setInviteLinks] = useState<
+    Partial<Record<AccessLinkKind, string>>
+  >({});
+  const [inviteCodes, setInviteCodes] = useState<
+    Record<AccessLinkKind, string>
+  >({ member: "", admin: "", view: "" });
 
   const submissionsQ = useQuery({
     queryKey: ["admin-submissions"],
@@ -84,36 +211,51 @@ function AdminPanel({ email }: { email: string }) {
     },
   });
 
+  const adminStatusQ = useQuery({
+    queryKey: ["admin-status"],
+    queryFn: () => fetchJson<AdminStatus>("/api/admin/status"),
+  });
+
   const inviteQ = useQuery({
     queryKey: ["admin-invite"],
     queryFn: () =>
-      fetchJson<{ enabled: boolean; updatedAt: string | null }>(
-        "/api/admin/invite",
-      ),
+      fetchJson<{
+        member: LinkStatus;
+        admin: LinkStatus;
+        view: LinkStatus;
+        enabled: boolean;
+      }>("/api/admin/invite"),
   });
 
   const inviteMut = useMutation({
-    mutationFn: (body: { generate?: boolean; code?: string }) =>
-      fetchJson<{ ok: boolean; token?: string; path?: string }>(
-        "/api/admin/invite",
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        },
-      ),
+    mutationFn: (body: {
+      type: AccessLinkKind;
+      generate?: boolean;
+      code?: string;
+    }) =>
+      fetchJson<{
+        ok: boolean;
+        type: AccessLinkKind;
+        token?: string;
+        path?: string;
+      }>("/api/admin/invite", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
     onSuccess: (data) => {
-      setInviteCode("");
+      setInviteCodes((prev) => ({ ...prev, [data.type]: "" }));
       if (data.path) {
         const url = `${window.location.origin}${data.path}`;
-        setInviteLink(url);
+        setInviteLinks((prev) => ({ ...prev, [data.type]: url }));
         setNotice(
-          "Gotowy jeden link dla całej rodziny. Skopiuj i wyślij. W bazie jest tylko hash — później linku stąd nie odzyskasz.",
+          "Skopiuj link teraz. W bazie zostaje tylko hash — po odświeżeniu panelu samego adresu stąd nie odzyskasz (hasło własne pamiętasz Ty).",
         );
       } else {
-        setNotice("Zapisano klucz zaproszenia (w bazie jest tylko hash).");
+        setNotice("Zapisano klucz (w bazie jest tylko hash).");
       }
       void qc.invalidateQueries({ queryKey: ["admin-invite"] });
+      void qc.invalidateQueries({ queryKey: ["admin-status"] });
     },
   });
 
@@ -132,13 +274,33 @@ function AdminPanel({ email }: { email: string }) {
     },
   });
 
-  const inviteClearMut = useMutation({
+  const seedMut = useMutation({
     mutationFn: () =>
-      fetchJson<{ ok: boolean }>("/api/admin/invite", { method: "DELETE" }),
-    onSuccess: () => {
-      setInviteLink("");
-      setNotice("Rejestracja wyłączona — klucz usunięty.");
+      fetchJson<{
+        ok: boolean;
+        tree: AdminStatus["tree"];
+      }>("/api/admin/family-seed", { method: "POST" }),
+    onSuccess: (data) => {
+      setNotice(
+        data.tree.source === "neon"
+          ? `Drzewo w Neon (${data.tree.peopleCount} osób).`
+          : "Nadal czytam załączony Markdown — tabela w Neon jest pusta.",
+      );
+      void qc.invalidateQueries({ queryKey: ["admin-status"] });
+      void qc.invalidateQueries({ queryKey: ["family"] });
+    },
+  });
+
+  const inviteClearMut = useMutation({
+    mutationFn: (type: AccessLinkKind) =>
+      fetchJson<{ ok: boolean }>(`/api/admin/invite?type=${type}`, {
+        method: "DELETE",
+      }),
+    onSuccess: (_data, type) => {
+      setInviteLinks((prev) => ({ ...prev, [type]: "" }));
+      setNotice("Ten link / hasło zostało wyłączone.");
       void qc.invalidateQueries({ queryKey: ["admin-invite"] });
+      void qc.invalidateQueries({ queryKey: ["admin-status"] });
     },
   });
 
@@ -158,12 +320,14 @@ function AdminPanel({ email }: { email: string }) {
     submissionsQ.error ||
     usersQ.error ||
     inviteQ.error ||
+    adminStatusQ.error ||
     statusMut.error ||
     createMut.error ||
     roleMut.error ||
     inviteMut.error ||
     inviteClearMut.error ||
-    importMdMut.error;
+    importMdMut.error ||
+    seedMut.error;
   const busy =
     statusMut.isPending ||
     createMut.isPending ||
@@ -176,8 +340,9 @@ function AdminPanel({ email }: { email: string }) {
       <header className="admin-page__intro">
         <h1>Panel administratora</h1>
         <p>
-          Zalogowany jako <strong>{email}</strong>. Wygeneruj jeden link
-          zaproszenia, zakładaj konta i zatwierdzaj zgłoszenia.
+          Zalogowany jako <strong>{email}</strong>. Na MVP wystarczy, że konta
+          mają admini. Rodzina ogląda drzewo hasłem. Osobny link zakłada kolejne
+          konto admina, drugi — konto standardowe (jak dotychczas).
         </p>
         <div className="admin-page__toolbar">
           <Link href="/drzewo" className="btn btn-secondary">
@@ -210,101 +375,118 @@ function AdminPanel({ email }: { email: string }) {
       )}
 
       <section className="admin-users">
-        <h2>Link zaproszenia dla rodziny</h2>
+        <h2>Stan bazy i drzewa</h2>
         <p className="empty-hint">
-          Jeden ogólny link. Rodzina otwiera go, podaje e-mail i hasło — klucz
-          jest już w adresie. W Neon zapisujemy wyłącznie hash. Po odświeżeniu
-          strony linku stąd nie odczytasz, więc skopiuj go od razu.
+          {adminStatusQ.data
+            ? adminStatusQ.data.tree.source === "neon"
+              ? `Drzewo jest w Neon (${adminStatusQ.data.tree.peopleCount} osób).`
+              : `Drzewo idzie z załączonego Markdownu (${adminStatusQ.data.tree.peopleCount} osób)${adminStatusQ.data.tree.graphTable ? ", tabela family_graph jest pusta" : " — brak tabeli family_graph"}.`
+            : "Sprawdzam Neon…"}
         </p>
         <p className="empty-hint">
-          Status:{" "}
-          {inviteQ.data?.enabled
-            ? "rejestracja włączona (token ustawiony)"
-            : "rejestracja wyłączona (brak tokenu)"}
+          Konta: {adminStatusQ.data?.users.admin ?? "—"} adminów,{" "}
+          {adminStatusQ.data?.users.member ?? "—"} standardowych. Magazyn:{" "}
+          {adminStatusQ.data?.storage ?? "—"}.
         </p>
-        {inviteLink ? (
-          <p className="empty-hint">
-            <label className="field-block">
-              Link do skopiowania
-              <input
-                className="gate-input"
-                readOnly
-                value={inviteLink}
-                onFocus={(e) => e.currentTarget.select()}
-              />
-            </label>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => {
-                void navigator.clipboard.writeText(inviteLink);
-                setNotice("Skopiowano link zaproszenia.");
-              }}
-            >
-              Kopiuj link
-            </button>
-          </p>
-        ) : null}
-        <form
-          className="admin-user-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setNotice(null);
-            inviteMut.mutate({ code: inviteCode });
-          }}
-        >
+        <p className="empty-hint">
+          Clerk na MVP nie jest potrzebny — już jest Neon i sesja. Darmowy plan
+          Clerka to kolejny vendor i klucze, a gość i tak ogląda drzewo hasłem.
+        </p>
+        {adminStatusQ.data?.tree.source !== "neon" ? (
           <button
             type="button"
             className="btn btn-primary"
-            disabled={inviteMut.isPending}
+            disabled={seedMut.isPending}
             onClick={() => {
               setNotice(null);
-              inviteMut.mutate({ generate: true });
+              seedMut.mutate();
             }}
           >
-            {inviteMut.isPending
-              ? "Generuję…"
-              : "Wygeneruj nowy link rodzinny"}
+            {seedMut.isPending
+              ? "Zapisuję do Neona…"
+              : "Zapisz drzewo z Markdownu do Neona"}
           </button>
-          <label className="field-block">
-            Albo własny klucz (min. 8 znaków)
-            <input
-              type="password"
-              className="gate-input"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              minLength={8}
-              autoComplete="new-password"
-            />
-          </label>
-          <button
-            type="submit"
-            className="btn btn-secondary"
-            disabled={inviteMut.isPending || inviteCode.trim().length < 8}
-          >
-            Zapisz własny klucz
-          </button>
-          {inviteQ.data?.enabled ? (
-            <button
-              type="button"
-              className="btn btn-secondary"
-              disabled={inviteClearMut.isPending}
-              onClick={() => {
-                setNotice(null);
-                inviteClearMut.mutate();
-              }}
-            >
-              Wyłącz rejestrację
-            </button>
-          ) : null}
-        </form>
+        ) : null}
+      </section>
+
+      <section className="admin-users">
+        <h2>Trzy wejścia dla rodziny</h2>
+        <p className="empty-hint">
+          Większość osób nie zakłada konta. Daj im hasło albo link do drzewa.
+          Osobno wyślij link adminom i (opcjonalnie) osobom, które mają mieć
+          zwykłe konto.
+        </p>
+        <InviteKindForm
+          kind="view"
+          title="Hasło / link do drzewa (bez konta)"
+          hint="Adres /wejscie?k=… albo własne hasło na stronie logowania. Gość widzi drzewo, listę i zjazd — bez e-maila."
+          enabled={Boolean(inviteQ.data?.view.enabled)}
+          link={inviteLinks.view || ""}
+          code={inviteCodes.view}
+          onCode={(value) =>
+            setInviteCodes((prev) => ({ ...prev, view: value }))
+          }
+          onGenerate={() => {
+            setNotice(null);
+            inviteMut.mutate({ type: "view", generate: true });
+          }}
+          onSave={() => {
+            setNotice(null);
+            inviteMut.mutate({ type: "view", code: inviteCodes.view });
+          }}
+          onClear={() => inviteClearMut.mutate("view")}
+          pending={inviteMut.isPending || inviteClearMut.isPending}
+        />
+        <InviteKindForm
+          kind="admin"
+          title="Link dla kolejnego admina"
+          hint="Otwiera /register?k=…&rola=admin i zakłada konto z pełnymi uprawnieniami. Nie mieszaj z hasłem do drzewa."
+          enabled={Boolean(inviteQ.data?.admin.enabled)}
+          link={inviteLinks.admin || ""}
+          code={inviteCodes.admin}
+          onCode={(value) =>
+            setInviteCodes((prev) => ({ ...prev, admin: value }))
+          }
+          onGenerate={() => {
+            setNotice(null);
+            inviteMut.mutate({ type: "admin", generate: true });
+          }}
+          onSave={() => {
+            setNotice(null);
+            inviteMut.mutate({ type: "admin", code: inviteCodes.admin });
+          }}
+          onClear={() => inviteClearMut.mutate("admin")}
+          pending={inviteMut.isPending || inviteClearMut.isPending}
+        />
+        <InviteKindForm
+          kind="member"
+          title="Link na konto standardowe"
+          hint="Tak jak dotychczas: /register?k=… zakłada konto rodziny (zgłoszenia, zjazd z loginem). Stary pojedynczy klucz z bazy nadal tu działa po migracji."
+          enabled={Boolean(inviteQ.data?.member.enabled)}
+          link={inviteLinks.member || ""}
+          code={inviteCodes.member}
+          onCode={(value) =>
+            setInviteCodes((prev) => ({ ...prev, member: value }))
+          }
+          onGenerate={() => {
+            setNotice(null);
+            inviteMut.mutate({ type: "member", generate: true });
+          }}
+          onSave={() => {
+            setNotice(null);
+            inviteMut.mutate({ type: "member", code: inviteCodes.member });
+          }}
+          onClear={() => inviteClearMut.mutate("member")}
+          pending={inviteMut.isPending || inviteClearMut.isPending}
+        />
       </section>
 
       <section className="admin-users">
         <h2>Drzewo z pliku Markdown</h2>
         <p className="empty-hint">
-          Żywe dane są w Neon, nie w kodzie. Wgraj <strong>.md</strong> (jak
-          załącznik z raportu), a aplikacja zbuduje osoby, rodziców i małżeństwa.
+          Jeśli w Neon nie ma grafu, aplikacja czyta załączony raport. Wgraj
+          nowy <strong>.md</strong>, żeby nadpisać osoby, rodziców i małżeństwa
+          w bazie.
         </p>
         <form
           className="admin-user-form"
@@ -341,9 +523,10 @@ function AdminPanel({ email }: { email: string }) {
       <section className="admin-users">
         <h2>Konta rodziny</h2>
         <p className="empty-hint">
-          <strong>Rodzina</strong> widzi drzewo, zgłasza poprawki i zapisuje
-          się na spotkanie. <strong>Admin</strong> dodatkowo edytuje graf i
-          zatwierdza zgłoszenia.
+          <strong>Rodzina</strong> (konto) widzi drzewo, zgłasza poprawki i
+          zapisuje się na spotkanie. <strong>Gość</strong> (hasło do drzewa)
+          ogląda to samo bez e-maila. <strong>Admin</strong> edytuje graf i
+          zaprasza kolejnych adminów. Na zjazd nie każdy musi mieć konto.
         </p>
         <form
           className="admin-user-form"

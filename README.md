@@ -29,19 +29,24 @@ Otwórz [http://localhost:3000](http://localhost:3000) i zaloguj się e-mailem o
 
 ## Role
 
-| Rola | Co może |
-|------|---------|
-| **Rodzina** (`member`) | Drzewo, lista, urodziny, spotkanie, zgłoszenia poprawek |
-| **Admin** (`admin`) | To samo + edycja grafu, zatwierdzanie zgłoszeń, zakładanie kont |
+| Rola | Konto? | Co może |
+|------|--------|---------|
+| **Gość** (`guest`) | Nie — hasło / link `/wejscie` | Drzewo, lista, urodziny, zjazd |
+| **Rodzina** (`member`) | Tak — link `/register?k=` | To samo + zgłoszenia z konta |
+| **Admin** (`admin`) | Tak — pierwsze konto na `/login` albo link `/register?k=&rola=admin` | Edycja grafu, zaproszenia, zatwierdzanie |
 
-Konta: rejestracja jednym linkiem z `/admin` („Wygeneruj nowy link rodzinny”) albo ręcznie:
+Na MVP **wystarczy, że konta mają admini**. Reszta rodziny wchodzi hasłem do drzewa. Clerk (darmowy) nie jest potrzebny — dodałby osobny serwis, a sesja i Neon już są.
+
+W `/admin` są **trzy** wejścia (w bazie tylko hash; skopiuj link od razu albo ustaw własne hasło):
+
+1. hasło / link do drzewa bez konta (`/wejscie?k=…`)
+2. zaproszenie kolejnego admina
+3. zaproszenie na konto standardowe (jak dotychczas)
 
 ```bash
 npm run db:create-user -- osoba@email.pl haslo-min-8-znakow member
-npm run db:set-invite -- "klucz-min-8-znakow"
+npm run db:set-invite -- member "klucz-min-8-znakow"
 ```
-
-Link ma postać `/register?k=…`. Rodzina nie wpisuje klucza. W bazie jest tylko hash.
 
 Hasła i sekrety sesji **nie leżą w git**. `SESSION_SECRET` ustaw w Vercel / środowisku i nie commituj.
 
@@ -67,7 +72,7 @@ Potem:
 
 1. Zmerguj ten PR (albo wejdź na **Preview** z GitHuba).
 2. Otwórz `/login`. Gdy baza jest pusta, zobaczysz **„Pierwsze konto admina”** — wpisz swój e-mail i hasło (min. 8 znaków). Aplikacja sama założy tabele w Neon. **Nie ma kodu administratora / kodu rodzinnego.**
-3. W `/admin` kliknij **Wygeneruj nowy link rodzinny**, skopiuj i wyślij rodzinie.
+3. W `/admin` ustaw **hasło do drzewa** (dla rodziny bez kont) oraz **dwa linki kont**: admin i standard.
 4. Zdjęcia (opcjonalnie): Vercel Storage → Blob.
 
 ## Funkcje
@@ -81,7 +86,7 @@ Potem:
 
 ## Dane
 
-Seed drzewa: w `/admin` wgraj plik `.md` (albo pierwsze logowanie wczytuje załączony raport Wincentego).  
+Seed drzewa: w `/admin` „Zapisz drzewo z Markdownu do Neona” albo wgraj plik `.md`. Dopóki nie ma wiersza w `family_graph`, aplikacja czyta załączony raport.  
 `data/family.json` jest pusty — nie trzymaj tam żywych danych.  
 Sprawdzenie Neona: `npm run db:check`
 

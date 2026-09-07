@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 import { readConfig } from "@/lib/db";
 import type { AppUser } from "@/lib/users";
-import { isUserRole, type UserRole } from "@/types/auth";
+import { isAuthRole, type AuthRole } from "@/types/auth";
 
 const SESSION_TTL = "30d";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
@@ -20,10 +20,12 @@ async function signingKey() {
   return { config, key: secretKey(config.sessionSecret) };
 }
 
+export const GUEST_USER_ID = "guest";
+
 export type SessionUser = {
   userId: string;
   email: string;
-  role: UserRole;
+  role: AuthRole;
 };
 
 export async function createSessionToken(user: AppUser): Promise<string> {
@@ -40,6 +42,20 @@ export async function createSessionToken(user: AppUser): Promise<string> {
     .sign(key);
 }
 
+export async function createGuestSessionToken(): Promise<string> {
+  const { key } = await signingKey();
+  return new SignJWT({
+    role: "guest",
+    userId: GUEST_USER_ID,
+    email: "",
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(GUEST_USER_ID)
+    .setIssuedAt()
+    .setExpirationTime(SESSION_TTL)
+    .sign(key);
+}
+
 export async function getSession(): Promise<SessionUser | null> {
   try {
     const { config, key } = await signingKey();
@@ -47,7 +63,7 @@ export async function getSession(): Promise<SessionUser | null> {
     const token = jar.get(config.cookieName)?.value;
     if (!token) return null;
     const { payload } = await jwtVerify(token, key);
-    if (!isUserRole(payload.role) || typeof payload.userId !== "string") {
+    if (!isAuthRole(payload.role) || typeof payload.userId !== "string") {
       return null;
     }
     return {

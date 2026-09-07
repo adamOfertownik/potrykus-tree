@@ -100,6 +100,10 @@ function AppShellInner({
               <span className="app-header__login app-header__login--plain">
                 {auth.data.email}
               </span>
+            ) : auth.data?.role === "guest" ? (
+              <span className="app-header__login app-header__login--plain">
+                Gość
+              </span>
             ) : null}
 
             <div className="nav-menu" ref={menuRef}>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { attachSessionCookie, createSessionToken } from "@/lib/auth";
 import { hasDb } from "@/lib/sql";
 import { createUser, findUserByEmail, touchUserLogin } from "@/lib/users";
-import { getInviteStatus, verifyInviteCode } from "@/lib/invite";
+import { getAccessLinksStatus, matchAccessCode } from "@/lib/invite";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import { z } from "zod";
 
@@ -14,9 +14,13 @@ const registerSchema = z.object({
 });
 
 export async function GET() {
-  const status = await getInviteStatus();
+  const status = await getAccessLinksStatus();
+  const enabled = hasDb() && (status.member.enabled || status.admin.enabled);
   return NextResponse.json({
-    enabled: status.enabled && hasDb(),
+    enabled,
+    memberEnabled: status.member.enabled,
+    adminEnabled: status.admin.enabled,
+    viewEnabled: status.view.enabled,
   });
 }
 
@@ -51,15 +55,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: msg }, { status: 400 });
     }
 
-    const inviteOk = await verifyInviteCode(parsed.data.inviteCode);
-    if (!inviteOk) {
-      const status = await getInviteStatus();
+    const kind = await matchAccessCode(parsed.data.inviteCode);
+    if (kind === "view") {
       return NextResponse.json(
         {
           ok: false,
-          error: status.enabled
+          error:
+            "To hasło otwiera drzewo bez konta. Wejdź przez stronę „Wejście do drzewa”, nie rejestrację.",
+        },
+        { status: 400 },
+      );
+    }
+    if (kind !== "member" && kind !== "admin") {
+      const status = await getAccessLinksStatus();
+      const anyInvite = status.member.enabled || status.admin.enabled;
+      return NextResponse.json(
+        {
+          ok: false,
+          error: anyInvite
             ? "Nieprawidłowy klucz zaproszenia."
-            : "Rejestracja jest wyłączona. Poproś administratora o klucz.",
+            : "Rejestracja jest wyłączona. Poproś administratora o link.",
         },
         { status: 401 },
       );
@@ -78,7 +93,7 @@ export async function POST(request: Request) {
       user = await createUser({
         email: parsed.data.email,
         password: parsed.data.password,
-        role: "member",
+        role: kind,
         displayName: parsed.data.displayName,
       });
     } catch (err) {
