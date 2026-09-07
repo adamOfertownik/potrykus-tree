@@ -217,6 +217,7 @@ function AppShellInner({
               ["/lista", "Lista"],
               ["/urodziny", "Urodziny"],
               ["/spotkanie", "Spotkanie"],
+              ["/zdjecia", "Zdjęcia"],
               ["/zglos", "Zgłoś"],
               ["/pokrewienstwo", "Kto kim"],
             ] as const
