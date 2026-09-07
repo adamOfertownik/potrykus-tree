@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Person } from "@/types/family";
 import type { ChangeKind, SubmissionPayload } from "@/types/submissions";
 import { displayName } from "@/lib/db-client";
@@ -21,9 +21,12 @@ const KINDS: { id: ChangeKind; label: string }[] = [
 ];
 
 export function ChangeRequestPanel({ people }: Props) {
+  const savedReporter = loadReporter();
   const [kind, setKind] = useState<ChangeKind>("correction");
-  const [reporterName, setReporterName] = useState("");
-  const [reporterPersonId, setReporterPersonId] = useState<string | undefined>();
+  const [reporterName, setReporterName] = useState(savedReporter?.name || "");
+  const [reporterPersonId, setReporterPersonId] = useState<string | undefined>(
+    savedReporter?.personId,
+  );
   const [reporterPhone, setReporterPhone] = useState("");
   const [targetQuery, setTargetQuery] = useState("");
   const [targetPersonId, setTargetPersonId] = useState<string | undefined>();
@@ -33,14 +36,6 @@ export function ChangeRequestPanel({ people }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
-    const r = loadReporter();
-    if (r) {
-      setReporterName(r.name);
-      setReporterPersonId(r.personId);
-    }
-  }, []);
 
   const targetMatches =
     targetQuery.trim().length >= 1

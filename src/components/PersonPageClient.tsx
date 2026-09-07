@@ -187,11 +187,13 @@ function PersonInner({ id, people }: { id: string; people: Person[] }) {
         </button>
       </p>
 
-      <ReportPersonDataModal
-        open={reportOpen}
-        person={person}
-        onClose={() => setReportOpen(false)}
-      />
+      {reportOpen && (
+        <ReportPersonDataModal
+          open
+          person={person}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
     </article>
   );
 }

@@ -29,7 +29,10 @@ function AdminPanel({ email }: { email: string }) {
   };
 
   useEffect(() => {
-    void load();
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const setStatus = async (

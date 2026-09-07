@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Person } from "@/types/family";
 import type { ChangeKind, SubmissionPayload } from "@/types/submissions";
 import { displayName } from "@/lib/db-client";
@@ -24,27 +24,17 @@ const KINDS: { id: ChangeKind; label: string }[] = [
 
 export function ReportPersonDataModal({ open, person, onClose }: Props) {
   const { identity } = useIdentity();
+  const saved = identity || loadReporter();
   const [kind, setKind] = useState<ChangeKind>("correction");
-  const [reporterName, setReporterName] = useState("");
-  const [reporterPersonId, setReporterPersonId] = useState<string | undefined>();
+  const [reporterName, setReporterName] = useState(saved?.name || "");
+  const [reporterPersonId, setReporterPersonId] = useState<string | undefined>(
+    saved?.personId,
+  );
   const [reporterPhone, setReporterPhone] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const r = identity || loadReporter();
-    setKind("correction");
-    setReporterName(r?.name || "");
-    setReporterPersonId(r?.personId);
-    setReporterPhone("");
-    setMessage("");
-    setBusy(false);
-    setError(null);
-    setSuccess(null);
-  }, [open, person.id, identity]);
 
   if (!open) return null;
 
@@ -54,7 +44,7 @@ export function ReportPersonDataModal({ open, person, onClose }: Props) {
     setError(null);
     setSuccess(null);
     try {
-      const name = reporterName.trim();
+      const name = reporterName.trim() || saved?.name || "";
       saveReporter({ name, personId: reporterPersonId });
       const payload: SubmissionPayload = {
         kind,
