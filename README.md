@@ -11,7 +11,7 @@ Twórca: **Adam Lieske**
 
 - Next.js 16 (App Router)
 - TanStack Query
-- Drzewo w `data/family.json`
+- Drzewo w **Neon** (`family_graph`); źródło importu to Markdown, nie git
 - Konta i role w **Neon Postgres** (`app_users`)
 - Zapisy zgłoszeń i RSVP też w Neon (z fallbackiem do `data/*.json` lokalnie)
 
@@ -81,8 +81,8 @@ Potem:
 
 ## Dane
 
-Seed drzewa: `npm run seed` (skrypt `scripts/generate-seed.mjs`)  
-Edycja ręczna: `data/family.json`  
+Seed drzewa: w `/admin` wgraj plik `.md` (albo pierwsze logowanie wczytuje załączony raport Wincentego).  
+`data/family.json` jest pusty — nie trzymaj tam żywych danych.  
 Sprawdzenie Neona: `npm run db:check`
 
 ## Docelowo (sklep)

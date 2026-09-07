@@ -33,9 +33,9 @@ const SCALE_LAYOUT: Record<
   TextScaleId,
   { w: number; h: number; xSpace: number; ySpace: number; font: number }
 > = {
-  normal: { w: 196, h: 72, xSpace: 168, ySpace: 196, font: 13 },
-  large: { w: 228, h: 86, xSpace: 196, ySpace: 220, font: 15 },
-  xlarge: { w: 252, h: 96, xSpace: 220, ySpace: 240, font: 17 },
+  normal: { w: 210, h: 84, xSpace: 280, ySpace: 240, font: 13 },
+  large: { w: 230, h: 92, xSpace: 310, ySpace: 260, font: 15 },
+  xlarge: { w: 250, h: 100, xSpace: 340, ySpace: 280, font: 16 },
 };
 
 /** Minimum zoom when jumping to a searched person, so the card stays readable */
@@ -208,6 +208,7 @@ export function FamilyChartView({
     el.style.setProperty("--f3-card-font", `${layout.font}px`);
 
     const livePeople = peopleRef.current;
+    if (!livePeople.length) return;
     const data = peopleToFamilyChartData(livePeople);
     const centerId = mainIdRef.current;
     const safeMain = data.some((d) => d.id === centerId)
@@ -234,19 +235,14 @@ export function FamilyChartView({
     card.setCardDim({
       w: layout.w,
       h: layout.h,
-      text_x: 75,
-      text_y: 15,
-      img_w: 60,
-      img_h: 60,
-      img_x: 5,
-      img_y: 5,
+      text_x: 62,
+      text_y: 14,
+      img_w: 50,
+      img_h: 50,
+      img_x: 6,
+      img_y: 8,
     });
-    card.setCardDisplay([
-      ["first name", "last name"],
-      ["maiden"],
-      ["birthday"],
-      ["death"],
-    ]);
+    card.setCardDisplay([["first name"], ["last name"], ["years"]]);
     card.setOnCardClick((_e: MouseEvent, d: { data?: { id?: string } }) => {
       const id = d?.data?.id;
       if (!id) return;
@@ -302,12 +298,12 @@ export function FamilyChartView({
     card.setCardDim({
       w: layout.w,
       h: layout.h,
-      text_x: 75,
-      text_y: 15,
-      img_w: 60,
-      img_h: 60,
-      img_x: 5,
-      img_y: 5,
+      text_x: 62,
+      text_y: 14,
+      img_w: 50,
+      img_h: 50,
+      img_x: 6,
+      img_y: 8,
     });
     chart.updateTree({ tree_position: "inherit" });
   }, [scale]);

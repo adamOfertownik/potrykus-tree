@@ -3,6 +3,7 @@ import { attachSessionCookie, createSessionToken } from "@/lib/auth";
 import { applySchemaMigrations, getSchemaHealth } from "@/lib/bootstrap";
 import { hasDb } from "@/lib/sql";
 import { createUser, touchUserLogin } from "@/lib/users";
+import { ensureFamilySeeded } from "@/lib/db";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import { z } from "zod";
 
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
     }
 
     await applySchemaMigrations();
+    await ensureFamilySeeded();
     const health = await getSchemaHealth();
     if (health.userCount > 0) {
       return NextResponse.json(

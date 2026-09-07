@@ -117,6 +117,21 @@ function AdminPanel({ email }: { email: string }) {
     },
   });
 
+  const importMdMut = useMutation({
+    mutationFn: (body: FormData) =>
+      fetch("/api/admin/family-import", { method: "POST", body }).then(
+        async (res) => {
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Błąd importu");
+          return data as { people: number };
+        },
+      ),
+    onSuccess: (data) => {
+      setNotice(`Wgrano drzewo (${data.people} osób) do Neona.`);
+      void qc.invalidateQueries({ queryKey: ["family"] });
+    },
+  });
+
   const inviteClearMut = useMutation({
     mutationFn: () =>
       fetchJson<{ ok: boolean }>("/api/admin/invite", { method: "DELETE" }),
@@ -147,7 +162,8 @@ function AdminPanel({ email }: { email: string }) {
     createMut.error ||
     roleMut.error ||
     inviteMut.error ||
-    inviteClearMut.error;
+    inviteClearMut.error ||
+    importMdMut.error;
   const busy =
     statusMut.isPending ||
     createMut.isPending ||
@@ -281,6 +297,44 @@ function AdminPanel({ email }: { email: string }) {
               Wyłącz rejestrację
             </button>
           ) : null}
+        </form>
+      </section>
+
+      <section className="admin-users">
+        <h2>Drzewo z pliku Markdown</h2>
+        <p className="empty-hint">
+          Żywe dane są w Neon, nie w kodzie. Wgraj <strong>.md</strong> (jak
+          załącznik z raportu), a aplikacja zbuduje osoby, rodziców i małżeństwa.
+        </p>
+        <form
+          className="admin-user-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const input = e.currentTarget.elements.namedItem(
+              "mdfile",
+            ) as HTMLInputElement | null;
+            const file = input?.files?.[0];
+            if (!file) {
+              setNotice(null);
+              return;
+            }
+            const body = new FormData();
+            body.append("file", file);
+            setNotice(null);
+            importMdMut.mutate(body);
+          }}
+        >
+          <label className="field-block">
+            Plik .md
+            <input name="mdfile" type="file" accept=".md,text/markdown,text/plain" />
+          </label>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={importMdMut.isPending}
+          >
+            {importMdMut.isPending ? "Wczytuję…" : "Wgraj drzewo do bazy"}
+          </button>
         </form>
       </section>
 

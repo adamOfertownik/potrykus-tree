@@ -889,11 +889,17 @@ input {
   box-sizing: border-box;
 }
 
+.family-chart-host .card,
+.family-chart-host div.card {
+  overflow: hidden;
+}
+
 .family-chart-host .card text,
 .family-chart-host .card .card-text,
 .family-chart-host .card-inner text,
 .family-chart-host div.card {
   font-size: var(--f3-card-font, 13px) !important;
+  line-height: 1.2;
 }
 
 /* Relationship lines — visible on light background */
