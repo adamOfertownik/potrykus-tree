@@ -4,6 +4,7 @@ import { jsPDF } from "jspdf";
 import type { Person } from "@/types/family";
 import { buildDescendantList } from "@/lib/list";
 import { getChildrenIds, getPersonMap } from "@/lib/tree";
+import { formatAgeLabel } from "@/lib/age";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 
 type PdfFormat = "a4" | "a0";
@@ -54,7 +55,9 @@ function personLine(person: Person, isSpouse: boolean): string {
   const death = person.deathDate
     ? `  z. ${formatPolishDate(person.deathDate)}`
     : "";
-  return `${prefix}${displayName(person)}${birth}${death}`;
+  const age = formatAgeLabel(person);
+  const ageBit = age ? `  (${age})` : "";
+  return `${prefix}${displayName(person)}${birth}${death}${ageBit}`;
 }
 
 function drawNestingRails(

@@ -3,7 +3,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -36,30 +35,18 @@ export function IdentityProvider({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [identity, setIdentityState] = useState<ReporterIdentity | null>(null);
-  const [ready, setReady] = useState(false);
-  const [promptOpen, setPromptOpen] = useState(false);
-
-  useEffect(() => {
-    const saved = loadReporter();
-    setIdentityState(saved);
-    setReady(true);
-    if (!saved?.name) setPromptOpen(true);
-  }, []);
-
-  useEffect(() => {
-    if (!enabled || !ready || !people.length) return;
-    if (identity?.name) {
-      setPromptOpen(false);
-      return;
-    }
-    setPromptOpen(true);
-  }, [enabled, ready, people.length, identity?.name]);
+  const [identity, setIdentityState] = useState<ReporterIdentity | null>(
+    () => loadReporter(),
+  );
+  const [askAgain, setAskAgain] = useState(false);
+  const promptOpen = Boolean(
+    enabled && people.length && (askAgain || !identity?.name),
+  );
 
   const applyIdentity = (next: ReporterIdentity) => {
     saveReporter(next);
     setIdentityState(next);
-    setPromptOpen(false);
+    setAskAgain(false);
 
     const onTree = pathname === "/" || pathname.startsWith("/drzewo");
     if (onTree && next.personId) {
@@ -70,10 +57,10 @@ export function IdentityProvider({
   const clearIdentity = () => {
     clearReporter();
     setIdentityState(null);
-    setPromptOpen(true);
+    setAskAgain(true);
   };
 
-  const promptIdentity = () => setPromptOpen(true);
+  const promptIdentity = () => setAskAgain(true);
 
   return (
     <IdentityContext.Provider
@@ -91,7 +78,7 @@ export function IdentityProvider({
           open
           compulsory={!identity?.name}
           onClose={() => {
-            if (identity?.name) setPromptOpen(false);
+            if (identity?.name) setAskAgain(false);
           }}
           onIdentified={(name, personId) => {
             applyIdentity({ name, personId });

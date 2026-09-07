@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { AuthedPage } from "@/components/AuthedPage";
+import { formatAgePl } from "@/lib/age";
 import {
   birthdaysThisMonth,
   MONTH_NAMES_PL,
@@ -42,11 +43,16 @@ function BirthdaysInner({
                 <Link href={`/osoba/${e.person.id}`}>
                   {displayName(e.person)}
                 </Link>
-                {e.turningAge != null && (
+                {e.alreadyOccurred && e.currentAge != null ? (
                   <span className="birthdays-list__age">
-                    kończy {e.turningAge} lat
+                    {e.person.gender === "female" ? "skończyła" : "skończył"}{" "}
+                    {formatAgePl(e.currentAge)}
                   </span>
-                )}
+                ) : e.turningAge != null ? (
+                  <span className="birthdays-list__age">
+                    kończy {formatAgePl(e.turningAge)}
+                  </span>
+                ) : null}
                 <Link
                   className="btn-text"
                   href={`/drzewo?root=${encodeURIComponent(e.person.id)}`}
@@ -76,7 +82,8 @@ function BirthdaysInner({
               </Link>
               {e.turningAge != null && (
                 <span className="birthdays-list__age">
-                  {e.turningAge} lat
+                  {e.daysUntil === 0 ? "kończy " : ""}
+                  {formatAgePl(e.turningAge)}
                 </span>
               )}
             </li>

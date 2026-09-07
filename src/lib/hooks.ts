@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FamilyPayload } from "@/types/family";
+import type { ChangeSubmission } from "@/types/submissions";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -93,6 +94,34 @@ export function useAdminLogout() {
       }),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["admin-auth-status"] });
+    },
+  });
+}
+
+export function useAdminSubmissions(enabled = true) {
+  return useQuery({
+    queryKey: ["admin-submissions"],
+    queryFn: async () => {
+      const data = await fetchJson<{ submissions: ChangeSubmission[] }>(
+        "/api/admin/submissions",
+      );
+      return data.submissions ?? [];
+    },
+    enabled,
+  });
+}
+
+export function useAdminSetSubmissionStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { id: string; status: ChangeSubmission["status"] }) =>
+      fetchJson<{ submission: ChangeSubmission }>("/api/admin/submissions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["admin-submissions"] });
     },
   });
 }

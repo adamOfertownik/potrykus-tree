@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
 import { PersonSearch } from "@/components/PersonSearch";
 import { buildDescendantList } from "@/lib/list";
+import { formatAgeLabel } from "@/lib/age";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import type { Person } from "@/types/family";
 
@@ -52,6 +53,7 @@ function ListInner({
           {entries.map((entry) => {
             const birth = formatPolishDate(entry.person.birthDate);
             const death = formatPolishDate(entry.person.deathDate);
+            const age = formatAgeLabel(entry.person);
             const depth = Math.floor(entry.railDepth);
             const isHighlight = highlightId === entry.person.id;
 
@@ -105,6 +107,7 @@ function ListInner({
                   </Link>
                   {birth && <span className="genealogy-date"> u. {birth}</span>}
                   {death && <span className="genealogy-date"> z. {death}</span>}
+                  {age && <span className="genealogy-age"> ({age})</span>}
                   {!entry.isSpouse && (
                     <button
                       type="button"
