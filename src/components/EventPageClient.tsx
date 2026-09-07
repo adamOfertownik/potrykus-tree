@@ -138,14 +138,15 @@ export function EventPageClient() {
     [people, nameQuery],
   );
 
-  const price = eventQ.data?.event.pricePerPersonPln ?? 250;
+  const price = eventQ.data?.event.pricePerPersonPln ?? 240;
+  const childPrice = eventQ.data?.event.priceChildTo7Pln ?? 120;
   const breakdown = useMemo(
     () => ({ adults, children3to12, childrenUnder3 }),
     [adults, children3to12, childrenUnder3],
   );
   const guests = totalGuests(breakdown);
   const paying = payingGuests(breakdown);
-  const amount = amountDuePln(breakdown, price);
+  const amount = amountDuePln(breakdown, price, childPrice);
 
   if (auth.isLoading) return <div className="loading-screen">Ładowanie…</div>;
   if (!auth.data?.unlocked) return <AccessGate />;
@@ -165,6 +166,8 @@ export function EventPageClient() {
     fullName,
     guests,
     amount,
+    adults,
+    children3to12,
   );
 
   const flashCopy = (key: string) => {
@@ -257,7 +260,9 @@ export function EventPageClient() {
             </li>
             <li>
               <span>Cena</span>
-              <strong>{formatPln(price)} / osoba</strong>
+              <strong>
+                {formatPln(price)} / os. 8+ · {formatPln(childPrice)} do lat 7
+              </strong>
             </li>
             <li>
               <span>Zapisy</span>
@@ -316,8 +321,8 @@ export function EventPageClient() {
         <section className="event-section" id="zapisz">
           <h2>Zapisz się i policz opłatę</h2>
           <p className="event-section__lead">
-            {formatPln(price)} od osoby dorosłej i dziecka 3–12 lat. Dzieci do
-            lat 3 — bez opłaty.
+            {formatPln(price)} od osoby powyżej 7 lat. Dzieci do lat 7 —{" "}
+            {formatPln(childPrice)}. Dzieci do lat 3 — bez opłaty.
           </p>
 
           <form className="change-form" onSubmit={submit}>
@@ -372,7 +377,7 @@ export function EventPageClient() {
 
             <div className="guest-steppers" role="group" aria-label="Liczba osób">
               <Stepper
-                label="Osoby (13+)"
+                label="Osoby powyżej 7 lat"
                 hint={`${formatPln(price)} / os.`}
                 value={adults}
                 min={0}
@@ -380,8 +385,8 @@ export function EventPageClient() {
                 onChange={setAdults}
               />
               <Stepper
-                label="Dzieci 3–12 lat"
-                hint={`${formatPln(price)} / os.`}
+                label="Dzieci do lat 7"
+                hint={`${formatPln(childPrice)} / os.`}
                 value={children3to12}
                 min={0}
                 max={20}
@@ -525,8 +530,7 @@ export function EventPageClient() {
             </a>
           </div>
           <p className="event-footnote">
-            {event.transfer.amountHint} Po uzupełnieniu numeru konta wystarczy
-            wkleić skopiowane dane w aplikacji bankowej.
+            {event.transfer.amountHint}
           </p>
         </section>
 

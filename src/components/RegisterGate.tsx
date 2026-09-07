@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useRegister } from "@/lib/hooks";
 
@@ -10,10 +11,13 @@ type Props = {
 };
 
 export function RegisterGate({ afterRegisterHref = "/drzewo" }: Props) {
+  const searchParams = useSearchParams();
+  const fromLink =
+    searchParams.get("k")?.trim() || searchParams.get("invite")?.trim() || "";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
+  const [inviteCode, setInviteCode] = useState(fromLink);
   const register = useRegister();
   const invite = useQuery({
     queryKey: ["register-open"],
@@ -28,8 +32,14 @@ export function RegisterGate({ afterRegisterHref = "/drzewo" }: Props) {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (invite.data?.enabled === false) return;
+    const code = inviteCode.trim() || fromLink;
     register.mutate(
-      { email, password, inviteCode, displayName: displayName || undefined },
+      {
+        email,
+        password,
+        inviteCode: code,
+        displayName: displayName || undefined,
+      },
       {
         onSuccess: () => {
           window.location.assign(afterRegisterHref);
@@ -45,13 +55,14 @@ export function RegisterGate({ afterRegisterHref = "/drzewo" }: Props) {
         <p className="gate-brand">Drzewo Potrykus</p>
         <h1 className="gate-title">Rejestracja</h1>
         <p className="gate-lead">
-          Załóż własne konto. Klucz zaproszenia dostajesz od administratora —
-          w bazie trzymamy tylko jego hash, nie jawny tekst.
+          {fromLink
+            ? "Masz zaproszenie rodzinne. Ustaw e-mail i hasło — reszta jest w linku."
+            : "Załóż konto linkiem od administratora albo wpisz klucz zaproszenia."}
         </p>
         {invite.data && !invite.data.enabled ? (
           <p className="gate-error" role="status">
-            Rejestracja jest wyłączona, dopóki administrator nie ustawi klucza
-            w panelu.
+            Rejestracja jest wyłączona, dopóki administrator nie wygeneruje
+            linku w panelu.
           </p>
         ) : null}
         <form className="gate-form" onSubmit={onSubmit}>
@@ -91,19 +102,23 @@ export function RegisterGate({ afterRegisterHref = "/drzewo" }: Props) {
               minLength={8}
             />
           </label>
-          <label htmlFor="reg-invite" className="field-block">
-            Klucz zaproszenia
-            <input
-              id="reg-invite"
-              type="password"
-              autoComplete="off"
-              placeholder="Klucz od administratora"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-              className="gate-input"
-              required
-            />
-          </label>
+          {fromLink ? (
+            <input type="hidden" name="invite" value={fromLink} />
+          ) : (
+            <label htmlFor="reg-invite" className="field-block">
+              Klucz zaproszenia
+              <input
+                id="reg-invite"
+                type="password"
+                autoComplete="off"
+                placeholder="Klucz od administratora"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                className="gate-input"
+                required
+              />
+            </label>
+          )}
           <button
             type="submit"
             className="gate-cta"

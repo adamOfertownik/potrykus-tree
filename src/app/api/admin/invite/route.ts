@@ -3,6 +3,7 @@ import { requireAdminSession } from "@/lib/auth";
 import { hasDb } from "@/lib/sql";
 import {
   clearInviteCode,
+  generateInviteToken,
   getInviteStatus,
   setInviteCode,
 } from "@/lib/invite";
@@ -21,7 +22,8 @@ export async function GET() {
 }
 
 const putSchema = z.object({
-  code: z.string().trim().min(8).max(200),
+  generate: z.boolean().optional(),
+  code: z.string().trim().min(8).max(200).optional(),
 });
 
 export async function PUT(request: Request) {
@@ -31,13 +33,27 @@ export async function PUT(request: Request) {
   const parsed = putSchema.safeParse(await request.json());
   if (!parsed.success) {
     return NextResponse.json(
+      { error: "Podaj klucz (min. 8 znaków) albo wygeneruj link." },
+      { status: 400 },
+    );
+  }
+  const token = parsed.data.generate
+    ? generateInviteToken()
+    : parsed.data.code?.trim();
+  if (!token || token.length < 8) {
+    return NextResponse.json(
       { error: "Klucz musi mieć co najmniej 8 znaków." },
       { status: 400 },
     );
   }
   try {
-    await setInviteCode(parsed.data.code);
-    return NextResponse.json({ ok: true, enabled: true });
+    await setInviteCode(token);
+    return NextResponse.json({
+      ok: true,
+      enabled: true,
+      token,
+      path: `/register?k=${encodeURIComponent(token)}`,
+    });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "Nie udało się zapisać klucza.";

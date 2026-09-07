@@ -35,12 +35,14 @@ Otwórz [http://localhost:3000](http://localhost:3000) i zaloguj się e-mailem o
 | **Rodzina** (`member`) | Drzewo, lista, urodziny, spotkanie, zgłoszenia poprawek |
 | **Admin** (`admin`) | To samo + edycja grafu, zatwierdzanie zgłoszeń, zakładanie kont |
 
-Konta: rejestracja na `/register` z kluczem zaproszenia (hash w Neon) albo ręcznie w `/admin`:
+Konta: rejestracja jednym linkiem z `/admin` („Wygeneruj nowy link rodzinny”) albo ręcznie:
 
 ```bash
 npm run db:create-user -- osoba@email.pl haslo-min-8-znakow member
 npm run db:set-invite -- "klucz-min-8-znakow"
 ```
+
+Link ma postać `/register?k=…`. Rodzina nie wpisuje klucza. W bazie jest tylko hash.
 
 Hasła i sekrety sesji **nie leżą w git**. `SESSION_SECRET` ustaw w Vercel / środowisku i nie commituj.
 
@@ -68,7 +70,7 @@ Potem:
 2. Redeploy (żeby weszło czytanie `potrykus_DATABASE_URL`).
 3. Migracja: `vercel env run -- npm run db:migrate` (pliki `001` … `005`).
 4. Wejdź na `/login` e-mailem admina. Hasła nie pamiętasz: `vercel env run -- npm run db:create-admin -- twoj@email.pl noweHaslo8plus`
-5. W `/admin` ustaw **klucz zaproszenia** i/lub zakładaj konta. Rodzina wchodzi na `/register`.
+5. W `/admin` kliknij **Wygeneruj nowy link rodzinny**, skopiuj i wyślij rodzinie. Stary kod rodzinny nie działa.
 6. Zdjęcia: tylko jeśli potrzebujesz — Vercel Storage → Blob → `BLOB_READ_WRITE_TOKEN`.
 
 ## Funkcje

@@ -1,5 +1,11 @@
+import { randomBytes } from "node:crypto";
 import { compare, hash } from "bcryptjs";
 import { getSql, hasDb } from "@/lib/sql";
+
+/** URL-safe token for one family-wide invite link. */
+export function generateInviteToken(): string {
+  return randomBytes(18).toString("base64url");
+}
 
 type SettingsRow = {
   invite_code_hash: string | null;

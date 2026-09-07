@@ -28,7 +28,10 @@ export interface FamilyEvent {
   address?: string;
   description: string;
   organizers: string[];
+  /** Adults / children over 7 */
   pricePerPersonPln: number;
+  /** Children aged 3–7 (50% of adult). Under 3 are free. */
+  priceChildTo7Pln?: number;
   /** Already registered outside the app (shown in stats) */
   registeredCount: number;
   /** Max people for the gathering */

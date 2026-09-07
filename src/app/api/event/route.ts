@@ -82,7 +82,11 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     }
-    const amountPln = amountDuePln(breakdown, event.pricePerPersonPln);
+    const amountPln = amountDuePln(
+      breakdown,
+      event.pricePerPersonPln,
+      event.priceChildTo7Pln,
+    );
 
     const draft: EventRsvp = {
       id: `rsvp-${Date.now()}`,

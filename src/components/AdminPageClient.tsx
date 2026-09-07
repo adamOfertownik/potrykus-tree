@@ -37,6 +37,7 @@ function AdminPanel({ email }: { email: string }) {
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState<UserRole>("member");
   const [newName, setNewName] = useState("");
+  const [inviteLink, setInviteLink] = useState("");
   const [inviteCode, setInviteCode] = useState("");
 
   const submissionsQ = useQuery({
@@ -92,17 +93,26 @@ function AdminPanel({ email }: { email: string }) {
   });
 
   const inviteMut = useMutation({
-    mutationFn: (code: string) =>
-      fetchJson<{ ok: boolean }>("/api/admin/invite", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
-      }),
-    onSuccess: () => {
+    mutationFn: (body: { generate?: boolean; code?: string }) =>
+      fetchJson<{ ok: boolean; token?: string; path?: string }>(
+        "/api/admin/invite",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      ),
+    onSuccess: (data) => {
       setInviteCode("");
-      setNotice(
-        "Zapisano klucz zaproszenia (w bazie jest tylko hash). Przekaż go rodzinie osobno.",
-      );
+      if (data.path) {
+        const url = `${window.location.origin}${data.path}`;
+        setInviteLink(url);
+        setNotice(
+          "Gotowy jeden link dla całej rodziny. Skopiuj i wyślij. W bazie jest tylko hash — później linku stąd nie odzyskasz.",
+        );
+      } else {
+        setNotice("Zapisano klucz zaproszenia (w bazie jest tylko hash).");
+      }
       void qc.invalidateQueries({ queryKey: ["admin-invite"] });
     },
   });
@@ -111,6 +121,7 @@ function AdminPanel({ email }: { email: string }) {
     mutationFn: () =>
       fetchJson<{ ok: boolean }>("/api/admin/invite", { method: "DELETE" }),
     onSuccess: () => {
+      setInviteLink("");
       setNotice("Rejestracja wyłączona — klucz usunięty.");
       void qc.invalidateQueries({ queryKey: ["admin-invite"] });
     },
@@ -149,8 +160,8 @@ function AdminPanel({ email }: { email: string }) {
       <header className="admin-page__intro">
         <h1>Panel administratora</h1>
         <p>
-          Zalogowany jako <strong>{email}</strong>. Ustaw klucz zaproszenia,
-          zakładaj konta i zatwierdzaj zgłoszenia.
+          Zalogowany jako <strong>{email}</strong>. Wygeneruj jeden link
+          zaproszenia, zakładaj konta i zatwierdzaj zgłoszenia.
         </p>
         <div className="admin-page__toolbar">
           <Link href="/drzewo" className="btn btn-secondary">
@@ -183,44 +194,79 @@ function AdminPanel({ email }: { email: string }) {
       )}
 
       <section className="admin-users">
-        <h2>Klucz zaproszenia</h2>
+        <h2>Link zaproszenia dla rodziny</h2>
         <p className="empty-hint">
-          Rodzina wpisuje ten klucz przy <strong>/register</strong>. W Neon
-          zapisujemy wyłącznie hash (bcrypt), nigdy jawnego tekstu. Po zapisie
-          przekaż klucz osobiście — stąd go nie odczytasz.
+          Jeden ogólny link. Rodzina otwiera go, podaje e-mail i hasło — klucz
+          jest już w adresie. W Neon zapisujemy wyłącznie hash. Po odświeżeniu
+          strony linku stąd nie odczytasz, więc skopiuj go od razu.
         </p>
         <p className="empty-hint">
           Status:{" "}
           {inviteQ.data?.enabled
-            ? "rejestracja włączona (klucz ustawiony)"
-            : "rejestracja wyłączona (brak klucza)"}
+            ? "rejestracja włączona (token ustawiony)"
+            : "rejestracja wyłączona (brak tokenu)"}
         </p>
+        {inviteLink ? (
+          <p className="empty-hint">
+            <label className="field-block">
+              Link do skopiowania
+              <input
+                className="gate-input"
+                readOnly
+                value={inviteLink}
+                onFocus={(e) => e.currentTarget.select()}
+              />
+            </label>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                void navigator.clipboard.writeText(inviteLink);
+                setNotice("Skopiowano link zaproszenia.");
+              }}
+            >
+              Kopiuj link
+            </button>
+          </p>
+        ) : null}
         <form
           className="admin-user-form"
           onSubmit={(e) => {
             e.preventDefault();
             setNotice(null);
-            inviteMut.mutate(inviteCode);
+            inviteMut.mutate({ code: inviteCode });
           }}
         >
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={inviteMut.isPending}
+            onClick={() => {
+              setNotice(null);
+              inviteMut.mutate({ generate: true });
+            }}
+          >
+            {inviteMut.isPending
+              ? "Generuję…"
+              : "Wygeneruj nowy link rodzinny"}
+          </button>
           <label className="field-block">
-            Nowy klucz (min. 8 znaków)
+            Albo własny klucz (min. 8 znaków)
             <input
               type="password"
               className="gate-input"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
-              required
               minLength={8}
               autoComplete="new-password"
             />
           </label>
           <button
             type="submit"
-            className="btn btn-primary"
-            disabled={inviteMut.isPending}
+            className="btn btn-secondary"
+            disabled={inviteMut.isPending || inviteCode.trim().length < 8}
           >
-            {inviteMut.isPending ? "Zapisuję…" : "Zapisz klucz w bazie"}
+            Zapisz własny klucz
           </button>
           {inviteQ.data?.enabled ? (
             <button
