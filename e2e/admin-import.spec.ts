@@ -98,7 +98,7 @@ test("classic member can submit a correction from /zglos", async ({
   await page.getByRole("button", { name: /Franciszek Potrykus/ }).first().click();
   await page.getByLabel(/Opis zmiany/).fill(marker);
   await page.getByRole("button", { name: "Wyślij zgłoszenie" }).click();
-  await expect(page.getByRole("status")).toContainText(/Zapisano/i, {
+  await expect(page.locator(".banner-success")).toContainText(/Zapisano/i, {
     timeout: 15000,
   });
 
