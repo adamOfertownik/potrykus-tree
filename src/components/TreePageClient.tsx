@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
 import { FamilyChartView } from "@/components/FamilyChartView";
 import { PersonSearch } from "@/components/PersonSearch";
+import { ReportPersonDataModal } from "@/components/ReportPersonDataModal";
 import { displayName } from "@/lib/db-client";
 
 export function TreePageClient() {
@@ -12,6 +13,7 @@ export function TreePageClient() {
   const router = useRouter();
   const rootId = searchParams.get("root");
   const [highlightId, setHighlightId] = useState<string | null>(rootId);
+  const [reportId, setReportId] = useState<string | null>(null);
 
   useEffect(() => {
     if (rootId) setHighlightId(rootId);
@@ -32,6 +34,9 @@ export function TreePageClient() {
           : null;
         const highlightPerson = highlightId
           ? people.find((p) => p.id === highlightId) ?? null
+          : null;
+        const reportPerson = reportId
+          ? people.find((p) => p.id === reportId) ?? null
           : null;
 
         const goFullTree = () => {
@@ -62,13 +67,24 @@ export function TreePageClient() {
                     {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
                   </strong>
                 </p>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={goFullTree}
-                >
-                  ← Pełne drzewo
-                </button>
+                <div className="tree-focus-bar__actions">
+                  {focusPerson && (
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setReportId(focusPerson.id)}
+                    >
+                      Zgłoś błędne dane
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={goFullTree}
+                  >
+                    ← Pełne drzewo
+                  </button>
+                </div>
               </div>
             )}
 
@@ -82,6 +98,13 @@ export function TreePageClient() {
                   — całe drzewo zostaje widoczne
                 </p>
                 <div className="tree-focus-bar__actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setReportId(highlightPerson.id)}
+                  >
+                    Zgłoś błędne dane
+                  </button>
                   <button
                     type="button"
                     className="btn btn-secondary"
@@ -114,6 +137,14 @@ export function TreePageClient() {
                 <p className="empty-hint">Brak danych drzewa.</p>
               )}
             </div>
+
+            {reportPerson && (
+              <ReportPersonDataModal
+                open
+                person={reportPerson}
+                onClose={() => setReportId(null)}
+              />
+            )}
           </>
         );
       }}

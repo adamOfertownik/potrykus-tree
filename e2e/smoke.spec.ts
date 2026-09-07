@@ -65,3 +65,46 @@ test("kinship and birthdays pages load", async ({ browser }) => {
   });
   await ctx.close();
 });
+
+test("report incorrect person data from details and tree", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Adam Lieske", personId: "adam-lieske" }),
+    );
+  });
+  const page = await ctx.newPage();
+
+  await page.goto("/osoba/adam-lieske");
+  await expect(page.getByRole("heading", { name: "Adam Lieske" })).toBeVisible({
+    timeout: 20000,
+  });
+  await page.getByRole("button", { name: "Zgłoś błędne dane", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Zgłoś błędne dane" }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Co jest błędne?")
+    .fill("Testowa poprawka daty urodzenia.");
+  await page.getByRole("button", { name: "Wyślij zgłoszenie" }).click();
+  await expect(page.getByText(/Zapisano/)).toBeVisible({ timeout: 15000 });
+  await page.getByRole("button", { name: "Zamknij" }).click();
+
+  await page.goto("/drzewo?root=adam-lieske");
+  await expect(
+    page.getByRole("button", { name: "Zgłoś błędne dane" }),
+  ).toBeVisible({ timeout: 45000 });
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await page.locator("#htmlSvg .card_cont").first().click();
+  await expect(page.getByRole("button", { name: "Błędne dane" })).toBeVisible();
+  await page.getByRole("button", { name: "Błędne dane" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Zgłoś błędne dane" }),
+  ).toBeVisible();
+
+  await ctx.close();
+});

@@ -12,6 +12,7 @@ import {
   type GraphEditOp,
 } from "@/components/GraphEditWizard";
 import { PersonTreeActionsModal } from "@/components/PersonTreeActionsModal";
+import { ReportPersonDataModal } from "@/components/ReportPersonDataModal";
 
 type Props = {
   people: Person[];
@@ -76,6 +77,7 @@ export function FamilyChartView({
   const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
   const [editOp, setEditOp] = useState<GraphEditOp | null>(null);
+  const [reportPerson, setReportPerson] = useState<Person | null>(null);
   const [editNotice, setEditNotice] = useState<string | null>(null);
   /** Rebuild when links change, not only when a person is added */
   const peopleSig = people
@@ -397,6 +399,10 @@ export function FamilyChartView({
         onEdit={(op) => setEditOp(op)}
         onViewPerson={goToPerson}
         onFocusBranch={focusInTree}
+        onReport={() => {
+          setReportPerson(selected);
+          setSelected(null);
+        }}
       />
     ) : null;
 
@@ -440,6 +446,14 @@ export function FamilyChartView({
       )}
 
       {personModal}
+
+      {reportPerson && (
+        <ReportPersonDataModal
+          open
+          person={reportPerson}
+          onClose={() => setReportPerson(null)}
+        />
+      )}
 
       {selected && editOp && (
         <GraphEditWizard

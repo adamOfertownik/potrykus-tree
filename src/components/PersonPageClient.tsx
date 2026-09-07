@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { AuthedPage } from "@/components/AuthedPage";
 import { PersonCard } from "@/components/PersonCard";
+import { ReportPersonDataModal } from "@/components/ReportPersonDataModal";
 import { useIdentity } from "@/components/IdentityProvider";
 import { describeKinship } from "@/lib/kinship";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
@@ -10,6 +12,7 @@ import type { Person } from "@/types/family";
 
 function PersonInner({ id, people }: { id: string; people: Person[] }) {
   const { identity } = useIdentity();
+  const [reportOpen, setReportOpen] = useState(false);
   const person = people.find((p) => p.id === id);
 
   if (!person) {
@@ -81,6 +84,13 @@ function PersonInner({ id, people }: { id: string; people: Person[] }) {
                 Jak jesteśmy spokrewnieni?
               </Link>
             )}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setReportOpen(true)}
+            >
+              Zgłoś błędne dane
+            </button>
           </div>
         </div>
       </header>
@@ -165,6 +175,23 @@ function PersonInner({ id, people }: { id: string; people: Person[] }) {
           </dd>
         </div>
       </dl>
+
+      <p className="person-detail__report">
+        Coś się nie zgadza?{" "}
+        <button
+          type="button"
+          className="btn-text"
+          onClick={() => setReportOpen(true)}
+        >
+          Zgłoś błędne dane tej osoby
+        </button>
+      </p>
+
+      <ReportPersonDataModal
+        open={reportOpen}
+        person={person}
+        onClose={() => setReportOpen(false)}
+      />
     </article>
   );
 }
