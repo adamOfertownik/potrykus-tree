@@ -7,10 +7,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useRegister } from "@/lib/hooks";
 
 type Props = {
-  afterRegisterHref?: string;
+  /** Called after a successful registration — parent decides what happens next (e.g. onboarding). */
+  onRegistered?: () => void;
 };
 
-export function RegisterGate({ afterRegisterHref = "/drzewo" }: Props) {
+export function RegisterGate({ onRegistered }: Props) {
   const searchParams = useSearchParams();
   const fromLink =
     searchParams.get("k")?.trim() || searchParams.get("invite")?.trim() || "";
@@ -43,7 +44,8 @@ export function RegisterGate({ afterRegisterHref = "/drzewo" }: Props) {
       },
       {
         onSuccess: () => {
-          window.location.assign(afterRegisterHref);
+          if (onRegistered) onRegistered();
+          else window.location.assign("/drzewo");
         },
       },
     );
