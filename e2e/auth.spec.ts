@@ -21,6 +21,16 @@ test("tree is gated behind login", async ({ page }) => {
   await expect(page.getByLabel("E-mail")).toBeVisible();
 });
 
+test("register page asks for invite key", async ({ page }) => {
+  await page.goto("/register");
+  await expect(page.getByRole("heading", { name: "Rejestracja" })).toBeVisible({
+    timeout: 20000,
+  });
+  await expect(page.getByLabel("E-mail")).toBeVisible();
+  await expect(page.getByLabel("Klucz zaproszenia")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Zaloguj/ })).toBeVisible();
+});
+
 test("member session opens the tree", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie("member")]);

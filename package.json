@@ -12,6 +12,7 @@
     "db:check": "node scripts/check-neon.mjs",
     "db:create-user": "node scripts/create-user.mjs",
     "db:create-admin": "node scripts/create-admin.mjs",
+    "db:set-invite": "node scripts/set-invite.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {

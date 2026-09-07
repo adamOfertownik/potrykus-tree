@@ -35,10 +35,11 @@ Otwórz [http://localhost:3000](http://localhost:3000) i zaloguj się e-mailem o
 | **Rodzina** (`member`) | Drzewo, lista, urodziny, spotkanie, zgłoszenia poprawek |
 | **Admin** (`admin`) | To samo + edycja grafu, zatwierdzanie zgłoszeń, zakładanie kont |
 
-Konta dodajesz w panelu `/admin` albo skryptem:
+Konta: rejestracja na `/register` z kluczem zaproszenia (hash w Neon) albo ręcznie w `/admin`:
 
 ```bash
 npm run db:create-user -- osoba@email.pl haslo-min-8-znakow member
+npm run db:set-invite -- "klucz-min-8-znakow"
 ```
 
 Hasła i sekrety sesji **nie leżą w git**. `SESSION_SECRET` ustaw w Vercel / środowisku i nie commituj.
@@ -65,10 +66,10 @@ Potem:
 
 1. Zmerguj PR z logowaniem ról.
 2. Redeploy (żeby weszło czytanie `potrykus_DATABASE_URL`).
-3. Migracja: lokalnie `vercel env run -- npm run db:migrate` albo w Neon SQL Editor wklej pliki z `migrations/` po kolei (`001` … `004`).
-4. Wejdź na `/login` e-mailem admina. Jak nie pamiętasz hasła: `vercel env run -- npm run db:create-admin -- twoj@email.pl noweHaslo8plus`
-5. W `/admin` załóż konta rodzinie (rola Rodzina). Stary kod rodzinny przestaje działać.
-6. Zdjęcia: tylko jeśli potrzebujesz — Vercel Storage → Blob → skopiuj token jako `BLOB_READ_WRITE_TOKEN`.
+3. Migracja: `vercel env run -- npm run db:migrate` (pliki `001` … `005`).
+4. Wejdź na `/login` e-mailem admina. Hasła nie pamiętasz: `vercel env run -- npm run db:create-admin -- twoj@email.pl noweHaslo8plus`
+5. W `/admin` ustaw **klucz zaproszenia** i/lub zakładaj konta. Rodzina wchodzi na `/register`.
+6. Zdjęcia: tylko jeśli potrzebujesz — Vercel Storage → Blob → `BLOB_READ_WRITE_TOKEN`.
 
 ## Funkcje
 

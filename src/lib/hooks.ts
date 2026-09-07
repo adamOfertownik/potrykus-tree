@@ -55,6 +55,30 @@ export function useLogin() {
   });
 }
 
+export function useRegister() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      email: string;
+      password: string;
+      inviteCode: string;
+      displayName?: string;
+    }) =>
+      fetchJson<{ ok: boolean; email: string; role: UserRole }>(
+        "/api/auth/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        },
+      ),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["auth-status"] });
+      await qc.invalidateQueries({ queryKey: ["family"] });
+    },
+  });
+}
+
 export function useLogout() {
   const qc = useQueryClient();
   return useMutation({

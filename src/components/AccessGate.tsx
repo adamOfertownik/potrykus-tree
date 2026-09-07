@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useLogin } from "@/lib/hooks";
 
 type Props = {
@@ -40,8 +41,8 @@ export function AccessGate({ afterLoginHref }: Props) {
         <p className="gate-brand">Drzewo Potrykus</p>
         <h1 className="gate-title">Logowanie</h1>
         <p className="gate-lead">
-          Prywatne archiwum rodziny. Wejdź swoim e-mailem i hasłem — konto
-          zakłada administrator.
+          Prywatne archiwum rodziny. Wejdź e-mailem i hasłem albo załóż konto
+          kluczem zaproszenia od administratora.
         </p>
         <form className="gate-form" onSubmit={onSubmit}>
           <label htmlFor="family-email" className="field-block">
@@ -80,6 +81,8 @@ export function AccessGate({ afterLoginHref }: Props) {
           </p>
         )}
         <footer className="gate-footer">
+          Nie masz konta? <Link href="/register">Zarejestruj się</Link>
+          <span className="gate-footer__sep">·</span>
           Twórca: <strong>Adam Lieske</strong>
         </footer>
       </section>

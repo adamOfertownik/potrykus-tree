@@ -37,6 +37,7 @@ function AdminPanel({ email }: { email: string }) {
   const [newPassword, setNewPassword] = useState("");
   const [newRole, setNewRole] = useState<UserRole>("member");
   const [newName, setNewName] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
 
   const submissionsQ = useQuery({
     queryKey: ["admin-submissions"],
@@ -82,6 +83,39 @@ function AdminPanel({ email }: { email: string }) {
     },
   });
 
+  const inviteQ = useQuery({
+    queryKey: ["admin-invite"],
+    queryFn: () =>
+      fetchJson<{ enabled: boolean; updatedAt: string | null }>(
+        "/api/admin/invite",
+      ),
+  });
+
+  const inviteMut = useMutation({
+    mutationFn: (code: string) =>
+      fetchJson<{ ok: boolean }>("/api/admin/invite", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      }),
+    onSuccess: () => {
+      setInviteCode("");
+      setNotice(
+        "Zapisano klucz zaproszenia (w bazie jest tylko hash). Przekaż go rodzinie osobno.",
+      );
+      void qc.invalidateQueries({ queryKey: ["admin-invite"] });
+    },
+  });
+
+  const inviteClearMut = useMutation({
+    mutationFn: () =>
+      fetchJson<{ ok: boolean }>("/api/admin/invite", { method: "DELETE" }),
+    onSuccess: () => {
+      setNotice("Rejestracja wyłączona — klucz usunięty.");
+      void qc.invalidateQueries({ queryKey: ["admin-invite"] });
+    },
+  });
+
   const roleMut = useMutation({
     mutationFn: (input: { id: string; role: UserRole }) =>
       fetchJson<{ user: UserRow }>("/api/admin/users", {
@@ -97,19 +131,26 @@ function AdminPanel({ email }: { email: string }) {
   const error =
     submissionsQ.error ||
     usersQ.error ||
+    inviteQ.error ||
     statusMut.error ||
     createMut.error ||
-    roleMut.error;
+    roleMut.error ||
+    inviteMut.error ||
+    inviteClearMut.error;
   const busy =
-    statusMut.isPending || createMut.isPending || roleMut.isPending;
+    statusMut.isPending ||
+    createMut.isPending ||
+    roleMut.isPending ||
+    inviteMut.isPending ||
+    inviteClearMut.isPending;
 
   return (
     <section className="admin-page">
       <header className="admin-page__intro">
         <h1>Panel administratora</h1>
         <p>
-          Zalogowany jako <strong>{email}</strong>. Zatwierdzaj zgłoszenia i
-          nadawaj rodzinie własne loginy.
+          Zalogowany jako <strong>{email}</strong>. Ustaw klucz zaproszenia,
+          zakładaj konta i zatwierdzaj zgłoszenia.
         </p>
         <div className="admin-page__toolbar">
           <Link href="/drzewo" className="btn btn-secondary">
@@ -140,6 +181,62 @@ function AdminPanel({ email }: { email: string }) {
           {notice}
         </p>
       )}
+
+      <section className="admin-users">
+        <h2>Klucz zaproszenia</h2>
+        <p className="empty-hint">
+          Rodzina wpisuje ten klucz przy <strong>/register</strong>. W Neon
+          zapisujemy wyłącznie hash (bcrypt), nigdy jawnego tekstu. Po zapisie
+          przekaż klucz osobiście — stąd go nie odczytasz.
+        </p>
+        <p className="empty-hint">
+          Status:{" "}
+          {inviteQ.data?.enabled
+            ? "rejestracja włączona (klucz ustawiony)"
+            : "rejestracja wyłączona (brak klucza)"}
+        </p>
+        <form
+          className="admin-user-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setNotice(null);
+            inviteMut.mutate(inviteCode);
+          }}
+        >
+          <label className="field-block">
+            Nowy klucz (min. 8 znaków)
+            <input
+              type="password"
+              className="gate-input"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+          </label>
+          <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={inviteMut.isPending}
+          >
+            {inviteMut.isPending ? "Zapisuję…" : "Zapisz klucz w bazie"}
+          </button>
+          {inviteQ.data?.enabled ? (
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={inviteClearMut.isPending}
+              onClick={() => {
+                setNotice(null);
+                inviteClearMut.mutate();
+              }}
+            >
+              Wyłącz rejestrację
+            </button>
+          ) : null}
+        </form>
+      </section>
 
       <section className="admin-users">
         <h2>Konta rodziny</h2>

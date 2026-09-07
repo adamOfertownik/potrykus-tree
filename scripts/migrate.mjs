@@ -7,11 +7,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "@neondatabase/serverless";
-import { resolveDatabaseUrl } from "./db-url.mjs";
+import { resolveDirectDatabaseUrl } from "./db-url.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
-const { key, url } = resolveDatabaseUrl();
+const { key, url } = resolveDirectDatabaseUrl();
 
 if (!url) {
   console.error(
