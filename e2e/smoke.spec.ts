@@ -98,8 +98,14 @@ test("report incorrect person data from details and tree", async ({
   await expect(
     page.getByRole("button", { name: "Zgłoś błędne dane" }),
   ).toBeVisible({ timeout: 45000 });
-  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
-  await page.locator("#htmlSvg .card_cont").first().click();
+  await page.getByRole("button", { name: "Zgłoś błędne dane" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Zgłoś błędne dane" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Anuluj" }).click();
+
+  await page.waitForSelector(".chart-card-plus", { timeout: 45000 });
+  await page.locator(".chart-card-plus").first().click({ force: true });
   await expect(page.getByRole("button", { name: "Błędne dane" })).toBeVisible();
   await page.getByRole("button", { name: "Błędne dane" }).click();
   await expect(
