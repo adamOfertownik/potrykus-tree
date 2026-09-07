@@ -106,8 +106,10 @@ test("report incorrect person data from details and tree", async ({
 
   await page.waitForSelector(".chart-card-plus", { timeout: 45000 });
   await page.locator(".chart-card-plus").first().click({ force: true });
-  await expect(page.getByRole("button", { name: "Błędne dane" })).toBeVisible();
-  await page.getByRole("button", { name: "Błędne dane" }).click();
+  await expect(
+    page.getByRole("button", { name: "Błędne dane Zgłoś poprawkę" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Błędne dane Zgłoś poprawkę" }).click();
   await expect(
     page.getByRole("heading", { name: "Zgłoś błędne dane" }),
   ).toBeVisible();
