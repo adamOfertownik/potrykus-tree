@@ -16,10 +16,10 @@ export function peopleToFamilyChartData(people: Person[]): Data {
         gender: (p.gender === "female" ? "F" : "M") as "M" | "F",
         "first name": p.firstName,
         "last name": p.lastName,
-        ...(p.birthDate ? { birthday: p.birthDate } : {}),
-        ...(p.deathDate ? { death: p.deathDate } : {}),
+        years: [p.birthDate?.slice(0, 4), p.deathDate?.slice(0, 4)]
+          .filter(Boolean)
+          .join("–"),
         ...(p.photoUrl ? { avatar: p.photoUrl } : {}),
-        ...(p.maidenName ? { maiden: `z d. ${p.maidenName}` } : {}),
       },
       rels: {
         parents,

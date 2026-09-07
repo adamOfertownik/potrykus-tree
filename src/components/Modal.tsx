@@ -33,8 +33,15 @@ export function Modal({
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  const compulsoryRef = useRef(compulsory);
   const fallbackTitleId = useId();
   const label = labelledBy || titleId || fallbackTitleId;
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    compulsoryRef.current = compulsory;
+  }, [onClose, compulsory]);
 
   useEffect(() => {
     if (!open) return;
@@ -52,13 +59,21 @@ export function Modal({
           ).filter((el) => !el.hasAttribute("disabled"))
         : [];
 
-    const first = focusables()[0];
-    first?.focus();
+    const focusFrame = window.requestAnimationFrame(() => {
+      const host = cardRef.current;
+      if (!host) return;
+      const active = document.activeElement as HTMLElement | null;
+      if (active && host.contains(active) && active !== host) return;
+      const field = host.querySelector<HTMLElement>(
+        "input:not([type=hidden]):not([disabled]), textarea:not([disabled]), select:not([disabled])",
+      );
+      (field || focusables()[0])?.focus();
+    });
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !compulsory) {
+      if (e.key === "Escape" && !compulsoryRef.current) {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !card) return;
@@ -77,11 +92,12 @@ export function Modal({
 
     window.addEventListener("keydown", onKey);
     return () => {
+      window.cancelAnimationFrame(focusFrame);
       document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKey);
       previouslyFocused.current?.focus?.();
     };
-  }, [open, compulsory, onClose]);
+  }, [open]);
 
   if (!open || typeof document === "undefined") return null;
 

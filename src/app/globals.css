@@ -307,8 +307,18 @@ input {
 
 .app-header__login.is-active {
   background: var(--accent);
-  border-color: var(--accent);
   color: white;
+  border-color: var(--accent);
+}
+
+.app-header__login--plain {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 500;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-menu__link {
@@ -851,12 +861,80 @@ input {
     background 0.15s ease;
 }
 
-.chart-card-plus:hover,
-.chart-card-plus:focus-visible {
-  transform: translateX(-50%) scale(1.08);
-  background: var(--accent-strong);
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
+.chart-card-link {
+  position: absolute;
+  top: -14px;
+  right: 8px;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: 2px solid color-mix(in srgb, var(--accent) 70%, white);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--accent-strong);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 25%, transparent);
+  cursor: grab;
+  touch-action: none;
 }
+
+.chart-card-link:hover,
+.chart-card-link:focus-visible {
+  background: var(--accent);
+  color: white;
+}
+
+.chart-link-svg {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.chart-draft-chip {
+  position: absolute;
+  top: 3.6rem;
+  left: 0.75rem;
+  z-index: 9;
+  max-width: min(280px, calc(100% - 1.5rem));
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  box-shadow: var(--shadow);
+}
+
+.chart-draft-chip p {
+  margin: 0 0 0.35rem;
+}
+
+.chart-draft-chip__handle {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  margin: 0.35rem 0.5rem 0 0;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  background: var(--accent);
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: grab;
+  touch-action: none;
+}
+
+.graph-plus-tile.is-active {
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
 
 @media (hover: hover) {
   .chart-card-plus {
@@ -879,11 +957,17 @@ input {
   box-sizing: border-box;
 }
 
+.family-chart-host .card,
+.family-chart-host div.card {
+  overflow: hidden;
+}
+
 .family-chart-host .card text,
 .family-chart-host .card .card-text,
 .family-chart-host .card-inner text,
 .family-chart-host div.card {
   font-size: var(--f3-card-font, 13px) !important;
+  line-height: 1.2;
 }
 
 /* Relationship lines — visible on light background */
@@ -2674,6 +2758,31 @@ input {
   margin-top: 0.75rem;
 }
 
+.admin-users h2,
+.admin-page > h2 {
+  margin: 0.5rem 0 0;
+  font-size: 1.05rem;
+}
+
+.admin-user-form {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+@media (min-width: 720px) {
+  .admin-user-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .admin-user-form .btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
 .page-shell {
   max-width: 900px;
   margin: 0 auto;
@@ -2744,4 +2853,54 @@ input {
   flex-wrap: wrap;
   gap: 0.4rem;
 }
+
+.list-view-toggle {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.list-view-toggle .is-active {
+  background: var(--accent-strong);
+  color: #fff;
+}
+
+.age-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.age-list__row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.45rem 0.2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.age-list__photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bg-deep);
+  flex-shrink: 0;
+}
+
+.age-list__photo--empty {
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+.age-list__meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
 

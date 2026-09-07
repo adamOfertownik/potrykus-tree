@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 
 export async function GET() {
-  const session = await getAdminSession();
+  const session = await getSession();
   return NextResponse.json({
-    loggedIn: Boolean(session),
-    email: session?.email ?? null,
+    loggedIn: session?.role === "admin",
+    email: session?.role === "admin" ? session.email : null,
+    role: session?.role ?? null,
   });
 }

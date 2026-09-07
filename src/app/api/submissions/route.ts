@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { isSessionValid } from "@/lib/auth";
+import { isAdminSessionValid, isSessionValid } from "@/lib/auth";
 import { appendSubmission, readSubmissions } from "@/lib/submissions";
 import { storageMode } from "@/lib/sql";
 import { submissionPayloadSchema } from "@/lib/validation";
 import type { ChangeSubmission } from "@/types/submissions";
 
 export async function GET() {
-  const unlocked = await isSessionValid();
-  if (!unlocked) {
-    return NextResponse.json({ error: "Brak dostępu." }, { status: 401 });
+  if (!(await isAdminSessionValid())) {
+    return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
   }
   const submissions = await readSubmissions();
   const mode = storageMode();

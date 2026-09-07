@@ -1,17 +1,44 @@
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 
+/**
+ * Vercel Marketplace Neon often prefixes vars with the store name
+ * (`potrykus_DATABASE_URL`). Prefer the pooled URL.
+ */
+const DB_URL_KEYS = [
+  "DATABASE_URL",
+  "potrykus_DATABASE_URL",
+  "POSTGRES_URL",
+  "potrykus_POSTGRES_URL",
+] as const;
+
+export function getDatabaseUrl(): string {
+  for (const key of DB_URL_KEYS) {
+    const value = process.env[key]?.trim();
+    if (value) return value;
+  }
+  return "";
+}
+
+export function getDatabaseUrlKey(): string | null {
+  for (const key of DB_URL_KEYS) {
+    if (process.env[key]?.trim()) return key;
+  }
+  return null;
+}
+
 let sql: NeonQueryFunction<false, false> | null | undefined;
 
 export function hasDb(): boolean {
-  return Boolean(process.env.DATABASE_URL?.trim());
+  return Boolean(getDatabaseUrl());
 }
 
 export function getSql(): NeonQueryFunction<false, false> {
-  if (!hasDb()) {
-    throw new Error("DATABASE_URL is not set");
+  const url = getDatabaseUrl();
+  if (!url) {
+    throw new Error("Neon database URL is not set");
   }
   if (sql === undefined || sql === null) {
-    sql = neon(process.env.DATABASE_URL!);
+    sql = neon(url);
   }
   return sql;
 }

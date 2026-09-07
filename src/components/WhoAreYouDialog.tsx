@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
 import { displayName } from "@/lib/db-client";
@@ -23,18 +23,12 @@ export function WhoAreYouDialog({
   compulsory = false,
 }: Props) {
   const [query, setQuery] = useState("");
-  const [manual, setManual] = useState("");
+  const [manual, setManual] = useState(() => loadReporter()?.name ?? "");
 
   const matches = useMemo(
     () => (query.trim() ? searchPeople(people, query).slice(0, 8) : []),
     [people, query],
   );
-
-  useEffect(() => {
-    if (!open) return;
-    const existing = loadReporter();
-    if (existing?.name) setManual(existing.name);
-  }, [open]);
 
   const pickPerson = (p: Person) => {
     const name = displayName(p);
@@ -82,10 +76,10 @@ export function WhoAreYouDialog({
       <input
         id="who-search"
         className="field-input"
+        autoComplete="off"
         placeholder="Np. Adam Lieske…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        autoFocus
       />
 
       {matches.length > 0 && (

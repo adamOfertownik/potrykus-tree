@@ -7,15 +7,19 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "@neondatabase/serverless";
+import { resolveDirectDatabaseUrl } from "./db-url.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
-const url = process.env.DATABASE_URL?.trim();
+const { key, url } = resolveDirectDatabaseUrl();
 
 if (!url) {
-  console.error("DATABASE_URL is missing. Set it (Neon pooled URL) and retry.");
+  console.error(
+    "Neon URL is missing (DATABASE_URL or potrykus_DATABASE_URL).",
+  );
   process.exit(1);
 }
+console.log(`Migrating against Neon via ${key}…`);
 
 const pool = new Pool({ connectionString: url });
 const dir = join(root, "migrations");
@@ -23,7 +27,7 @@ const files = readdirSync(dir)
   .filter((f) => f.endsWith(".sql"))
   .sort();
 
-console.log(`Migrating ${files.length} file(s) against Neon…`);
+console.log(`Migrating ${files.length} file(s)…`);
 
 try {
   for (const file of files) {

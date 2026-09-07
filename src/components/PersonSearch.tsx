@@ -97,7 +97,7 @@ export function PersonSearch({
             </span>
             <input
               id={`${listId}-input`}
-              type="search"
+              type="text"
               role="combobox"
               aria-expanded={open && matches.length > 0}
               aria-controls={listId}

@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import type { EventRsvp, FamilyEvent } from "@/types/event";
-import { DEFAULT_PRICE_PER_PERSON_PLN } from "@/lib/eventPricing";
+import { DEFAULT_PRICE_CHILD_TO_7_PLN, DEFAULT_PRICE_PER_PERSON_PLN } from "@/lib/eventPricing";
 import { getSql, hasDb } from "@/lib/sql";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -15,6 +15,8 @@ export async function readEvent(): Promise<FamilyEvent> {
     ...parsed,
     pricePerPersonPln:
       parsed.pricePerPersonPln ?? DEFAULT_PRICE_PER_PERSON_PLN,
+    priceChildTo7Pln:
+      parsed.priceChildTo7Pln ?? DEFAULT_PRICE_CHILD_TO_7_PLN,
     registeredCount: parsed.registeredCount ?? 0,
     capacity: parsed.capacity ?? 150,
     amenities: parsed.amenities ?? [],

@@ -11,6 +11,7 @@ type Props = {
   onEdit: (op: GraphEditOp) => void;
   onViewPerson: () => void;
   onFocusBranch: () => void;
+  canEditGraph?: boolean;
 };
 
 const ACTIONS: {
@@ -45,6 +46,7 @@ export function PersonTreeActionsModal({
   onEdit,
   onViewPerson,
   onFocusBranch,
+  canEditGraph = false,
 }: Props) {
   if (typeof document === "undefined") return null;
 
@@ -65,13 +67,19 @@ export function PersonTreeActionsModal({
         onTouchStart={(e) => e.stopPropagation()}
       >
         <header className="graph-person-modal__head">
-          <p className="graph-person-modal__label">Buduj drzewo</p>
+          <p className="graph-person-modal__label">
+            {canEditGraph ? "Buduj drzewo" : "Osoba"}
+          </p>
           <h2 id="graph-person-title">{displayName(person)}</h2>
           <p className="graph-person-modal__sub">
-            {lifespan(person) || "Wybierz, co dodać lub zmienić"}
+            {lifespan(person) ||
+              (canEditGraph
+                ? "Wybierz, co dodać lub zmienić"
+                : "Zobacz kartę albo gałąź")}
           </p>
         </header>
 
+        {canEditGraph ? (
         <div className="graph-plus-grid" role="group" aria-label="Akcje drzewa">
           {ACTIONS.map((action) => (
             <button
@@ -92,6 +100,7 @@ export function PersonTreeActionsModal({
             </button>
           ))}
         </div>
+        ) : null}
 
         <div className="graph-person-modal__links">
           <button type="button" className="btn-text" onClick={onViewPerson}>
