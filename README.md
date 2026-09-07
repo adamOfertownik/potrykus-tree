@@ -19,7 +19,8 @@ Twórca: **Adam Lieske**
 
 ```bash
 npm install
-# SESSION_SECRET (min. 16 znaków) oraz DATABASE_URL (Neon) w środowisku
+# SESSION_SECRET (min. 16 znaków) w środowisku. Neon na Vercel często
+# wstawia `potrykus_DATABASE_URL` zamiast `DATABASE_URL` — aplikacja czyta oba.
 npm run db:migrate
 npm run db:create-admin -- twoj@email.pl haslo-min-8-znakow
 npm run dev

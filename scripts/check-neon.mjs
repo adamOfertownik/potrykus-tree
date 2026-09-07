@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 /**
- * Check that DATABASE_URL reaches Neon. Does not print the URL or secrets.
- * Usage: DATABASE_URL=... npm run db:check
+ * Check that a Neon URL is set and reachable. Does not print the URL or secrets.
+ * Usage: npm run db:check
  */
 import { Pool } from "@neondatabase/serverless";
+import { resolveDatabaseUrl } from "./db-url.mjs";
 
-const url = process.env.DATABASE_URL?.trim();
+const { key, url } = resolveDatabaseUrl();
 if (!url) {
-  console.error("Neon: DATABASE_URL is not set.");
+  console.error(
+    "Neon: no database URL (DATABASE_URL or potrykus_DATABASE_URL).",
+  );
   process.exit(1);
 }
 
@@ -20,7 +23,7 @@ try {
     console.error("Neon: unexpected ping result.");
     process.exit(1);
   }
-  console.log(`Neon: connected (database reachable, ${rows[0].db}).`);
+  console.log(`Neon: connected via ${key} (database ${rows[0].db}).`);
 } catch (err) {
   const message = err instanceof Error ? err.message : "unknown error";
   console.error(`Neon: connection failed (${message.split("\n")[0]}).`);
