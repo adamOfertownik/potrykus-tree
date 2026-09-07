@@ -1,29 +1,36 @@
 import type { Person } from "@/types/family";
 import { displayName } from "@/lib/db-client";
+import {
+  ageOnDate,
+  civilDateFromJs,
+  parseCivilDate,
+  type CivilDate,
+} from "@/lib/age";
 
 export type BirthdayEntry = {
   person: Person;
   month: number;
   day: number;
+  /** Age completed on the next birthday (today if it is the birthday). */
   turningAge: number | null;
+  /** Age already completed as of `from` (after a birthday: the age just turned). */
+  currentAge: number | null;
   daysUntil: number;
+  /** True when this year's birthday has already passed (next one is next year). */
+  alreadyOccurred: boolean;
 };
 
-function parseMonthDay(iso?: string): { month: number; day: number } | null {
-  if (!iso) return null;
-  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (!m) return null;
-  return { month: Number(m[2]), day: Number(m[3]) };
-}
-
-function daysUntilNext(month: number, day: number, from = new Date()): number {
-  const year = from.getFullYear();
-  const next = new Date(year, month - 1, day);
-  next.setHours(12, 0, 0, 0);
-  const today = new Date(from);
-  today.setHours(12, 0, 0, 0);
-  if (next < today) next.setFullYear(year + 1);
-  return Math.round((next.getTime() - today.getTime()) / 86_400_000);
+function daysUntilNext(month: number, day: number, today: CivilDate): number {
+  let year = today.year;
+  if (
+    month < today.month ||
+    (month === today.month && day < today.day)
+  ) {
+    year += 1;
+  }
+  const start = Date.UTC(today.year, today.month - 1, today.day);
+  const next = Date.UTC(year, month - 1, day);
+  return Math.round((next - start) / 86_400_000);
 }
 
 export function upcomingBirthdays(
@@ -31,30 +38,34 @@ export function upcomingBirthdays(
   withinDays = 60,
   from = new Date(),
 ): BirthdayEntry[] {
-  const year = from.getFullYear();
+  const today = civilDateFromJs(from);
   const out: BirthdayEntry[] = [];
 
   for (const person of people) {
     if (person.deathDate) continue;
-    const md = parseMonthDay(person.birthDate);
+    const md = parseCivilDate(person.birthDate);
     if (!md) continue;
-    const days = daysUntilNext(md.month, md.day, from);
+    const days = daysUntilNext(md.month, md.day, today);
     if (days > withinDays) continue;
-    const birthYear = Number(person.birthDate!.slice(0, 4));
+    const alreadyOccurred = days > 0 && (md.month < today.month ||
+      (md.month === today.month && md.day < today.day));
     const nextYear =
-      days === 0 && from.getMonth() + 1 === md.month && from.getDate() === md.day
-        ? year
-        : new Date(year, md.month - 1, md.day) < from
-          ? year + 1
-          : year;
+      md.month < today.month ||
+      (md.month === today.month && md.day < today.day)
+        ? today.year + 1
+        : today.year;
     out.push({
       person,
       month: md.month,
       day: md.day,
-      turningAge: Number.isFinite(birthYear)
-        ? nextYear - birthYear
-        : null,
+      currentAge: ageOnDate(person.birthDate, today),
+      turningAge: ageOnDate(person.birthDate, {
+        year: nextYear,
+        month: md.month,
+        day: md.day,
+      }),
       daysUntil: days,
+      alreadyOccurred,
     });
   }
 
@@ -69,7 +80,7 @@ export function birthdaysThisMonth(
   people: Person[],
   from = new Date(),
 ): BirthdayEntry[] {
-  const month = from.getMonth() + 1;
+  const month = civilDateFromJs(from).month;
   return upcomingBirthdays(people, 366, from).filter((e) => e.month === month);
 }
 
