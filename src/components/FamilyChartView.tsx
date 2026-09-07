@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
@@ -12,6 +13,13 @@ import {
   type GraphEditOp,
 } from "@/components/GraphEditWizard";
 import { PersonTreeActionsModal } from "@/components/PersonTreeActionsModal";
+import {
+  GraphConnectLayer,
+  NewBlockModal,
+  personIdFromChartNode,
+  type LinkFrom,
+} from "@/components/GraphConnectLayer";
+import type { NewPersonInput } from "@/lib/familyMutations";
 
 type Props = {
   people: Person[];
@@ -64,6 +72,7 @@ export function FamilyChartView({
   canEditGraph = false,
 }: Props) {
   const router = useRouter();
+  const qc = useQueryClient();
   const wrapRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ReturnType<typeof f3.createChart> | null>(null);
@@ -80,6 +89,25 @@ export function FamilyChartView({
   const [selected, setSelected] = useState<Person | null>(null);
   const [editOp, setEditOp] = useState<GraphEditOp | null>(null);
   const [editNotice, setEditNotice] = useState<string | null>(null);
+  const [newBlockOpen, setNewBlockOpen] = useState(false);
+  const [pendingDraft, setPendingDraft] = useState<NewPersonInput | null>(null);
+  const [dragFrom, setDragFrom] = useState<LinkFrom | null>(null);
+  const [dragPoint, setDragPoint] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
+    null,
+  );
+  const [linkConfirm, setLinkConfirm] = useState<{
+    from: LinkFrom;
+    toId: string;
+  } | null>(null);
+  const dragFromRef = useRef<LinkFrom | null>(null);
+  const dragMovedRef = useRef(false);
+  const dragOriginRef = useRef<{ x: number; y: number } | null>(null);
+  const beginPersonLinkRef = useRef<(id: string, e: PointerEvent) => void>(
+    () => {},
+  );
   /** Rebuild when links change, not only when a person is added */
   const peopleSig = people
     .map(
@@ -94,6 +122,76 @@ export function FamilyChartView({
     highlightRef.current = highlightId;
   });
 
+  const pointInWrap = (e: { clientX: number; clientY: number }) => {
+    const rect = wrapRef.current?.getBoundingClientRect();
+    if (!rect) return { x: 0, y: 0 };
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+
+  const startLink = (from: LinkFrom, e: { clientX: number; clientY: number }) => {
+    const point = pointInWrap(e);
+    dragFromRef.current = from;
+    dragMovedRef.current = false;
+    dragOriginRef.current = point;
+    setDragFrom(from);
+    setDragStart(point);
+    setDragPoint(point);
+    setSelected(null);
+    setEditOp(null);
+  };
+
+  beginPersonLinkRef.current = (id, e) => {
+    startLink({ kind: "person", id }, e);
+  };
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (!dragFromRef.current) return;
+      const point = pointInWrap(e);
+      const origin = dragOriginRef.current;
+      if (
+        origin &&
+        Math.hypot(point.x - origin.x, point.y - origin.y) > 12
+      ) {
+        dragMovedRef.current = true;
+      }
+      setDragPoint(point);
+    };
+    const onUp = (e: PointerEvent) => {
+      const from = dragFromRef.current;
+      if (!from) return;
+      const moved = dragMovedRef.current;
+      dragFromRef.current = null;
+      dragMovedRef.current = false;
+      dragOriginRef.current = null;
+      setDragFrom(null);
+      setDragPoint(null);
+      setDragStart(null);
+      if (!moved) return;
+      const toId = personIdFromChartNode(
+        document.elementFromPoint(e.clientX, e.clientY),
+      );
+      if (!toId) return;
+      if (from.kind === "person" && from.id === toId) return;
+      setLinkConfirm({ from, toId });
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      dragFromRef.current = null;
+      setDragFrom(null);
+      setDragPoint(null);
+      setDragStart(null);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
   /** Bars above the canvas come and go — keep it inside the window */
   const syncCanvasHeight = () => {
     const wrap = wrapRef.current;
@@ -107,12 +205,10 @@ export function FamilyChartView({
     syncCanvasHeight();
     window.addEventListener("resize", syncCanvasHeight);
     return () => window.removeEventListener("resize", syncCanvasHeight);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     syncCanvasHeight();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightId, mainId, scale, peopleSig]);
 
   /** Card wrappers carry the tree datum in d3's __data__ — match on person id */
@@ -260,7 +356,7 @@ export function FamilyChartView({
         btn.type = "button";
         btn.className = "chart-card-plus";
         btn.setAttribute("aria-label", "Dodaj powiązanie");
-        btn.title = "Dodaj powiązanie";
+        btn.title = "Dodaj powiązanie (wyszukiwarka)";
         btn.textContent = "+";
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
@@ -269,6 +365,21 @@ export function FamilyChartView({
         });
         this.classList.add("card_cont--addable");
         this.appendChild(btn);
+      }
+      let linkBtn = this.querySelector<HTMLButtonElement>(".chart-card-link");
+      if (!linkBtn) {
+        linkBtn = document.createElement("button");
+        linkBtn.type = "button";
+        linkBtn.className = "chart-card-link";
+        linkBtn.setAttribute("aria-label", "Połącz strzałką");
+        linkBtn.title = "Przeciągnij na inną kartę";
+        linkBtn.textContent = "↗";
+        linkBtn.addEventListener("pointerdown", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          beginPersonLinkRef.current?.(id, e);
+        });
+        this.appendChild(linkBtn);
       }
     });
 
@@ -427,11 +538,20 @@ export function FamilyChartView({
             <span className="only-wide"> osoby</span>
           </button>
         )}
+        {canEditGraph && (
+          <button
+            type="button"
+            className="btn btn-primary btn-mini"
+            onClick={() => setNewBlockOpen(true)}
+          >
+            + Nowy klocek
+          </button>
+        )}
       </div>
 
       <p className="family-chart-hint">
         {canEditGraph
-          ? "Przeciągnij, aby przesunąć · scroll = zoom · klik lub + = dodaj powiązanie"
+          ? "Przeciągnij drzewo · ↗ = strzałka do połączenia · + = wyszukiwarka jak dotychczas"
           : "Przeciągnij, aby przesunąć · scroll = zoom · klik = karta osoby"}
       </p>
 
@@ -442,6 +562,56 @@ export function FamilyChartView({
       )}
 
       {personModal}
+
+      {canEditGraph && (
+        <>
+          <NewBlockModal
+            open={newBlockOpen}
+            onClose={() => setNewBlockOpen(false)}
+            onReady={(person) => {
+              setNewBlockOpen(false);
+              setPendingDraft(person);
+            }}
+          />
+          <GraphConnectLayer
+            people={people}
+            wrapEl={wrapRef.current}
+            dragFrom={dragFrom}
+            dragStart={dragStart}
+            dragPoint={dragPoint}
+            pendingDraft={pendingDraft}
+            onCancelDrag={() => {
+              dragFromRef.current = null;
+              setDragFrom(null);
+              setDragPoint(null);
+              setDragStart(null);
+              setPendingDraft(null);
+            }}
+            onStartDraftDrag={(person, point) => {
+              const from: LinkFrom = { kind: "draft", person };
+              dragFromRef.current = from;
+              dragMovedRef.current = false;
+              dragOriginRef.current = point;
+              setDragFrom(from);
+              setDragStart(point);
+              setDragPoint(point);
+              setSelected(null);
+              setEditOp(null);
+            }}
+            confirm={linkConfirm}
+            onCancelConfirm={() => setLinkConfirm(null)}
+            onApplied={({ family, summary, createdPersonId }) => {
+              if (family) qc.setQueryData(["family"], family);
+              else void qc.invalidateQueries({ queryKey: ["family"] });
+              setLinkConfirm(null);
+              setPendingDraft(null);
+              setEditNotice(summary);
+              if (createdPersonId) onHighlight?.(createdPersonId);
+              window.setTimeout(() => setEditNotice(null), 6000);
+            }}
+          />
+        </>
+      )}
 
       {selected && editOp && canEditGraph && (
         <GraphEditWizard

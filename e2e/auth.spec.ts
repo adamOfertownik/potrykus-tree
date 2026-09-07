@@ -86,3 +86,27 @@ test("member session opens the tree", async ({ browser }) => {
   await expect(page.getByText("Kod rodzinny")).toHaveCount(0);
   await ctx.close();
 });
+
+test("graph add-child search keeps typed letters", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie("admin")]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await page.locator("#htmlSvg .card_cont").first().click();
+  await page.getByRole("button", { name: "Dziecko" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Dodaj dziecko" }),
+  ).toBeVisible();
+  const input = page.getByLabel("Szukaj osoby");
+  await input.click();
+  await input.pressSequentially("adam", { delay: 50 });
+  await expect(input).toHaveValue("adam");
+  await ctx.close();
+});

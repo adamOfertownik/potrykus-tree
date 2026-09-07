@@ -329,6 +329,9 @@ export function EventPageClient() {
             <label className="field-block">
               Znajdź siebie w drzewie (opcjonalnie)
               <input
+                type="text"
+                name="event-person-search"
+                autoComplete="off"
                 value={nameQuery}
                 onChange={(e) => setNameQuery(e.target.value)}
                 placeholder="Szukaj…"

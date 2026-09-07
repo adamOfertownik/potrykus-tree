@@ -3,14 +3,14 @@
 import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Modal } from "@/components/Modal";
+import { PersonPickField } from "@/components/PersonPickField";
 import { displayName } from "@/lib/db-client";
+import { postGraphMutation } from "@/lib/graphClient";
 import {
   summarizeMutationPreview,
   type GraphOp,
   type NewPersonInput,
 } from "@/lib/familyMutations";
-import { loadReporter } from "@/lib/reporter";
-import { searchPeople } from "@/lib/search";
 import type { FamilyPayload, Gender, Person } from "@/types/family";
 
 export type GraphEditOp = GraphOp;
@@ -22,7 +22,7 @@ type Props = {
   people: Person[];
   onClose: () => void;
   onApplied?: (payload: {
-    family: FamilyPayload;
+    family?: FamilyPayload;
     summary: string;
     createdPersonId?: string;
   }) => void;
@@ -53,7 +53,6 @@ export function GraphEditWizard({
   const qc = useQueryClient();
   const [step, setStep] = useState<"pick" | "confirm">("pick");
   const [mode, setMode] = useState<Mode>("existing");
-  const [query, setQuery] = useState("");
   const [related, setRelated] = useState<Person | null>(null);
   const [secondParentId, setSecondParentId] = useState<string>("");
   const [newPerson, setNewPerson] = useState<NewPersonInput>({
@@ -63,13 +62,6 @@ export function GraphEditWizard({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const matches = useMemo(() => {
-    if (query.trim().length < 1) return [];
-    return searchPeople(people, query)
-      .filter((p) => p.id !== anchor.id)
-      .slice(0, 10);
-  }, [people, query, anchor.id]);
 
   const spouses = useMemo(
     () =>
@@ -100,7 +92,6 @@ export function GraphEditWizard({
   const reset = () => {
     setStep("pick");
     setMode("existing");
-    setQuery("");
     setRelated(null);
     setSecondParentId("");
     setNewPerson({ firstName: "", lastName: "", gender: "unknown" });
@@ -122,18 +113,7 @@ export function GraphEditWizard({
     setBusy(true);
     setError(null);
     try {
-      const reporter = loadReporter();
-      const res = await fetch("/api/family/mutate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...previewInput,
-          reporterName: reporter?.name || "Edycja grafu",
-          reporterPersonId: reporter?.personId,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Błąd zapisu");
+      const data = await postGraphMutation(previewInput);
 
       if (data.family) {
         qc.setQueryData(["family"], data.family);
@@ -208,43 +188,12 @@ export function GraphEditWizard({
             </div>
 
             {mode === "existing" ? (
-              <div className="graph-edit__pick">
-                <label className="field-block">
-                  Szukaj osoby
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Imię lub nazwisko…"
-                    autoFocus
-                  />
-                </label>
-                {related && (
-                  <p className="graph-edit__chosen" role="status">
-                    Wybrano: <strong>{displayName(related)}</strong>
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-mini"
-                      onClick={() => setRelated(null)}
-                    >
-                      Zmień
-                    </button>
-                  </p>
-                )}
-                {!related && matches.length > 0 && (
-                  <ul className="who-matches">
-                    {matches.map((p) => (
-                      <li key={p.id}>
-                        <button type="button" onClick={() => setRelated(p)}>
-                          {displayName(p)}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {!related && query.trim() && matches.length === 0 && (
-                  <p className="empty-hint">Brak wyników — spróbuj „Nowa osoba”.</p>
-                )}
-              </div>
+              <PersonPickField
+                people={people}
+                excludeId={anchor.id}
+                selected={related}
+                onSelect={setRelated}
+              />
             ) : (
               <div className="form-grid graph-edit__new">
                 <label>
