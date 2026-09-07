@@ -99,8 +99,8 @@ test("graph add-child search keeps typed letters", async ({ browser }) => {
   const page = await ctx.newPage();
   await page.goto("/drzewo");
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
-  await page.locator("#htmlSvg .card_cont").first().click();
-  await page.getByRole("button", { name: "Dziecko" }).click();
+  await page.locator(".chart-card-plus").first().click({ force: true });
+  await page.getByRole("button", { name: /Dziecko/ }).click();
   await expect(
     page.getByRole("heading", { name: "Dodaj dziecko" }),
   ).toBeVisible();
