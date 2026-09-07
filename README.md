@@ -42,7 +42,16 @@ Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessC
 
 ## Dane
 
-Seed: `npm run seed` (skrypt `scripts/generate-seed.mjs`)  
+Seed (stary, twardo zakodowany): `npm run seed`  
+Snapshot Markdown: `data/snapshots/drzewo-potrykus.md` (kopia: `drzewo_potrykus_ID.md`)  
+Import z terminala:
+
+```bash
+node scripts/import-md.mjs data/snapshots/drzewo_potrykus_ID.md --out data/family.json --merge
+```
+
+Albo `npm run import-md` (domyślnie ten sam snapshot + merge).  
+Wgranie z UI: panel **Konsola** → wybierz plik `.md` → Podgląd → Wgraj.  
 Edycja ręczna: `data/family.json`
 
 ## Docelowo (sklep)

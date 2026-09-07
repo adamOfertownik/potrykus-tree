@@ -47,6 +47,7 @@ export async function POST(request: Request) {
       message: body.message || "",
       self: body.self,
       relatives: body.relatives?.filter((r) => r.firstName?.trim()),
+      graphEdit: body.graphEdit,
       status: "new",
     };
 

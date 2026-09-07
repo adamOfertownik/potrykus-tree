@@ -95,7 +95,7 @@ function AppShellInner({
                 href="/admin"
                 className={`app-header__login${pathname.startsWith("/admin") ? " is-active" : ""}`}
               >
-                Zgłoszenia
+                Konsola
               </Link>
             ) : (
               <Link href="/login" className="app-header__login">

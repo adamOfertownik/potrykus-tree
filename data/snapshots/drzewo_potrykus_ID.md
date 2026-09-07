@@ -1,0 +1,458 @@
+# Drzewo genealogiczne Potrykus — format gotowy do importu (ID-based)
+
+Konwencja jak w rekomendacji: jedna osoba = jedna linia, unikalny ID, jawna płeć (`m`/`k`/`?` gdy nieznana),
+daty w formacie `RRRR-MM-DD` (lub samo `RRRR`, ewentualnie opis słowny gdy źródło nie podaje pełnej daty),
+`rodzic:` i `małżonek:` jako referencje ID (nie nazwiska — rozwiązuje problem homonimów, np. kilku
+"Franciszek Potrykus" czy "Józef Hallmann"). Wcięcie odzwierciedla pokolenie, ale nie jest źródłem prawdy —
+tym są pola `rodzic:`/`małżonek:`. Brak sekcji "patrz niżej" — każda gałąź jest wklejona w docelowym miejscu.
+Niepewne dane (brakujące imiona, sprzeczności w źródle) opisane w polu `notatka:`, nigdy nie zgadywane.
+
+Legenda: `★ ... ★` = osoba wskazana przez użytkownika jako główny cel (linia 3-3 z oryginalnego
+8-stronicowego raportu PDF "Potomkowie osoby: Wincenty Potrykus").
+
+Łącznie osób w bazie: **418**. Walidacja spójności `rodzic:`/`małżonek:` (czy referencje istnieją i są
+symetryczne) — **0 błędów**.
+
+## Poprawki względem poprzednich wersji (mojej i wersji Gemini)
+
+Podczas budowy tego pliku ponownie zweryfikowałem sporne miejsca ze skanów w wysokiej rozdzielczości:
+
+1. **Dorota Bodzińska miała dwóch mężów** (Rafał Borudzki, potem Roman Szumełda) — w mojej poprzedniej
+   wersji błędnie zasugerowałem, że to niejasne; w wersji Gemini było to poprawne. Skorygowane tutaj (P085).
+2. **Gertruda Dorsch zm. 16 lip 1988** (nie 2004 — to była pomyłka w wersji Gemini, pomylenie z datą zgonu
+   Urszuli Engling). Potwierdzone ponownie ze skanu str. 6 (P321).
+3. **Adam Hallmann i Łucja Hallmann to dwie różne osoby** (nie jedna osoba z dwiema datami zgonu, jak w
+   wersji Gemini). Potwierdzone (P161, P162).
+4. **Elisabeth Potrykus — źródło nie podaje roku urodzenia**, tylko "gru 7." Nie zmyślam roku 1690 (błąd
+   Gemini) — pole `notatka:` opisuje to wprost (P008).
+5. **Dzieci Gerarda Potrykusa i Grzegorza Potrykusa noszą nazwisko rodowe Potrykus**, nie nazwisko
+   współmałżonka (błąd w mojej poprzedniej wersji sekcji "Pozostali potomkowie" i w wersji Gemini, oba
+   podawały np. "Katarzyna Jurczyńska" zamiast "Katarzyna Potrykus"). Skorygowane (P392, P397 itd.).
+6. **Nowa, uczciwie oznaczona niepewność**: fragment na granicy stron 6/7 oryginału przy "Elżbieta Król" /
+   "Iwona Krzemińska" (P348/P349) — struktura w skanie jest niejednoznaczna z powodu podziału stron;
+   opisane w `notatka:` zamiast zgadywane.
+7. Odręczny dopisek **"Lucja Rinc – 2025"** przy linii Lucyny Piontek (P225) przepisany dosłownie z
+   zaznaczeniem, że to prawdopodobnie późniejsza, nieoficjalna adnotacja.
+
+---
+
+## DANE
+
+- [P001] Andreas Grabacz | m | rodzic: — | małżonek: P002
+- [P002] Barbara Grabacz | k | rodzic: — | małżonek: P001
+  - [P006] Regina Grabacz | k | ur. 1664-08-31 | rodzic: P001,P002 | małżonek: P005 | notatka: ur. Luzino
+  - [P005] Joannes Potrykus | m | ur. ok. 1665 | zm. 1752-10-21 | rodzic: — | małżonek: P006 | notatka: ur. Przetoczyno, zm. Szemud. 1. małżeństwo 1687-11-26 Luzino (żona nieznana); 2. małżeństwo: Anna Łojewska (ur. Barłomino)
+- [P003] Joannes Sadach | m | ur. 1654-06-04 | rodzic: — | małżonek: P004 | notatka: ur. Rumia Zagórze
+- [P004] NN Sadach | k | rodzic: — | małżonek: P003 | notatka: imię nieznane (nn)
+  - [P007] Gottfried Sadach | m | rodzic: P003,P004 | małżonek: P008
+  - [P008] Elisabeth Potrykus | k | ur. grudzień, rok nieznany | rodzic: P005,P006 | małżonek: P007 | notatka: źródło podaje tylko dzień/miesiąc (gru 7), rok nie występuje w dokumencie
+    - [P010] Rosalia Sadach | k | ur. 1722-02-24 | rodzic: P007,P008 | małżonek: P009 | notatka: ur. Przetoczyno
+    - [P009] Martinus Potrykus | m | rodzic: — | małżonek: P010
+- [P011] Antonius Potrykus | m | ur. 1751-10-26 | rodzic: P009,P010 | małżonek: P012 | notatka: chrzest 1751-10-31 Kielno
+- [P012] Heva (Ewa) Drogosch | k | ur. 1771-05-31 | zm. 1830-12-24 | rodzic: — | małżonek: P011 | notatka: ur. Luzino, zm. Głazica (Glasshutte)
+  - [P013] Ignatius Potrykus | m | ur. 1801 | rodzic: P011,P012 | małżonek: —
+  - [P014] Ludwik Potrykus | m | ur. 1804-05-20 | zm. 1862-05-07 | rodzic: P011,P012 | małżonek: — | notatka: ur. Głazica (Glasshutte), zm. Jeleńska Huta, pogrzeb Kielno
+  - [P015] Vincentius Marcelinus (Wincenty) Potrykus | m | ur. 1810-04-08 | zm. 1870-08-13 | rodzic: P011,P012 | małżonek: P016 | notatka: chrzest 1810-04-08 Kielno; zm. Mała Piaśnica
+  - [P016] Anna Szymańska | k | ur. 1820-04-17 | zm. 1884-08-27 | rodzic: — | małżonek: P015 | notatka: ur. Bismark, parafia Luzino; ślub 1836-10-17 Luzino; zm. Mała Piaśnica
+    - [P018] Franciszek Xawery Potrykus | m | ur. 1842-11-28 | zm. 1906-08-12 | rodzic: P015,P016 | małżonek: P019
+    - [P019] Anna Elżbieta Marzejon | k | ur. 1852-02-22 | rodzic: — | małżonek: P018 | notatka: ślub 1881-02-27, Darżlubie
+      - [P030] Kunegunda Potrykus | k | ur. 1877 | rodzic: P018,P019 | małżonek: P031
+      - [P031] Józef Ryga | m | ur. 1869 | rodzic: — | małżonek: P030 | notatka: ślub 1899
+        - [P032] NN Ryga | ? | rodzic: P030,P031 | małżonek: — | notatka: imię nieznane (dziecko Kunegundy i Józefa Ryga)
+        - [P033] NN Ryga | ? | rodzic: P030,P031 | małżonek: — | notatka: imię nieznane (dziecko Kunegundy i Józefa Ryga)
+        - [P034] NN Ryga | ? | rodzic: P030,P031 | małżonek: — | notatka: imię nieznane (dziecko Kunegundy i Józefa Ryga)
+        - [P035] NN Ryga | ? | rodzic: P030,P031 | małżonek: — | notatka: imię nieznane (dziecko Kunegundy i Józefa Ryga)
+        - [P036] NN Ryga | ? | rodzic: P030,P031 | małżonek: — | notatka: imię nieznane (dziecko Kunegundy i Józefa Ryga)
+        - [P037] NN Ryga | ? | rodzic: P030,P031 | małżonek: — | notatka: imię nieznane (dziecko Kunegundy i Józefa Ryga)
+        - [P038] Józef Ryga | m | rodzic: P030,P031 | małżonek: — | notatka: dziecko Kunegundy i Józefa Ryga (jedyne z podanym imieniem)
+      - [P040] Matylda Potrykus | k | ur. 1877 | rodzic: P018,P019 | małżonek: P041
+      - [P041] Feliks Schornak | m | ur. 1870 | rodzic: — | małżonek: P040 | notatka: ślub 1903
+        - [P042] Cecylia Szornak | k | rodzic: P040,P041 | małżonek: P043
+        - [P043] NN Turynian | ? | rodzic: — | małżonek: P042 | notatka: imię nieznane
+          - [P044] Jan Turynian | m | rodzic: P042,P043 | małżonek: —
+          - [P045] Łucja Turynian | k | rodzic: P042,P043 | małżonek: —
+        - [P046] Ksawery Szornak | m | rodzic: P040,P041 | małżonek: —
+        - [P047] Franciszek Szornak | m | rodzic: P040,P041 | małżonek: —
+      - [P050] Agnieszka Potrykus | k | ur. 1883 | rodzic: P018,P019 | małżonek: P051
+      - [P051] Augustyn Lesner | m | ur. 1871 | rodzic: — | małżonek: P050 | notatka: ślub 1906
+        - [P052] Cecylia Lesner | k | rodzic: P050,P051 | małżonek: —
+        - [P053] Walerian Lesner | m | rodzic: P050,P051 | małżonek: —
+        - [P054] Anna Lesner | k | rodzic: P050,P051 | małżonek: —
+        - [P055] Józef Lesner | m | rodzic: P050,P051 | małżonek: —
+      - [P060] Franciszek Potrykus | m | ur. 1884-06-01 | zm. 1945-04-04 | rodzic: P018,P019 | małżonek: P061 | notatka: SZUKANA OSOBA -- linia 3-3 z oryginalnego raportu PDF
+      - [P061] Helena Gurska | k | ur. 1891-11-01 | zm. 1972-10-03 | rodzic: — | małżonek: P060
+        - [P062] Rozalia Potrykus | k | ur. 1916-09-04 | zm. 1988-11-21 | rodzic: P060,P061 | małżonek: P063
+        - [P063] Feliks Pieper | m | ur. 1911-08-29 | zm. 1981-01-19 | rodzic: — | małżonek: P062
+        - [P064] Jan Potrykus | m | ur. 1918-05-06 | rodzic: P060,P061 | małżonek: P065
+        - [P065] Cecylia Zielke | k | ur. 1923-11-20 | zm. 1995-08-23 | rodzic: — | małżonek: P064
+          - [P066] Jerzy Potrykus | m | ur. 1952-01-23 | rodzic: P064,P065 | małżonek: P067
+          - [P067] Jolanta Siatkowska | k | ur. 1956-08-23 | rodzic: — | małżonek: P066
+            - [P068] Marcin Potrykus | m | rodzic: P066,P067 | małżonek: —
+            - [P069] Magda Potrykus | k | ur. 1985-02-25 | rodzic: P066,P067 | małżonek: P070
+            - [P070] Rafał Banaśkiewicz | m | ur. 1981-06-11 | rodzic: — | małżonek: P069 | notatka: ślub 2009-08-29
+              - [P071] Maja Banaśkiewicz | k | ur. 2010-12-24 | rodzic: P069,P070 | małżonek: —
+        - [P072] Franciszek Potrykus | m | ur. 1920-02-12 | zm. 1986-03-09 | rodzic: P060,P061 | małżonek: P073
+        - [P073] Józefa Zofia Dorsch | k | ur. 1924-11-06 | rodzic: — | małżonek: P072
+          - [P074] Jadwiga Potrykus | k | ur. 1948-02-17 | rodzic: P072,P073 | małżonek: P075
+          - [P075] Ryszard Belle | m | ur. 1943-03-28 | rodzic: — | małżonek: P074
+            - [P076] Marcin Belle | m | ur. 1974-01-05 | rodzic: P074,P075 | małżonek: P077
+            - [P077] Beata Pstrągowska | k | rodzic: — | małżonek: P076
+              - [P078] Maks Belle | m | rodzic: P076,P077 | małżonek: —
+              - [P079] Katarzyna Belle | k | rodzic: P076,P077 | małżonek: —
+          - [P080] Danuta Potrykus | k | ur. 1952-01-06 | rodzic: P072,P073 | małżonek: P081
+          - [P081] Bolesław Bodziński | m | ur. 1948-01-24 | zm. 1993-10-25 | rodzic: — | małżonek: P080
+            - [P082] Piotr Bodziński | m | rodzic: P080,P081 | małżonek: P083
+            - [P083] NN Bodzińska | k | rodzic: — | małżonek: P082 | notatka: imię nieznane
+              - [P084] Amanda Bodzińska | k | rodzic: P082,P083 | małżonek: —
+            - [P085] Dorota Bodzińska | k | rodzic: P080,P081 | małżonek: P086,P089
+            - [P086] Rafał Borudzki | m | rodzic: — | małżonek: P085 | notatka: 1. mąż Doroty
+            - [P089] Roman Szumełda | m | rodzic: — | małżonek: P085 | notatka: 2. mąż Doroty (wg oryg. zapisu na tej samej pozycji co 1. mąż)
+              - [P087] Natalia Borudzka | k | rodzic: P085,P086 | małżonek: —
+              - [P088] Maciej Borudzki | m | rodzic: P085,P086 | małżonek: —
+          - [P090] Józef Potrykus | m | ur. 1953-01-22 | rodzic: P072,P073 | małżonek: P091
+          - [P091] Grażyna Moniuszko | k | ur. 1953-11-30 | rodzic: — | małżonek: P090
+            - [P092] Przemek Potrykus | m | rodzic: P090,P091 | małżonek: P093
+            - [P093] Joanna Potrykus | k | rodzic: — | małżonek: P092
+              - [P094] Franciszek Potrykus | m | rodzic: P092,P093 | małżonek: —
+              - [P095] Julia Potrykus | k | rodzic: P092,P093 | małżonek: —
+            - [P096] Marcin Potrykus | m | ur. 1982-03-18 | rodzic: P090,P091 | małżonek: P097
+            - [P097] Agnieszka Łozińska | k | rodzic: — | małżonek: P096
+              - [P098] Stanisław Potrykus | m | rodzic: P096,P097 | małżonek: —
+          - [P099] Franciszek Potrykus | m | ur. 1956-06-16 | rodzic: P072,P073 | małżonek: —
+          - [P100] Anna Potrykus | k | ur. 1959-04-23 | rodzic: P072,P073 | małżonek: P101
+          - [P101] Józef Leśniak | m | ur. 1953-12-23 | rodzic: — | małżonek: P100
+            - [P102] Agnieszka Leśniak | k | ur. 1980-07-02 | rodzic: P100,P101 | małżonek: P103
+            - [P103] Piotr Trella | m | ur. 1979-05-18 | rodzic: — | małżonek: P102
+              - [P104] Jakub Trella | m | ur. 2004-01-15 | rodzic: P102,P103 | małżonek: —
+              - [P105] Maja Trella | k | rodzic: P102,P103 | małżonek: —
+            - [P106] Małgorzata Leśniak | k | ur. 1981-08-13 | rodzic: P100,P101 | małżonek: P107
+            - [P107] Grzegorz Kotarba | m | ur. 1977-01-31 | rodzic: — | małżonek: P106
+              - [P108] Aleksandra Kotarba | k | ur. 2007-10-28 | rodzic: P106,P107 | małżonek: —
+            - [P109] Dariusz Leśniak | m | ur. 1986-05-11 | rodzic: P100,P101 | małżonek: —
+          - [P110] Maria Potrykus | k | ur. 1962-01-30 | rodzic: P072,P073 | małżonek: P111
+          - [P111] Waldemar Szczuko | m | ur. 1951-10-12 | rodzic: — | małżonek: P110
+            - [P112] Magdalena Szczuko | k | ur. 1982-09-29 | rodzic: P110,P111 | małżonek: P113
+            - [P113] Arkadiusz Bieniek | m | ur. 1982-09-04 | rodzic: — | małżonek: P112
+              - [P114] Gabriela Bieniek | k | ur. 2008-07-08 | rodzic: P112,P113 | małżonek: —
+            - [P115] Anna Szczuko | k | ur. 1984-12-09 | rodzic: P110,P111 | małżonek: —
+            - [P116] Beata Szczuko | k | ur. 1989-06-27 | rodzic: P110,P111 | małżonek: —
+            - [P117] Adam Szczuko | m | ur. 1997-05-15 | rodzic: P110,P111 | małżonek: —
+            - [P118] Joanna Szczuko | k | ur. 1999-08-09 | rodzic: P110,P111 | małżonek: —
+          - [P119] Wincenty Potrykus | m | ur. 1964-05-14 | rodzic: P072,P073 | małżonek: P120
+          - [P120] Marzena Wiczling | k | rodzic: — | małżonek: P119
+            - [P121] Szymon Potrykus | m | rodzic: P119,P120 | małżonek: —
+            - [P122] Monika Potrykus | k | rodzic: P119,P120 | małżonek: —
+            - [P123] Justyna Potrykus | k | rodzic: P119,P120 | małżonek: —
+            - [P124] Magdalena Potrykus | k | ur. 1999-11-11 | rodzic: P119,P120 | małżonek: —
+        - [P125] Helena Potrykus | k | ur. 1921-07-20 | zm. 1998-12-19 | rodzic: P060,P061 | małżonek: P126
+        - [P126] Józef Hallmann | m | ur. 1909-11-12 | zm. 1999-06-09 | rodzic: — | małżonek: P125 | notatka: ślub 1947-11-11
+          - [P127] Genowefa Hallmann | k | ur. 1948-09-06 | rodzic: P125,P126 | małżonek: P128
+          - [P128] Karol Szornak | m | ur. 1941-10-19 | zm. 2008-05-17 | rodzic: — | małżonek: P127
+            - [P129] Hanna Szornak | k | ur. 1968-09-18 | rodzic: P127,P128 | małżonek: P130
+            - [P130] Józef Miotk | m | ur. 1968-01-09 | rodzic: — | małżonek: P129
+              - [P131] Oskar Miotk | m | ur. 1996-05-01 | rodzic: P129,P130 | małżonek: —
+              - [P132] Eryk Miotk | m | ur. 1998-03-14 | rodzic: P129,P130 | małżonek: —
+              - [P133] Dawid Miotk | m | ur. 1999-07-15 | rodzic: P129,P130 | małżonek: —
+              - [P134] Kacper Miotk | m | ur. 2005-01-06 | rodzic: P129,P130 | małżonek: —
+            - [P135] Grzegorz Szornak | m | ur. 1971-03-12 | rodzic: P127,P128 | małżonek: P136
+            - [P136] Beata Szeszko | k | ur. 1971-08-16 | rodzic: — | małżonek: P135
+              - [P137] Aleksandra Szornak | k | ur. 1992-11-27 | rodzic: P135,P136 | małżonek: —
+              - [P138] Piotr Szornak | m | ur. 1995-04-22 | rodzic: P135,P136 | małżonek: —
+            - [P139] Małgorzata Szornak | k | ur. 1976-09-15 | rodzic: P127,P128 | małżonek: P140
+            - [P140] Grzegorz Boczyński | m | ur. 1981-09-09 | rodzic: — | małżonek: P139
+              - [P141] Kamil Boczyński | m | ur. 2003-07-10 | rodzic: P139,P140 | małżonek: —
+              - [P142] Wiktoria Boczyńska | k | ur. 2006-05-30 | rodzic: P139,P140 | małżonek: —
+            - [P143] Kazimierz Szornak | m | ur. 1980-03-04 | rodzic: P127,P128 | małżonek: P144
+            - [P144] Magdalena Kreft | k | ur. 1981-05-30 | rodzic: — | małżonek: P143
+              - [P145] Tymoteusz Szornak | m | ur. 2007-01-21 | rodzic: P143,P144 | małżonek: —
+            - [P146] Bernadeta Szornak | k | ur. 1985-06-28 | rodzic: P127,P128 | małżonek: P147
+            - [P147] Rafał Śluzewski | m | ur. 1982-04-27 | rodzic: — | małżonek: P146
+              - [P148] Maksymilian Śluzewski | m | ur. 2008-03-19 | rodzic: P146,P147 | małżonek: —
+          - [P149] Helena Hallmann | k | ur. 1949-09-22 | rodzic: P125,P126 | małżonek: P150
+          - [P150] Herbert Kiepke | m | ur. 1943-09-17 | zm. 1987-02-14 | rodzic: — | małżonek: P149
+            - [P151] Gabriela Kiepke | k | ur. 1972-07-14 | rodzic: P149,P150 | małżonek: —
+            - [P152] Marek Kiepke | m | ur. 1974-06-14 | rodzic: P149,P150 | małżonek: P153
+            - [P153] Marzena Okoń | k | ur. 1973-05-20 | rodzic: — | małżonek: P152
+              - [P154] Kinga Kiepke | k | ur. 2007-04-08 | rodzic: P152,P153 | małżonek: —
+              - [P155] Konrad Kiepke | m | ur. 2009-06-18 | rodzic: P152,P153 | małżonek: —
+            - [P156] Teresa Kiepke | k | ur. 1977-10-31 | rodzic: P149,P150 | małżonek: P157
+            - [P157] Tomasz Kosmala | m | rodzic: — | małżonek: P156
+              - [P158] Nikodem Kosmala | m | ur. 2005-11-08 | rodzic: P156,P157 | małżonek: —
+              - [P159] Mateusz Kosmala | m | ur. 2009-11-15 | rodzic: P156,P157 | małżonek: —
+            - [P160] Janusz Kiepke | m | ur. 1983-07-28 | rodzic: P149,P150 | małżonek: —
+          - [P161] Adam Hallmann | m | ur. 1950-11-24 | zm. 1950-11-24 | rodzic: P125,P126 | małżonek: —
+          - [P162] Łucja Hallmann | k | ur. 1951-12-12 | zm. 1959-07-22 | rodzic: P125,P126 | małżonek: —
+          - [P163] Franciszek Hallmann | m | ur. 1953-02-19 | rodzic: P125,P126 | małżonek: P164
+          - [P164] Ludgarda Górska | k | ur. 1954-12-24 | rodzic: — | małżonek: P163
+            - [P165] Monika Hallmann | k | ur. 1979-10-02 | rodzic: P163,P164 | małżonek: P166
+            - [P166] Piotr Czujkowski | m | rodzic: — | małżonek: P165
+            - [P167] Magdalena Hallmann | k | ur. 1981-07-06 | rodzic: P163,P164 | małżonek: P168
+            - [P168] Marcin Marszall | m | ur. 1980-07-03 | rodzic: — | małżonek: P167
+              - [P169] Aleksandra Marszall | k | ur. 2007-11-17 | rodzic: P167,P168 | małżonek: —
+          - [P170] Zofia Hallmann | k | ur. 1954-02-04 | rodzic: P125,P126 | małżonek: —
+          - [P171] Stanisław Hallmann | m | ur. 1955-05-12 | zm. 2004-01-24 | rodzic: P125,P126 | małżonek: —
+          - [P172] Józef Hallmann | m | ur. 1957-07-30 | rodzic: P125,P126 | małżonek: P173
+          - [P173] Mirosława Karsznia | k | ur. 1959-11-25 | rodzic: — | małżonek: P172
+            - [P174] Łukasz Hallmann | m | ur. 1981-05-26 | rodzic: P172,P173 | małżonek: P175
+            - [P175] Aleksandra Grubba | k | ur. 1982-12-14 | rodzic: — | małżonek: P174
+              - [P176] Maja Hallmann | k | ur. 2003-04-17 | rodzic: P174,P175 | małżonek: —
+              - [P177] Oliwia Hallmann | k | ur. 2008-10-14 | rodzic: P174,P175 | małżonek: —
+            - [P178] Mateusz Hallmann | m | ur. 1982-04-17 | rodzic: P172,P173 | małżonek: P179
+            - [P179] Ewa Dettlaff | k | rodzic: — | małżonek: P178
+            - [P180] Anna Hallmann | k | ur. 1987-01-24 | rodzic: P172,P173 | małżonek: —
+            - [P181] Joanna Hallmann | k | ur. 1991-02-18 | rodzic: P172,P173 | małżonek: —
+            - [P182] Alicja Hallmann | k | ur. 1993-10-11 | rodzic: P172,P173 | małżonek: —
+          - [P183] Rozalia Hallmann | k | ur. 1958-09-17 | rodzic: P125,P126 | małżonek: P184
+          - [P184] Kazimierz Orzeł | m | ur. 1958-03-02 | zm. 1989-08-09 | rodzic: — | małżonek: P183
+            - [P185] Franciszek Orzeł | m | ur. 1981-05-11 | zm. 1987-04-26 | rodzic: P183,P184 | małżonek: —
+            - [P186] Mariusz Orzeł | m | ur. 1982-10-01 | rodzic: P183,P184 | małżonek: P187
+            - [P187] Magdalena Szweda | k | ur. 1985-06-11 | rodzic: — | małżonek: P186
+              - [P188] Julia Orzeł | k | ur. 2007-01-02 | rodzic: P186,P187 | małżonek: —
+            - [P189] Dariusz Orzeł | m | ur. 1987-02-12 | rodzic: P183,P184 | małżonek: P190
+            - [P190] Zenon Cinkel | m | ur. 1964-05-31 | rodzic: — | małżonek: P189 | notatka: zapis wg oryginału (małżonek Dariusza)
+              - [P191] Ewelina Cinkel | k | ur. 1997-10-21 | rodzic: P189,P190 | małżonek: — | notatka: w oryginale oznaczona jako pokolenie '6', mimo że pozycja sugeruje '7' -- niespójność źródła
+          - [P192] Marian Hallmann | m | ur. 1960-03-25 | rodzic: P125,P126 | małżonek: P193
+          - [P193] Anita Kołoszyńska | k | ur. 1963-10-16 | rodzic: — | małżonek: P192
+            - [P194] Monika Hallmann | k | ur. 1983-04-13 | rodzic: P192,P193 | małżonek: P195
+            - [P195] Waldemar Witkowski | m | ur. 1981-08-09 | rodzic: — | małżonek: P194
+              - [P196] Melisa Witkowska | k | rodzic: P194,P195 | małżonek: —
+              - [P197] Róża Witkowska | k | ur. 2004-06-12 | rodzic: P194,P195 | małżonek: —
+            - [P198] Bogusława Hallmann | k | ur. 1983 | rodzic: P192,P193 | małżonek: P199
+            - [P199] Tomasz Lehman | m | rodzic: — | małżonek: P198
+            - [P200] Jadwiga Hallmann | k | ur. 1992-10-15 | rodzic: P192,P193 | małżonek: —
+            - [P201] Weronika Hallmann | k | ur. 1994-01-13 | zm. 2008-02-03 | rodzic: P192,P193 | małżonek: —
+            - [P202] Józef Hallmann | m | ur. 1996-04-27 | rodzic: P192,P193 | małżonek: —
+          - [P203] Bronisław Hallmann | m | ur. 1961-12-11 | rodzic: P125,P126 | małżonek: P204
+          - [P204] Bożena Machalińska | k | ur. 1965-04-26 | rodzic: — | małżonek: P203
+            - [P205] Katarzyna Hallmann | k | ur. 1983-11-30 | rodzic: P203,P204 | małżonek: P206
+            - [P206] Bartosz Drzeżdżon | m | zm. 2008-02-03 | rodzic: — | małżonek: P205
+              - [P207] Anna Drzeżdżon | k | ur. 2006-11-18 | rodzic: P205,P206 | małżonek: —
+            - [P208] Radosław Hallmann | m | ur. 1988-12-06 | rodzic: P203,P204 | małżonek: —
+          - [P209] Czesław Hallmann | m | ur. 1963-07-01 | rodzic: P125,P126 | małżonek: P210
+          - [P210] Maria Kołoszyńska | k | rodzic: — | małżonek: P209
+            - [P211] Michał Przemysław Hallmann | m | ur. 1990-08-13 | rodzic: P209,P210 | małżonek: —
+            - [P212] Bartosz Hallmann | m | ur. 1993-05-11 | rodzic: P209,P210 | małżonek: —
+        - [P213] Bronisław Potrykus | m | ur. 1922-10-31 | rodzic: P060,P061 | małżonek: P214
+        - [P214] Stanisława Hollender | k | rodzic: — | małżonek: P213
+          - [P215] Jan Potrykus | m | rodzic: P213,P214 | małżonek: —
+          - [P216] Bronisław Potrykus | m | rodzic: P213,P214 | małżonek: —
+        - [P217] Antoni Potrykus | m | ur. 1924-04-23 | zm. 1989-03-06 | rodzic: P060,P061 | małżonek: P218
+        - [P218] Teresa Kupferschmidt | k | ur. 1930-08-06 | rodzic: — | małżonek: P217
+          - [P219] Maria Potrykus | k | ur. 1954-02-17 | rodzic: P217,P218 | małżonek: P220
+          - [P220] Adam Piontek | m | ur. 1941-01-27 | zm. 2012-04-21 | rodzic: — | małżonek: P219
+            - [P221] Daniel Piontek | m | ur. 1977-02-12 | rodzic: P219,P220 | małżonek: P222
+            - [P222] Urszula Klonowska | k | ur. 1984-08-14 | rodzic: — | małżonek: P221
+              - [P223] Dawid Piontek | m | ur. 2004-06-01 | rodzic: P221,P222 | małżonek: —
+              - [P224] Aleksandra Piontek | k | ur. 2007-07-29 | rodzic: P221,P222 | małżonek: —
+            - [P225] Lucyna Piontek | k | ur. 1978-08-15 | rodzic: P219,P220 | małżonek: P226 | notatka: obok tej linii w oryginale odręczny dopisek 'Lucja Rinc - 2025' -- prawdopodobnie późniejsza notatka o ponownym zamążpójściu, nieoficjalnie dopisana do wydruku; przepisano literalnie, treść niepewna
+            - [P226] Arkadiusz Stanisław Trendel | m | ur. 1975-12-11 | rodzic: — | małżonek: P225
+              - [P227] Dominika Trendel | k | ur. 1995-09-24 | rodzic: P225,P226 | małżonek: —
+              - [P228] Damian Trendel | m | ur. 1997-04-07 | rodzic: P225,P226 | małżonek: —
+              - [P229] Kordian Trendel | m | ur. 1998-06-03 | rodzic: P225,P226 | małżonek: —
+            - [P230] Maria Piontek | k | ur. 1979-08-17 | rodzic: P219,P220 | małżonek: P231
+            - [P231] Michał Antosiewicz | m | ur. 1975-08-31 | rodzic: — | małżonek: P230
+              - [P232] Amadeusz Antosiewicz | m | ur. 2006-06-03 | rodzic: P230,P231 | małżonek: —
+            - [P233] Elżbieta Piontek | k | ur. 1983-04-14 | rodzic: P219,P220 | małżonek: P234
+            - [P234] Marek Czarnecki | m | ur. 1963-07-14 | rodzic: — | małżonek: P233
+              - [P235] Fabian Piontek | m | ur. 2004-11-29 | rodzic: P233,P234 | małżonek: —
+            - [P236] Barbara Piontek | k | ur. 1992-09-02 | rodzic: P219,P220 | małżonek: —
+          - [P237] Józef Potrykus | m | ur. 1963-06-26 | rodzic: P217,P218 | małżonek: —
+        - [P240] Stanisław Potrykus | m | ur. 1925-11-12 | zm. 1993-12-16 | rodzic: P060,P061 | małżonek: P241
+        - [P241] Rozalia Kollek | k | ur. 1925-11-16 | zm. 2009-05-28 | rodzic: — | małżonek: P240 | notatka: ślub gru 1948
+          - [P242] Tadeusz Potrykus | m | ur. 1949-06-20 | rodzic: P240,P241 | małżonek: P243
+          - [P243] Ewa Królikowska | k | ur. 1952-01-31 | rodzic: — | małżonek: P242
+            - [P244] Aleksandra Potrykus | k | ur. 1973-05-31 | rodzic: P242,P243 | małżonek: P245
+            - [P245] Piotr Wojciechowski | m | rodzic: — | małżonek: P244
+              - [P246] Maja Wojciechowska | k | ur. 2009-03-06 | rodzic: P244,P245 | małżonek: —
+              - [P247] Błażej Wojciechowski | m | ur. 2010-12 | rodzic: P244,P245 | małżonek: —
+            - [P248] Agnieszka Potrykus | k | ur. 1986-08-18 | rodzic: P242,P243 | małżonek: —
+          - [P249] Elżbieta Potrykus | k | ur. 1959-03-05 | rodzic: P240,P241 | małżonek: P250
+          - [P250] Jerzy Lieder | m | ur. 1956-09-07 | rodzic: — | małżonek: P249
+            - [P251] Iwona Lieder | k | ur. 1985-07-22 | rodzic: P249,P250 | małżonek: P252
+            - [P252] Karol Kryszewski | m | ur. 1982 | rodzic: — | małżonek: P251 | notatka: ślub 2012-01-28
+            - [P253] Maciej Lieder | m | ur. 1988-02-13 | rodzic: P249,P250 | małżonek: —
+            - [P254] Rafał Lieder | m | ur. 1990-11-05 | rodzic: P249,P250 | małżonek: —
+        - [P255] Józef Potrykus | m | ur. 1927-02-08 | zm. 2001-07-04 | rodzic: P060,P061 | małżonek: P256
+        - [P256] Jadwiga Trendel | k | ur. 1928-06-27 | zm. 2008-07-06 | rodzic: — | małżonek: P255
+          - [P257] Małgorzata Potrykus | k | ur. 1954-04-04 | rodzic: P255,P256 | małżonek: P258
+          - [P258] Jan Okrój | m | ur. 1954-06-20 | rodzic: — | małżonek: P257
+          - [P259] Franciszek Potrykus | m | ur. 1956-01-29 | zm. 2009-08-07 | rodzic: P255,P256 | małżonek: P260
+          - [P260] Irena Paczul | k | ur. 1956-02-26 | rodzic: — | małżonek: P259
+            - [P261] Sylwia Potrykus | k | ur. 1979-08-01 | rodzic: P259,P260 | małżonek: P262
+            - [P262] Adrian Chmiel | m | ur. 1982-03-05 | rodzic: — | małżonek: P261
+              - [P263] Natalia Chmiel | k | ur. 2003-06-24 | rodzic: P261,P262 | małżonek: —
+              - [P264] Marcin Chmiel | m | ur. 2006-04-02 | rodzic: P261,P262 | małżonek: —
+              - [P265] Mateusz Chmiel | m | ur. 2008-12-28 | rodzic: P261,P262 | małżonek: —
+            - [P266] Justyna Potrykus | k | ur. 1987-01-10 | rodzic: P259,P260 | małżonek: P267
+            - [P267] Łukasz Jakubczyk | m | ur. 1987-08-25 | rodzic: — | małżonek: P266
+              - [P268] Jakub Potrykus | m | ur. 2008-11-08 | rodzic: P266,P267 | małżonek: — | notatka: w oryginale nosi nazwisko Potrykus mimo że matka (Justyna) jest zamężna z Jakubczykiem -- przepisano literalnie
+        - [P270] Władysław Potrykus | m | ur. 1928-06-11 | zm. 1997-11-18 | rodzic: P060,P061 | małżonek: P271
+        - [P271] Maria Hallmann | k | ur. 1936-04-25 | rodzic: — | małżonek: P270
+          - [P272] Stanisław Potrykus | m | ur. 1956-05-18 | zm. 1997-06-22 | rodzic: P270,P271 | małżonek: P273
+          - [P273] Małgorzata Kollek | k | ur. 1959-06-28 | rodzic: — | małżonek: P272
+            - [P274] Weronika Potrykus | k | ur. 1985-09-05 | rodzic: P272,P273 | małżonek: —
+          - [P275] Jadwiga Potrykus | k | ur. 1957-08-17 | rodzic: P270,P271 | małżonek: P276
+          - [P276] Kazimierz Tarnowski | m | ur. 1954-12-11 | rodzic: — | małżonek: P275
+            - [P277] Dorota Tarnowska | k | ur. 1978-03-07 | rodzic: P275,P276 | małżonek: P278
+            - [P278] Bogdan Sikora | m | ur. 1969-04-18 | rodzic: — | małżonek: P277
+              - [P279] Paulina Sikora | k | ur. 1998-04-28 | rodzic: P277,P278 | małżonek: —
+              - [P280] Klaudia Sikora | k | ur. 1999-05-21 | rodzic: P277,P278 | małżonek: —
+            - [P281] Katarzyna Tarnowska | k | ur. 1979-11-29 | rodzic: P275,P276 | małżonek: P282
+            - [P282] Ryszard Wikowski | m | ur. 1978-12-01 | rodzic: — | małżonek: P281
+              - [P283] Tomasz Wikowski | m | ur. 2003-04-12 | rodzic: P281,P282 | małżonek: —
+              - [P284] Agnieszka Wikowska | k | ur. 2007-05-09 | rodzic: P281,P282 | małżonek: —
+            - [P285] Małgorzata Tarnowska | k | ur. 1984-06-01 | rodzic: P275,P276 | małżonek: P286
+            - [P286] Marek Wikowski | m | rodzic: — | małżonek: P285
+              - [P287] Aleksander Wikowski | m | ur. 2009-09-01 | rodzic: P285,P286 | małżonek: —
+            - [P288] Karol Tarnowski | m | ur. 1994-07 | rodzic: P275,P276 | małżonek: —
+          - [P289] Maria Potrykus | k | ur. 1959-09-08 | rodzic: P270,P271 | małżonek: P290
+          - [P290] Brunon Tadeusz Lieske | m | ur. 1956-08-26 | rodzic: — | małżonek: P289
+            - [P291] Andrzej Lieske | m | ur. 1981-06-07 | rodzic: P289,P290 | małżonek: P292
+            - [P292] Anna Miotk | k | ur. 1983-04-17 | rodzic: — | małżonek: P291
+              - [P293] Sandra Lieske | k | ur. 2003-09-24 | rodzic: P291,P292 | małżonek: —
+              - [P294] Inga Lieske | k | ur. 2009-08-20 | rodzic: P291,P292 | małżonek: —
+            - [P295] Krystian Lieske | m | ur. 1983-06-13 | zm. 1996-03-04 | rodzic: P289,P290 | małżonek: —
+            - [P296] Barbara Lieske | k | ur. 1995-01-27 | rodzic: P289,P290 | małżonek: —
+            - [P297] Adam Lieske | m | ur. 1997-12-11 | rodzic: P289,P290 | małżonek: —
+        - [P298] Walerian Potrykus | m | ur. 1929-09-12 | rodzic: P060,P061 | małżonek: P299
+        - [P299] Bernadeta Groth | k | ur. 1936-12-03 | rodzic: — | małżonek: P298
+          - [P300] Teresa Potrykus | k | ur. 1957-05-15 | rodzic: P298,P299 | małżonek: P301
+          - [P301] Roman NN | m | rodzic: — | małżonek: P300 | notatka: nazwisko nieznane
+            - [P302] Marcin NN | m | ur. 1984-12-11 | rodzic: P300,P301 | małżonek: — | notatka: nazwisko nieznane
+            - [P303] NN NN | ? | rodzic: P300,P301 | małżonek: — | notatka: dziecko bez podanych danych ("nn") w oryginale
+          - [P304] Anna Potrykus | k | ur. 1959-06-05 | rodzic: P298,P299 | małżonek: P305
+          - [P305] Ireneusz Frankowski | m | ur. 1958-05-15 | rodzic: — | małżonek: P304
+            - [P306] Rafał Frankowski | m | rodzic: P304,P305 | małżonek: P307
+            - [P307] NN Frankowska | k | rodzic: — | małżonek: P306 | notatka: imię nieznane
+      - [P310] Józef Potrykus | m | ur. 1891-10-26 | zm. 1950-11-19 | rodzic: P018,P019 | małżonek: P311
+      - [P311] Matylda Drzeżdżon | k | ur. 1895-12-10 | zm. 1980-07-13 | rodzic: — | małżonek: P310
+        - [P312] Eryka Potrykus | k | ur. 1925-02-27 | zm. 1999-03-12 | rodzic: P310,P311 | małżonek: —
+        - [P313] Matylda Potrykus | k | rodzic: P310,P311 | małżonek: —
+        - [P314] Brunon Potrykus | m | rodzic: P310,P311 | małżonek: —
+        - [P315] Władysław Potrykus | m | rodzic: P310,P311 | małżonek: —
+      - [P320] Antoni Potrykus | m | ur. 1897-05-04 | zm. 1945-03-27 | rodzic: P018,P019 | małżonek: P321
+      - [P321] Gertruda Dorsch | k | ur. 1900-11-13 | zm. 1988-07-16 | rodzic: — | małżonek: P320 | notatka: ślub 1921-07-03
+        - [P322] Grzegorz Potrykus | m | ur. 1922-09-10 | zm. 2001-09-25 | rodzic: P320,P321 | małżonek: P323
+        - [P323] Urszula Engling | k | ur. 1922-08-30 | zm. 2004-06-11 | rodzic: — | małżonek: P322
+          - [P324] Wiesława Potrykus | k | ur. 1949-05-14 | zm. 2003-04-23 | rodzic: P322,P323 | małżonek: P325
+          - [P325] Ryszard Schroeder | m | rodzic: — | małżonek: P324
+            - [P326] Izabela Schroeder | k | rodzic: P324,P325 | małżonek: —
+            - [P327] Przemysław Schroeder | m | rodzic: P324,P325 | małżonek: —
+          - [P328] Irena Potrykus | k | ur. 1950 | rodzic: P322,P323 | małżonek: P329
+          - [P329] Mirosław Konieczny | m | rodzic: — | małżonek: P328
+            - [P330] Dominik Konieczny | m | rodzic: P328,P329 | małżonek: —
+          - [P331] Mieczysław Potrykus | m | ur. 1951-11-16 | rodzic: P322,P323 | małżonek: P332
+          - [P332] Renata Figlarek | k | ur. 1951 | rodzic: — | małżonek: P331
+            - [P333] Piotr Potrykus | m | rodzic: P331,P332 | małżonek: —
+            - [P334] Sławomir Potrykus | m | rodzic: P331,P332 | małżonek: —
+          - [P335] Andrzej Potrykus | m | ur. 1954-09-10 | rodzic: P322,P323 | małżonek: P336
+          - [P336] Bożena Palach | k | rodzic: — | małżonek: P335
+          - [P337] Marian Potrykus | m | ur. 1957-12-22 | rodzic: P322,P323 | małżonek: P338
+          - [P338] Maria Karczewska | k | ur. 1954-09-13 | rodzic: — | małżonek: P337
+            - [P339] Daniel Potrykus | m | ur. 1978-07-10 | rodzic: P337,P338 | małżonek: P340
+            - [P340] Kinga Purzycka | k | rodzic: — | małżonek: P339
+            - [P341] Joanna Potrykus | k | ur. 1980-04-01 | rodzic: P337,P338 | małżonek: —
+            - [P342] Robert Potrykus | m | ur. 1990-09-19 | rodzic: P337,P338 | małżonek: —
+        - [P343] Maria Potrykus | k | ur. 1923-07-29 | zm. 2011-12-05 | rodzic: P320,P321 | małżonek: P344
+        - [P344] Florian Król | m | ur. 1922-01-20 | zm. 1977-10-26 | rodzic: — | małżonek: P343
+          - [P345] Roman Król | m | ur. 1949-12-10 | rodzic: P343,P344 | małżonek: P346
+          - [P346] Danuta Wiśniewska | k | ur. 1948 | rodzic: — | małżonek: P345 | notatka: ślub 1973
+            - [P347] Agnieszka Król | k | ur. 1975-07-24 | rodzic: P345,P346 | małżonek: —
+          - [P348] Elżbieta Król | k | rodzic: P343,P344 | małżonek: P349 | notatka: UWAGA: ten fragment leży dokładnie na granicy stron 6/7 oryginału i jest niejednoznaczny -- wydruk pokazuje 'małż. Elżbieta Król' nad 'małż. 1983 Iwona Krzemińska', co sugeruje możliwy błąd odczytu/cięcia strony; nie udało się jednoznacznie ustalić, czy Iwona Krzemińska jest małżonką Elżbiety, czy to osobny, nieopisany fragment drzewa
+          - [P349] Iwona Krzemińska | k | ur. 1947-05-23 | zm. 2003-12-11 | rodzic: — | małżonek: P348 | notatka: ślub 1983 -- patrz uwaga przy P348
+            - [P350] Piotr Król | m | ur. 1984-10-16 | rodzic: P348,P349 | małżonek: —
+            - [P351] Filip Król | m | ur. 1984-10-16 | rodzic: P348,P349 | małżonek: —
+          - [P352] Bolesław Król | m | ur. 1951-01-09 | rodzic: P343,P344 | małżonek: P353
+          - [P353] Bożena Żurdzińska | k | ur. 1951-12-23 | rodzic: — | małżonek: P352
+            - [P354] Rafał Król | m | ur. 1976-06-06 | rodzic: P352,P353 | małżonek: —
+            - [P355] Karolina Król | k | ur. 1980-05-07 | rodzic: P352,P353 | małżonek: P356
+            - [P356] Maciej Zaworski | m | ur. 1980-02-01 | rodzic: — | małżonek: P355
+          - [P357] Jerzy Król | m | ur. 1953-03-28 | zm. 1982-11-25 | rodzic: P343,P344 | małżonek: P358
+          - [P358] Justyna Król | k | ur. 1953-08-08 | rodzic: — | małżonek: P357
+            - [P359] Monika Król | k | ur. 1978-02-28 | rodzic: P357,P358 | małżonek: P360
+            - [P360] NN NN | ? | rodzic: — | małżonek: P359 | notatka: "n n" w oryginale -- małżonek nieznany
+            - [P361] Kamila Król | k | ur. 1980-03-15 | rodzic: P357,P358 | małżonek: P362
+            - [P362] Paweł Dominiak | m | rodzic: — | małżonek: P361
+              - [P363] Patrycja Dominiak | k | rodzic: P361,P362 | małżonek: —
+              - [P364] Julia Dominiak | k | rodzic: P361,P362 | małżonek: —
+        - [P365] Jan Potrykus | m | ur. 1924-12-28 | rodzic: P320,P321 | małżonek: P366
+        - [P366] Jadwiga Maria Potrykus | k | ur. 1924-02-05 | zm. 2000-03-14 | rodzic: — | małżonek: P365
+          - [P367] Ewa Potrykus | k | ur. 1949-07-06 | rodzic: P365,P366 | małżonek: P368
+          - [P368] Andrzej Bigus | m | ur. 1949-12-08 | rodzic: — | małżonek: P367
+            - [P369] Krzysztof Bigus | m | ur. 1973-05-30 | rodzic: P367,P368 | małżonek: P370
+            - [P370] Krystyna Kupska | k | ur. 1973-04-12 | rodzic: — | małżonek: P369
+              - [P371] Jakub Bigus | m | ur. 2002-07-03 | rodzic: P369,P370 | małżonek: —
+              - [P372] Jan Bigus | m | ur. 2005-07-06 | rodzic: P369,P370 | małżonek: —
+          - [P373] Teresa Potrykus | k | ur. 1950-11-09 | rodzic: P365,P366 | małżonek: P374
+          - [P374] Eugeniusz Dawidowski | m | ur. 1950-07-17 | rodzic: — | małżonek: P373
+            - [P375] Michał Dawidowski | m | ur. 1978-05-01 | rodzic: P373,P374 | małżonek: P376
+            - [P376] Anna Dettlaff | k | ur. 1979-04-24 | rodzic: — | małżonek: P375
+              - [P377] Marta Dawidowska | k | ur. 2003-07-02 | zm. 2003-02-09 | rodzic: P375,P376 | małżonek: — | notatka: daty jak w źródle (zgon przed urodzeniem -- błąd w oryginale)
+              - [P378] Natalia Dawidowska | k | ur. 2004-07-26 | rodzic: P375,P376 | małżonek: —
+              - [P379] Tymoteusz Dawidowski | m | ur. 2009-08-03 | rodzic: P375,P376 | małżonek: —
+            - [P380] Magdalena Dawidowska | k | ur. 1982-10-31 | rodzic: P373,P374 | małżonek: P381
+            - [P381] Łukasz Strzelewicz | m | ur. 1982-10-30 | rodzic: — | małżonek: P380
+            - [P382] Grzegorz Dawidowski | m | ur. 1986-03-12 | rodzic: P373,P374 | małżonek: —
+            - [P383] Artur Dawidowski | m | ur. 1988-09-23 | rodzic: P373,P374 | małżonek: —
+          - [P384] Benedykt Potrykus | m | ur. 1957-08-03 | rodzic: P365,P366 | małżonek: P385,P387
+          - [P385] Gabriela Grzegowska | k | ur. 1957-12-13 | zm. 1998-03-07 | rodzic: — | małżonek: P384 | notatka: ślub 1979-09-29
+          - [P387] Gabriela Makurath | k | ur. 1966-01-15 | rodzic: — | małżonek: P384 | notatka: 2. żona Benedykta, ślub 2001-07-28
+            - [P386] Sylwia Maria Potrykus | k | ur. 1981-08-09 | rodzic: P384,P385 | małżonek: —
+        - [P388] Antoni Potrykus | m | ur. 1927-12-17 | zm. 1945 | rodzic: P320,P321 | małżonek: —
+        - [P389] Gertruda Potrykus | k | ur. 1932-10-28 | rodzic: P320,P321 | małżonek: —
+        - [P390] Gerard Potrykus | m | ur. 1940-11-04 | rodzic: P320,P321 | małżonek: P391
+        - [P391] Maria Lieske | k | ur. 1941-08-18 | rodzic: — | małżonek: P390
+          - [P392] Katarzyna Potrykus | k | ur. 1964-04-08 | rodzic: P390,P391 | małżonek: P393
+          - [P393] Dariusz Jurczyński | m | ur. 1964-03-01 | rodzic: — | małżonek: P392
+            - [P394] Łukasz Jurczyński | m | ur. 1987-08-13 | rodzic: P392,P393 | małżonek: —
+            - [P395] Agata Jurczyńska | k | ur. 1993-02-12 | rodzic: P392,P393 | małżonek: —
+            - [P396] Michał Jurczyński | m | ur. 1999-05-12 | rodzic: P392,P393 | małżonek: —
+          - [P397] Hanna Potrykus | k | ur. 1965-12-24 | rodzic: P390,P391 | małżonek: P398
+          - [P398] Henryk Polaszek | m | ur. 1963-09-14 | rodzic: — | małżonek: P397
+            - [P399] Mateusz Polaszek | m | ur. 1988-06-27 | rodzic: P397,P398 | małżonek: —
+            - [P400] Anna Polaszek | k | ur. 1991-08-15 | rodzic: P397,P398 | małżonek: —
+          - [P401] Marek Potrykus | m | ur. 1967-12-26 | rodzic: P390,P391 | małżonek: P402
+          - [P402] Joanna Bladowska | k | ur. 1972-05-01 | rodzic: — | małżonek: P401
+            - [P403] Dawid Potrykus | m | ur. 1996-04-19 | rodzic: P401,P402 | małżonek: —
+            - [P404] Karolina Potrykus | k | ur. 1999-04-02 | rodzic: P401,P402 | małżonek: —
+          - [P405] Adam Potrykus | m | ur. 1972-02-14 | rodzic: P390,P391 | małżonek: P406
+          - [P406] Żaneta Zaborowska | k | ur. 1976-03-27 | rodzic: — | małżonek: P405
+            - [P407] Wiktor Potrykus | m | ur. 2003-03-11 | rodzic: P405,P406 | małżonek: —
+          - [P408] Małgorzata Potrykus | k | ur. 1976-04-29 | rodzic: P390,P391 | małżonek: P409,P411
+          - [P409] NN NN | ? | rodzic: — | małżonek: P408 | notatka: "(Nieznane)" w oryginale -- 1. partner/mąż
+          - [P411] Paweł Święcki | m | ur. 1972-03-10 | rodzic: — | małżonek: P408 | notatka: 2. mąż Małgorzaty
+            - [P410] Błażej Potrykus | m | ur. 1994-04-07 | rodzic: P408,P409 | małżonek: —
+            - [P412] Bartosz Święcki | m | ur. 1999-06-24 | rodzic: P408,P411 | małżonek: —
+      - [P420] Ksawery Potrykus | m | rodzic: P018,P019 | małżonek: P421
+      - [P421] Klara Miotke | k | rodzic: — | małżonek: P420
+        - [P422] Leon Potrykus | m | rodzic: P420,P421 | małżonek: —
+        - [P423] Antoni Potrykus | m | rodzic: P420,P421 | małżonek: P424
+        - [P424] Józefa Potrykus | k | ur. 1924-06-21 | rodzic: — | małżonek: P423
+        - [P425] Agnieszka Potrykus | k | rodzic: P420,P421 | małżonek: —
+        - [P426] Maria Potrykus | k | ur. 1919-09-30 | rodzic: P420,P421 | małżonek: P427
+        - [P427] NN Macieszka | m | rodzic: — | małżonek: P426 | notatka: nazwisko podane jako 'Macieszka', imię nieznane
+          - [P428] Edyta Macieszka | k | rodzic: P426,P427 | małżonek: —
+        - [P429] Anna Potrykus | k | ur. 1925-07-26 | rodzic: P420,P421 | małżonek: —
+        - [P430] Leokadia Potrykus | k | ur. 1929-01-05 | rodzic: P420,P421 | małżonek: —
+      - [P431] Stefan Potrykus | m | rodzic: P018,P019 | małżonek: P432
+      - [P432] NN Szymańska | k | rodzic: — | małżonek: P431 | notatka: imię nieznane
+        - [P433] Brygida Potrykus | k | rodzic: P431,P432 | małżonek: —
+        - [P434] Magdalena Potrykus | k | rodzic: P431,P432 | małżonek: —
+        - [P435] Edmund Potrykus | m | rodzic: P431,P432 | małżonek: —
+        - [P436] Maria Potrykus | k | rodzic: P431,P432 | małżonek: —
+      - [P437] NN Potrykus | k | rodzic: P018,P019 | małżonek: P438 | notatka: córka Franciszka Xawerego i Anny Elżbiety, imię nieznane w źródle
+      - [P438] Józef Szymański | m | rodzic: — | małżonek: P437
+        - [P439] Jan Szymański | m | rodzic: P437,P438 | małżonek: —
+        - [P440] Bronisława Szymańska | k | rodzic: P437,P438 | małżonek: —
+      - [P441] Eligiusz Potrykus | m | zm. pomiędzy 1914 a 1918 | rodzic: P018,P019 | małżonek: P442
+      - [P442] NN NN | ? | rodzic: — | małżonek: P441 | notatka: "Nieznany" -- małżonek/małżonka Eligiusza
+        - [P443] Alfons Potrykus | m | ur. 1914-03-31 | zm. 1998-05-13 | rodzic: P441,P442 | małżonek: P444
+        - [P444] Anna Potrykus | k | ur. 1921-11-18 | zm. 1998-02-24 | rodzic: — | małżonek: P443
+    - [P020] Apolonia Potrykus | k | ur. 1845-02-05 | rodzic: P015,P016 | małżonek: — | notatka: ur. Mała Piaśnica
+    - [P021] August Ignacy (August Ignatz) Potrykus | m | ur. 1848-01-18 | rodzic: P015,P016 | małżonek: — | notatka: ur. Mała Piaśnica
+    - [P022] Matylda Katarzyna (Mathilda Catharina) Potrykus | k | ur. 1849-04-30 | rodzic: P015,P016 | małżonek: — | notatka: ur. Mała Piaśnica
+    - [P023] Jan Mateusz (Johann Mathias) Potrykus | m | ur. 1852-02-25 | rodzic: P015,P016 | małżonek: — | notatka: ur. Mała Piaśnica
+    - [P024] Józef Marceli Potrykus | m | ur. 1854 | rodzic: P015,P016 | małżonek: —
+    - [P025] Julianna Weronika Potrykus | k | ur. 1858 | rodzic: P015,P016 | małżonek: P026
+    - [P026] Joseph Ceynowa | m | rodzic: — | małżonek: P025 | notatka: ślub 1876
+  - [P017] Augustinus Joannes Potrykus | m | ur. 1814-01-18 | rodzic: P011,P012 | małżonek: — | notatka: ur. Głazica (Glasshutte)
