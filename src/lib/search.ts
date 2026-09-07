@@ -9,7 +9,7 @@ function normalize(text: string): string {
     .replace(/Ł/g, "l");
 }
 
-export function searchPeople(people: Person[], query: string): Person[] {
+export function searchPeople<T extends Person>(people: T[], query: string): T[] {
   const q = normalize(query.trim());
   if (!q) return [];
   return people
