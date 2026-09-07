@@ -67,3 +67,20 @@ export interface RsvpPayload {
   notes?: string;
   willTransfer: boolean;
 }
+
+export interface EventPhoto {
+  id: string;
+  createdAt: string;
+  url: string;
+  uploaderName: string;
+  uploaderPersonId?: string;
+  caption?: string;
+  status: "visible" | "hidden" | "local_only";
+}
+
+export interface EventPhotoPayload {
+  url: string;
+  uploaderName: string;
+  uploaderPersonId?: string;
+  caption?: string;
+}

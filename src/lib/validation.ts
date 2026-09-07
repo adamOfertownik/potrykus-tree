@@ -98,6 +98,13 @@ export const submissionPayloadSchema = z
     },
   );
 
+export const eventPhotoPayloadSchema = z.object({
+  url: z.string().trim().min(1).max(500),
+  uploaderName: z.string().trim().min(1).max(160),
+  uploaderPersonId: z.string().trim().max(120).optional(),
+  caption: z.string().trim().max(300).optional(),
+});
+
 export const rsvpPayloadSchema = z
   .object({
     fullName: z.string().trim().min(1).max(160),
