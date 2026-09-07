@@ -307,8 +307,18 @@ input {
 
 .app-header__login.is-active {
   background: var(--accent);
-  border-color: var(--accent);
   color: white;
+  border-color: var(--accent);
+}
+
+.app-header__login--plain {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 500;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-menu__link {
@@ -2672,6 +2682,31 @@ input {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 0.75rem;
+}
+
+.admin-users h2,
+.admin-page > h2 {
+  margin: 0.5rem 0 0;
+  font-size: 1.05rem;
+}
+
+.admin-user-form {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+@media (min-width: 720px) {
+  .admin-user-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .admin-user-form .btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
 }
 
 .page-shell {

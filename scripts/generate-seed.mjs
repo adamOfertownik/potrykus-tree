@@ -6,8 +6,6 @@
 import { writeFileSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import bcrypt from "bcryptjs";
-import { randomBytes } from "crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -2306,14 +2304,5 @@ const family = {
 mkdirSync(join(root, "data"), { recursive: true });
 writeFileSync(join(root, "data", "family.json"), JSON.stringify(family, null, 2));
 
-const accessCode = "PotrykusRodzina";
-const config = {
-  accessCodeHash: bcrypt.hashSync(accessCode, 10),
-  sessionSecret: randomBytes(32).toString("hex"),
-  cookieName: "potrykus_family_session",
-};
-writeFileSync(join(root, "data", "config.json"), JSON.stringify(config, null, 2));
-
 console.log(`Seeded ${people.length} people`);
-console.log(`Default family access code: ${accessCode}`);
 console.log(`Root: ${fx.id}`);

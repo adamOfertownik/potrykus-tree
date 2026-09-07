@@ -1,81 +1,87 @@
 import { SignJWT, jwtVerify } from "jose";
-import { compare } from "bcryptjs";
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 import { readConfig } from "@/lib/db";
+import type { AppUser } from "@/lib/users";
+import { isUserRole, type UserRole } from "@/types/auth";
 
 const SESSION_TTL = "30d";
-const ADMIN_COOKIE = "potrykus_admin_session";
+const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
 function secretKey(secret: string) {
   return new TextEncoder().encode(secret);
 }
 
-export async function verifyAccessCode(code: string): Promise<boolean> {
+async function signingKey() {
   const config = await readConfig();
-  return compare(code.trim(), config.accessCodeHash);
-}
-
-export async function createSessionToken(): Promise<string> {
-  const config = await readConfig();
-  return new SignJWT({ role: "family" })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(SESSION_TTL)
-    .sign(secretKey(config.sessionSecret));
-}
-
-export async function createAdminSessionToken(admin: {
-  id: string;
-  email: string;
-}): Promise<string> {
-  const config = await readConfig();
-  return new SignJWT({ role: "admin", adminId: admin.id, email: admin.email })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(SESSION_TTL)
-    .sign(secretKey(config.sessionSecret));
-}
-
-export async function isSessionValid(): Promise<boolean> {
-  try {
-    const config = await readConfig();
-    const jar = await cookies();
-    const token = jar.get(config.cookieName)?.value;
-    if (!token) return false;
-    await jwtVerify(token, secretKey(config.sessionSecret));
-    return true;
-  } catch {
-    return false;
+  if (!config.sessionSecret || config.sessionSecret.length < 16) {
+    throw new Error("SESSION_SECRET is missing or too short.");
   }
+  return { config, key: secretKey(config.sessionSecret) };
 }
 
-export type AdminSession = {
-  adminId: string;
+export type SessionUser = {
+  userId: string;
   email: string;
+  role: UserRole;
 };
 
-export async function getAdminSession(): Promise<AdminSession | null> {
+export async function createSessionToken(user: AppUser): Promise<string> {
+  const { key } = await signingKey();
+  return new SignJWT({
+    role: user.role,
+    userId: user.id,
+    email: user.email,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(user.id)
+    .setIssuedAt()
+    .setExpirationTime(SESSION_TTL)
+    .sign(key);
+}
+
+export async function getSession(): Promise<SessionUser | null> {
   try {
-    const config = await readConfig();
+    const { config, key } = await signingKey();
     const jar = await cookies();
-    const token = jar.get(ADMIN_COOKIE)?.value;
+    const token = jar.get(config.cookieName)?.value;
     if (!token) return null;
-    const { payload } = await jwtVerify(token, secretKey(config.sessionSecret));
-    if (payload.role !== "admin" || typeof payload.adminId !== "string") {
+    const { payload } = await jwtVerify(token, key);
+    if (!isUserRole(payload.role) || typeof payload.userId !== "string") {
       return null;
     }
     return {
-      adminId: payload.adminId,
+      userId: payload.userId,
       email: typeof payload.email === "string" ? payload.email : "",
+      role: payload.role,
     };
   } catch {
     return null;
   }
 }
 
+export async function isSessionValid(): Promise<boolean> {
+  return (await getSession()) !== null;
+}
+
+export async function requireAdminSession(): Promise<SessionUser | null> {
+  const session = await getSession();
+  if (!session || session.role !== "admin") return null;
+  return session;
+}
+
 export async function isAdminSessionValid(): Promise<boolean> {
-  return (await getAdminSession()) !== null;
+  return (await requireAdminSession()) !== null;
+}
+
+/** @deprecated Use getSession() + role === "admin" */
+export async function getAdminSession(): Promise<{
+  adminId: string;
+  email: string;
+} | null> {
+  const session = await requireAdminSession();
+  if (!session) return null;
+  return { adminId: session.userId, email: session.email };
 }
 
 export async function attachSessionCookie(
@@ -88,20 +94,7 @@ export async function attachSessionCookie(
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
-}
-
-export async function attachAdminSessionCookie(
-  response: NextResponse,
-  token: string,
-): Promise<void> {
-  response.cookies.set(ADMIN_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
+    maxAge: SESSION_MAX_AGE,
   });
 }
 
@@ -116,12 +109,8 @@ export async function clearSessionOnResponse(
     path: "/",
     maxAge: 0,
   });
-}
-
-export async function clearAdminSessionOnResponse(
-  response: NextResponse,
-): Promise<void> {
-  response.cookies.set(ADMIN_COOKIE, "", {
+  // Drop the previous dual-cookie admin session if it is still around.
+  response.cookies.set("potrykus_admin_session", "", {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

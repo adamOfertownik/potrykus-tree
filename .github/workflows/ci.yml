@@ -36,3 +36,4 @@ jobs:
           CI: "1"
           PLAYWRIGHT_PORT: "3333"
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:3333
+          SESSION_SECRET: potrykus-e2e-session-secret

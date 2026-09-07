@@ -25,6 +25,8 @@ type Props = {
   onFocusBranch?: (id: string) => void;
   /** Called when the highlighted person is not part of the rendered tree */
   onHighlightMissing?: (id: string) => void;
+  /** Live graph edits (add child/spouse/reparent) — admin only */
+  canEditGraph?: boolean;
 };
 
 const SCALE_LAYOUT: Record<
@@ -59,6 +61,7 @@ export function FamilyChartView({
   onHighlight,
   onFocusBranch,
   onHighlightMissing,
+  canEditGraph = false,
 }: Props) {
   const router = useRouter();
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -254,7 +257,7 @@ export function FamilyChartView({
       d: { data?: { id?: string } },
     ) {
       const id = d?.data?.id;
-      if (!id) return;
+      if (!id || !canEditGraph) return;
       let btn = this.querySelector<HTMLButtonElement>(".chart-card-plus");
       if (!btn) {
         btn = document.createElement("button");
@@ -282,9 +285,9 @@ export function FamilyChartView({
       cardRef.current = null;
       el.innerHTML = "";
     };
-    // Full rebuild when people or links change — scale is handled below
+    // Full rebuild when people, links, or edit permission change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [peopleSig]);
+  }, [peopleSig, canEditGraph]);
 
   // Text scale: resize cards without destroying the whole chart
   useEffect(() => {
@@ -393,6 +396,7 @@ export function FamilyChartView({
     selected && !editOp ? (
       <PersonTreeActionsModal
         person={selected}
+        canEditGraph={canEditGraph}
         onClose={() => setSelected(null)}
         onEdit={(op) => setEditOp(op)}
         onViewPerson={goToPerson}
@@ -430,7 +434,9 @@ export function FamilyChartView({
       </div>
 
       <p className="family-chart-hint">
-        Przeciągnij, aby przesunąć · scroll = zoom · klik lub + = dodaj powiązanie
+        {canEditGraph
+          ? "Przeciągnij, aby przesunąć · scroll = zoom · klik lub + = dodaj powiązanie"
+          : "Przeciągnij, aby przesunąć · scroll = zoom · klik = karta osoby"}
       </p>
 
       {editNotice && (
@@ -441,7 +447,7 @@ export function FamilyChartView({
 
       {personModal}
 
-      {selected && editOp && (
+      {selected && editOp && canEditGraph && (
         <GraphEditWizard
           open
           op={editOp}

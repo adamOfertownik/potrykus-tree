@@ -7,7 +7,7 @@ export async function GET() {
   const unlocked = await isSessionValid();
   if (!unlocked) {
     return NextResponse.json(
-      { error: "Wymagany kod rodzinny.", unlocked: false },
+      { error: "Wymagane logowanie.", unlocked: false },
       { status: 401 },
     );
   }

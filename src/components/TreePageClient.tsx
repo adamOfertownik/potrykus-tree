@@ -22,7 +22,7 @@ export function TreePageClient() {
       exportRootId={rootId || undefined}
       loadingLabel="Wczytywanie drzewa…"
     >
-      {({ people, family }) => {
+      {({ people, family, isAdmin }) => {
         const familyRoot = family.meta.rootPersonId || "";
         const effectiveRoot = rootId || familyRoot;
         const focusedAway =
@@ -109,6 +109,7 @@ export function TreePageClient() {
                   onHighlight={setHighlightId}
                   onFocusBranch={focusBranch}
                   onHighlightMissing={focusBranch}
+                  canEditGraph={isAdmin}
                 />
               ) : (
                 <p className="empty-hint">Brak danych drzewa.</p>

@@ -9,6 +9,8 @@
     "lint": "eslint",
     "seed": "node scripts/generate-seed.mjs",
     "db:migrate": "node scripts/migrate.mjs",
+    "db:check": "node scripts/check-neon.mjs",
+    "db:create-user": "node scripts/create-user.mjs",
     "db:create-admin": "node scripts/create-admin.mjs",
     "test:e2e": "playwright test"
   },

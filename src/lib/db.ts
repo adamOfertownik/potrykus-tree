@@ -19,18 +19,16 @@ export async function writeFamilyDb(db: FamilyDatabase): Promise<void> {
 }
 
 /**
- * Env wins in production; data/config.json is the local/dev fallback.
- * Prefer SESSION_SECRET + ACCESS_CODE_HASH so the file can stay out of prod secrets.
+ * SESSION_SECRET must come from the environment — never from git.
+ * Cookie name may fall back to data/config.json.
  */
 export async function readConfig(): Promise<FamilyConfig> {
-  const file = JSON.parse(
-    await readFile(CONFIG_PATH, "utf-8"),
-  ) as FamilyConfig;
+  const file = JSON.parse(await readFile(CONFIG_PATH, "utf-8")) as {
+    cookieName?: string;
+  };
 
   return {
-    accessCodeHash:
-      process.env.ACCESS_CODE_HASH?.trim() || file.accessCodeHash,
-    sessionSecret: process.env.SESSION_SECRET?.trim() || file.sessionSecret,
+    sessionSecret: process.env.SESSION_SECRET?.trim() || "",
     cookieName:
       process.env.COOKIE_NAME?.trim() ||
       file.cookieName ||

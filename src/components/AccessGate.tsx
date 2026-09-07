@@ -1,25 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import { useUnlock } from "@/lib/hooks";
+import { useLogin } from "@/lib/hooks";
 
 type Props = {
-  /** Where to go after a successful unlock (full navigation — reliable on mobile). */
-  afterUnlockHref?: string;
+  /** Where to go after a successful login (full navigation — reliable on mobile). */
+  afterLoginHref?: string;
 };
 
-export function AccessGate({ afterUnlockHref = "/" }: Props) {
-  const [code, setCode] = useState("");
-  const unlock = useUnlock();
+export function AccessGate({ afterLoginHref }: Props) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const login = useLogin();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    unlock.mutate(code, {
-      onSuccess: () => {
-        // Full reload into the unlocked app (avoids soft-router + stale SW)
-        window.location.assign(afterUnlockHref);
+    login.mutate(
+      { email, password },
+      {
+        onSuccess: (data) => {
+          if (afterLoginHref) {
+            const target =
+              afterLoginHref.startsWith("/admin") && data.role !== "admin"
+                ? "/drzewo"
+                : afterLoginHref;
+            window.location.assign(target);
+            return;
+          }
+          window.location.reload();
+        },
       },
-    });
+    );
   };
 
   return (
@@ -27,38 +38,49 @@ export function AccessGate({ afterUnlockHref = "/" }: Props) {
       <div className="gate-atmosphere" aria-hidden />
       <section className="gate-panel">
         <p className="gate-brand">Drzewo Potrykus</p>
-        <h1 className="gate-title">Rodzinne archiwum</h1>
+        <h1 className="gate-title">Logowanie</h1>
         <p className="gate-lead">
-          Dane genealogiczne i numery telefonów są chronione kodem rodzinnym —
-          bez konta, ale też bez publicznego dostępu.
+          Prywatne archiwum rodziny. Wejdź swoim e-mailem i hasłem — konto
+          zakłada administrator.
         </p>
         <form className="gate-form" onSubmit={onSubmit}>
-          <label htmlFor="family-code" className="sr-only">
-            Kod rodzinny
+          <label htmlFor="family-email" className="field-block">
+            E-mail
+            <input
+              id="family-email"
+              type="email"
+              autoComplete="username"
+              placeholder="np. jan@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="gate-input"
+              required
+            />
           </label>
-          <input
-            id="family-code"
-            type="password"
-            autoComplete="current-password"
-            placeholder="Kod rodzinny"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            className="gate-input"
-            required
-          />
-          <button type="submit" className="gate-cta" disabled={unlock.isPending}>
-            {unlock.isPending ? "Sprawdzam…" : "Wejdź do drzewa"}
+          <label htmlFor="family-password" className="field-block">
+            Hasło
+            <input
+              id="family-password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Hasło"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="gate-input"
+              required
+            />
+          </label>
+          <button type="submit" className="gate-cta" disabled={login.isPending}>
+            {login.isPending ? "Loguję…" : "Zaloguj"}
           </button>
         </form>
-        {unlock.isError && (
+        {login.isError && (
           <p className="gate-error" role="alert">
-            {(unlock.error as Error).message || "Nieprawidłowy kod."}
+            {(login.error as Error).message || "Nie udało się zalogować."}
           </p>
         )}
         <footer className="gate-footer">
           Twórca: <strong>Adam Lieske</strong>
-          <span className="gate-footer__sep">·</span>
-          <a href="/login">Logowanie administratora</a>
         </footer>
       </section>
     </main>

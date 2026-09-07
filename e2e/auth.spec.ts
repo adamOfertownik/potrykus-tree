@@ -1,0 +1,32 @@
+import { test, expect } from "@playwright/test";
+import { sessionCookie } from "./session";
+
+test("login page asks for email and password, not a family code", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  await expect(page.getByRole("heading", { name: "Logowanie" })).toBeVisible({
+    timeout: 20000,
+  });
+  await expect(page.getByLabel("E-mail")).toBeVisible();
+  await expect(page.getByLabel("Hasło")).toBeVisible();
+  await expect(page.getByPlaceholder("Kod rodzinny")).toHaveCount(0);
+});
+
+test("tree is gated behind login", async ({ page }) => {
+  await page.goto("/drzewo");
+  await expect(page.getByRole("heading", { name: "Logowanie" })).toBeVisible({
+    timeout: 20000,
+  });
+  await expect(page.getByLabel("E-mail")).toBeVisible();
+});
+
+test("member session opens the tree", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie("member")]);
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.getByText("Kod rodzinny")).toHaveCount(0);
+  await ctx.close();
+});

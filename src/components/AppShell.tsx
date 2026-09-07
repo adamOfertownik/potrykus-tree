@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useFamily, useLogout, useAdminAuthStatus, useAdminLogout } from "@/lib/hooks";
+import { useFamily, useLogout, useAuthStatus } from "@/lib/hooks";
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
@@ -27,9 +27,8 @@ function AppShellInner({
 }) {
   const pathname = usePathname();
   const logout = useLogout();
-  const adminAuth = useAdminAuthStatus();
-  const adminLogout = useAdminLogout();
-  const isAdmin = Boolean(adminAuth.data?.loggedIn);
+  const auth = useAuthStatus();
+  const isAdmin = auth.data?.role === "admin";
   const { scale, setScale } = useTextScale();
   const { identity, promptIdentity } = useIdentity();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -97,11 +96,11 @@ function AppShellInner({
               >
                 Zgłoszenia
               </Link>
-            ) : (
-              <Link href="/login" className="app-header__login">
-                Logowanie
-              </Link>
-            )}
+            ) : auth.data?.email ? (
+              <span className="app-header__login app-header__login--plain">
+                {auth.data.email}
+              </span>
+            ) : null}
 
             <div className="nav-menu" ref={menuRef}>
             <button
@@ -179,17 +178,6 @@ function AppShellInner({
                     >
                       Zatwierdzanie zgłoszeń
                     </Link>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      disabled={adminLogout.isPending}
-                      onClick={() => {
-                        setMenuOpen(false);
-                        adminLogout.mutate();
-                      }}
-                    >
-                      Wyloguj administratora
-                    </button>
                     <div className="nav-menu__sep" />
                   </>
                 ) : null}
@@ -203,6 +191,7 @@ function AppShellInner({
                   }}
                 >
                   Wyloguj
+                  {auth.data?.email ? ` (${auth.data.email})` : ""}
                 </button>
               </div>
             )}
@@ -241,7 +230,7 @@ function AppShellInner({
 
       <div className="app-main">{children}</div>
       <footer className="app-footer">
-        Twórca: Adam Lieske · dane lokalne · dostęp kodem rodzinnym
+        Twórca: Adam Lieske · dostęp po zalogowaniu
       </footer>
     </div>
   );

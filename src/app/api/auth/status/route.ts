@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import { isSessionValid } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { storageMode } from "@/lib/sql";
 
 export async function GET() {
-  const unlocked = await isSessionValid();
+  const session = await getSession();
   return NextResponse.json({
-    unlocked,
+    unlocked: Boolean(session),
+    role: session?.role ?? null,
+    email: session?.email ?? null,
     storage: storageMode(),
   });
 }

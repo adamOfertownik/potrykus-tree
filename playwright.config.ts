@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { E2E_SESSION_SECRET } from "./e2e/session";
 
 const port = process.env.PLAYWRIGHT_PORT || "3333";
 const base = process.env.PLAYWRIGHT_BASE_URL || `http://127.0.0.1:${port}`;
@@ -18,5 +19,9 @@ export default defineConfig({
         url: base,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        env: {
+          ...process.env,
+          SESSION_SECRET: process.env.SESSION_SECRET || E2E_SESSION_SECRET,
+        },
       },
 });

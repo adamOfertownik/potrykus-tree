@@ -11,25 +11,36 @@ Twórca: **Adam Lieske**
 
 - Next.js 16 (App Router)
 - TanStack Query
-- Lokalna baza w pliku `data/family.json`
-- Dostęp kodem rodzinnym (bez konta użytkownika)
+- Drzewo w `data/family.json`
+- Konta i role w **Neon Postgres** (`app_users`)
+- Zapisy zgłoszeń i RSVP też w Neon (z fallbackiem do `data/*.json` lokalnie)
 
 ## Uruchomienie
 
 ```bash
 npm install
+# SESSION_SECRET (min. 16 znaków) oraz DATABASE_URL (Neon) w środowisku
+npm run db:migrate
+npm run db:create-admin -- twoj@email.pl haslo-min-8-znakow
 npm run dev
 ```
 
-Otwórz [http://localhost:3000](http://localhost:3000)
+Otwórz [http://localhost:3000](http://localhost:3000) i zaloguj się e-mailem oraz hasłem.
 
-### Kod rodzinny (domyślny)
+## Role
 
+| Rola | Co może |
+|------|---------|
+| **Rodzina** (`member`) | Drzewo, lista, urodziny, spotkanie, zgłoszenia poprawek |
+| **Admin** (`admin`) | To samo + edycja grafu, zatwierdzanie zgłoszeń, zakładanie kont |
+
+Konta dodajesz w panelu `/admin` albo skryptem:
+
+```bash
+npm run db:create-user -- osoba@email.pl haslo-min-8-znakow member
 ```
-PotrykusRodzina
-```
 
-Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessCodeHash`.
+Hasła i sekrety sesji **nie leżą w git**. `SESSION_SECRET` ustaw w Vercel / środowisku i nie commituj.
 
 ## Funkcje
 
@@ -38,12 +49,13 @@ Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessC
 - Lista hierarchiczna z graficznymi powiązaniami
 - Karty osób: imię, nazwisko, nazwisko rodowe, daty, zdjęcie
 - Eksport PDF: lista A4 + duży format A0 (czcionki DejaVu, polskie znaki)
-- Numery telefonów tylko po odblokowaniu kodem
+- Numery telefonów tylko po zalogowaniu
 
 ## Dane
 
-Seed: `npm run seed` (skrypt `scripts/generate-seed.mjs`)  
-Edycja ręczna: `data/family.json`
+Seed drzewa: `npm run seed` (skrypt `scripts/generate-seed.mjs`)  
+Edycja ręczna: `data/family.json`  
+Sprawdzenie Neona: `npm run db:check`
 
 ## Docelowo (sklep)
 

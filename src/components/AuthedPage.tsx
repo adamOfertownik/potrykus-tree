@@ -10,6 +10,7 @@ type Props = {
   children: (ctx: {
     family: FamilyPayload;
     people: FamilyPayload["people"];
+    isAdmin: boolean;
   }) => ReactNode;
   exportRootId?: string;
   loadingLabel?: string;
@@ -41,7 +42,7 @@ export function AuthedPage({
     return (
       <AppShell>
         <div className="loading-screen">
-          Nie udało się wczytać danych. Odśwież stronę lub podaj kod ponownie.
+          Nie udało się wczytać danych. Odśwież stronę lub zaloguj się ponownie.
         </div>
       </AppShell>
     );
@@ -51,7 +52,11 @@ export function AuthedPage({
 
   return (
     <AppShell peopleCount={people.length} exportRootId={exportRootId}>
-      {children({ family: family.data, people })}
+      {children({
+        family: family.data,
+        people,
+        isAdmin: auth.data?.role === "admin",
+      })}
     </AppShell>
   );
 }

@@ -29,7 +29,6 @@ export interface FamilyDatabase {
 }
 
 export interface FamilyConfig {
-  accessCodeHash: string;
   sessionSecret: string;
   cookieName: string;
 }
