@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
 import { FamilyChartView } from "@/components/FamilyChartView";
@@ -11,11 +11,8 @@ export function TreePageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const rootId = searchParams.get("root");
-  const [highlightId, setHighlightId] = useState<string | null>(rootId);
-
-  useEffect(() => {
-    if (rootId) setHighlightId(rootId);
-  }, [rootId]);
+  const [pickedHighlight, setPickedHighlight] = useState<string | null>(null);
+  const highlightId = pickedHighlight ?? rootId;
 
   return (
     <AuthedPage
@@ -35,12 +32,12 @@ export function TreePageClient() {
           : null;
 
         const goFullTree = () => {
-          setHighlightId(null);
+          setPickedHighlight(null);
           router.replace("/drzewo");
         };
 
         const focusBranch = (id: string) => {
-          setHighlightId(id);
+          setPickedHighlight(id);
           router.replace(`/drzewo?root=${encodeURIComponent(id)}`);
         };
 
@@ -50,7 +47,7 @@ export function TreePageClient() {
               <PersonSearch
                 people={people}
                 placeholder="Szukaj w drzewie…"
-                onSelect={(p) => setHighlightId(p.id)}
+                onSelect={(p) => setPickedHighlight(p.id)}
               />
             </section>
 
@@ -92,7 +89,7 @@ export function TreePageClient() {
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => setHighlightId(null)}
+                    onClick={() => setPickedHighlight(null)}
                   >
                     Wyczyść
                   </button>
@@ -106,7 +103,7 @@ export function TreePageClient() {
                   people={people}
                   mainId={effectiveRoot}
                   highlightId={highlightId}
-                  onHighlight={setHighlightId}
+                  onHighlight={setPickedHighlight}
                   onFocusBranch={focusBranch}
                   onHighlightMissing={focusBranch}
                 />

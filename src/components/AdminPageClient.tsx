@@ -1,59 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ChangeSubmission } from "@/types/submissions";
-import { useAdminAuthStatus, useAdminLogout } from "@/lib/hooks";
+import {
+  useAdminAuthStatus,
+  useAdminLogout,
+  useAdminSetSubmissionStatus,
+  useAdminSubmissions,
+} from "@/lib/hooks";
 
 function AdminPanel({ email }: { email: string }) {
   const logout = useAdminLogout();
   const router = useRouter();
-  const [items, setItems] = useState<ChangeSubmission[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const list = useAdminSubmissions();
+  const patchStatus = useAdminSetSubmissionStatus();
+  const items = list.data ?? [];
+  const error =
+    list.error instanceof Error
+      ? list.error.message
+      : patchStatus.error instanceof Error
+        ? patchStatus.error.message
+        : null;
+  const busy = list.isFetching || patchStatus.isPending;
 
-  const load = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/submissions");
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Błąd");
-      setItems(data.submissions || []);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  useEffect(() => {
-    void load();
-  }, []);
-
-  const setStatus = async (
-    id: string,
-    status: ChangeSubmission["status"],
-  ) => {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/submissions", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Błąd");
-      setItems((list) =>
-        list.map((s) => (s.id === id ? data.submission : s)),
-      );
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+  const setStatus = (id: string, status: ChangeSubmission["status"]) => {
+    patchStatus.mutate({ id, status });
   };
 
   return (
