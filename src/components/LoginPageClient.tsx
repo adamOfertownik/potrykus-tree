@@ -24,5 +24,10 @@ export function LoginPageClient() {
     return <div className="loading-screen">Ładowanie…</div>;
   }
 
-  return <AccessGate afterLoginHref={nextHref} />;
+  return (
+    <AccessGate
+      afterLoginHref={nextHref}
+      needsFirstAdmin={Boolean(auth.data?.needsFirstAdmin)}
+    />
+  );
 }

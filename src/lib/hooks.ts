@@ -18,6 +18,8 @@ export type AuthStatus = {
   role: UserRole | null;
   email: string | null;
   storage?: "neon" | "file";
+  needsFirstAdmin?: boolean;
+  missingTables?: boolean;
 };
 
 export function useAuthStatus() {
@@ -48,6 +50,26 @@ export function useLogin() {
           body: JSON.stringify(input),
         },
       ),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["auth-status"] });
+      await qc.invalidateQueries({ queryKey: ["family"] });
+    },
+  });
+}
+
+export function useFirstAdmin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: {
+      email: string;
+      password: string;
+      displayName?: string;
+    }) =>
+      fetchJson<{ ok: boolean; email: string; role: UserRole }>("/api/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      }),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["auth-status"] });
       await qc.invalidateQueries({ queryKey: ["family"] });

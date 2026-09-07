@@ -21,9 +21,8 @@ Twórca: **Adam Lieske**
 npm install
 # SESSION_SECRET (min. 16 znaków) w środowisku. Neon na Vercel często
 # wstawia `potrykus_DATABASE_URL` zamiast `DATABASE_URL` — aplikacja czyta oba.
-npm run db:migrate
-npm run db:create-admin -- twoj@email.pl haslo-min-8-znakow
 npm run dev
+# Pierwsze konto: otwórz /login — gdy baza pusta, sam utworzysz admina.
 ```
 
 Otwórz [http://localhost:3000](http://localhost:3000) i zaloguj się e-mailem oraz hasłem.
@@ -66,12 +65,10 @@ Vercel → Project → Settings → Environment Variables → dodaj `SESSION_SEC
 
 Potem:
 
-1. Zmerguj PR z logowaniem ról.
-2. Redeploy (żeby weszło czytanie `potrykus_DATABASE_URL`).
-3. Migracja: `vercel env run -- npm run db:migrate` (pliki `001` … `005`).
-4. Wejdź na `/login` e-mailem admina. Hasła nie pamiętasz: `vercel env run -- npm run db:create-admin -- twoj@email.pl noweHaslo8plus`
-5. W `/admin` kliknij **Wygeneruj nowy link rodzinny**, skopiuj i wyślij rodzinie. Stary kod rodzinny nie działa.
-6. Zdjęcia: tylko jeśli potrzebujesz — Vercel Storage → Blob → `BLOB_READ_WRITE_TOKEN`.
+1. Zmerguj ten PR (albo wejdź na **Preview** z GitHuba).
+2. Otwórz `/login`. Gdy baza jest pusta, zobaczysz **„Pierwsze konto admina”** — wpisz swój e-mail i hasło (min. 8 znaków). Aplikacja sama założy tabele w Neon. **Nie ma kodu administratora / kodu rodzinnego.**
+3. W `/admin` kliknij **Wygeneruj nowy link rodzinny**, skopiuj i wyślij rodzinie.
+4. Zdjęcia (opcjonalnie): Vercel Storage → Blob.
 
 ## Funkcje
 
