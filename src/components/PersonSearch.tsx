@@ -39,10 +39,6 @@ export function PersonSearch({
   );
 
   useEffect(() => {
-    setActive(0);
-  }, [query]);
-
-  useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
     };
@@ -112,6 +108,7 @@ export function PersonSearch({
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
+                setActive(0);
                 setOpen(true);
               }}
               onFocus={() => setOpen(true)}

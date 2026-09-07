@@ -28,22 +28,23 @@ function applyScale(scale: TextScaleId) {
   );
 }
 
+function readStoredScale(): TextScaleId {
+  if (typeof window === "undefined") return "normal";
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY) as TextScaleId | null;
+    if (saved && saved in SCALE_VALUES) return saved;
+  } catch {
+    /* ignore */
+  }
+  return "normal";
+}
+
 export function TextScaleProvider({ children }: { children: React.ReactNode }) {
-  const [scale, setScaleState] = useState<TextScaleId>("normal");
+  const [scale, setScaleState] = useState<TextScaleId>(readStoredScale);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) as TextScaleId | null;
-      if (saved && saved in SCALE_VALUES) {
-        setScaleState(saved);
-        applyScale(saved);
-        return;
-      }
-    } catch {
-      /* ignore */
-    }
-    applyScale("normal");
-  }, []);
+    applyScale(scale);
+  }, [scale]);
 
   const setScale = (next: TextScaleId) => {
     setScaleState(next);
