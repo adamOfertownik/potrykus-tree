@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   try {
     if (!hasDb()) {
       return NextResponse.json(
-        { ok: false, error: "Logowanie admina wymaga Neon (DATABASE_URL lub POSTGRES_URL) w tym środowisku Vercel." },
+        { ok: false, error: "Logowanie admina wymaga Neon (potrykus_DATABASE_URL) w tym środowisku Vercel." },
         { status: 503 },
       );
     }

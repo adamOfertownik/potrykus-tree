@@ -6,10 +6,12 @@ import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
  */
 const URL_KEYS = [
   "DATABASE_URL",
+  "potrykus_DATABASE_URL",
   "POSTGRES_URL",
   "DATABASE_URL_POOLED",
   "POSTGRES_PRISMA_URL",
   "NEON_DATABASE_URL",
+  "potrykus_DATABASE_URL_UNPOOLED",
 ];
 
 export function databaseUrl(): string {
@@ -29,7 +31,9 @@ export function hasDb(): boolean {
 export function getSql(): NeonQueryFunction<false, false> {
   const url = databaseUrl();
   if (!url) {
-    throw new Error("Brak connection string do Neona (DATABASE_URL / POSTGRES_URL).");
+    throw new Error(
+      "Brak connection string do Neona (DATABASE_URL / potrykus_DATABASE_URL).",
+    );
   }
   if (sql === undefined || sql === null) {
     sql = neon(url);
