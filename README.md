@@ -51,10 +51,17 @@ Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessC
 
 ### Co zrobić, żeby pracować na dobrej bazie
 
-1. Merge / deploy tej wersji aplikacji.
-2. Upewnij się, że na Vercel jest `DATABASE_URL` (ten sam Neon co zgłoszenia).
-3. Raz: `npm run db:migrate` (albo w CI) — tworzy `family_tree`.
-4. Otwórz drzewo. Jeśli Neon był pusty, 418 osób wjeżdża samo.
+1. Merge / deploy tej wersji aplikacji (`DATABASE_URL` musi być w projekcie Vercel).
+2. Przy każdym deployu Vercel sam odpalą migracje (to jest część `npm run build`) — **nie ma SSH i nie wpisujesz `npm run db:migrate` w panelu Vercel**.
+3. Otwórz drzewo. Jeśli Neon był pusty, 418 osób wjeżdża samo.
+
+Jednorazowo z laptopa (ten sam Neon co produkcja), bez kopiowania sekretów do pliku:
+
+```bash
+npx vercel env run -e production -- npm run db:migrate
+```
+
+Wymaga zalogowanego Vercel CLI w tym projekcie. `-e production` wstrzykuje zmienne z produkcji (w tym połączenie z Neonem) do skryptu, bez zapisywania ich na dysk.
 
 Żeby **świadomie** nadpisać Neon ziarnem z repo (np. nowy import PDF): panel admina → „Wgraj 418 osób z pliku” albo lokalnie `npm run db:seed-family`.
 

@@ -13,8 +13,10 @@ const root = join(__dirname, "..");
 const url = process.env.DATABASE_URL?.trim();
 
 if (!url) {
-  console.error("DATABASE_URL is missing. Set it (Neon pooled URL) and retry.");
-  process.exit(1);
+  console.warn(
+    "Pomijam migracje: brak DATABASE_URL (lokalny build / CI bez Neona).",
+  );
+  process.exit(0);
 }
 
 const pool = new Pool({ connectionString: url });
