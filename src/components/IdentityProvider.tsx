@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, useContext, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Person } from "@/types/family";
 import {
@@ -36,30 +31,20 @@ export function IdentityProvider({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [identity, setIdentityState] = useState<ReporterIdentity | null>(null);
-  const [ready, setReady] = useState(false);
-  const [promptOpen, setPromptOpen] = useState(false);
+  const [identity, setIdentityState] = useState<ReporterIdentity | null>(() =>
+    loadReporter(),
+  );
+  const [extraPrompt, setExtraPrompt] = useState(false);
 
-  useEffect(() => {
-    const saved = loadReporter();
-    setIdentityState(saved);
-    setReady(true);
-    if (!saved?.name) setPromptOpen(true);
-  }, []);
-
-  useEffect(() => {
-    if (!enabled || !ready || !people.length) return;
-    if (identity?.name) {
-      setPromptOpen(false);
-      return;
-    }
-    setPromptOpen(true);
-  }, [enabled, ready, people.length, identity?.name]);
+  const promptOpen =
+    enabled &&
+    people.length > 0 &&
+    (!identity?.name || extraPrompt);
 
   const applyIdentity = (next: ReporterIdentity) => {
     saveReporter(next);
     setIdentityState(next);
-    setPromptOpen(false);
+    setExtraPrompt(false);
 
     const onTree = pathname === "/" || pathname.startsWith("/drzewo");
     if (onTree && next.personId) {
@@ -70,10 +55,10 @@ export function IdentityProvider({
   const clearIdentity = () => {
     clearReporter();
     setIdentityState(null);
-    setPromptOpen(true);
+    setExtraPrompt(true);
   };
 
-  const promptIdentity = () => setPromptOpen(true);
+  const promptIdentity = () => setExtraPrompt(true);
 
   return (
     <IdentityContext.Provider
@@ -85,13 +70,13 @@ export function IdentityProvider({
       }}
     >
       {children}
-      {enabled && promptOpen ? (
+      {promptOpen ? (
         <WhoAreYouDialog
           people={people}
           open
           compulsory={!identity?.name}
           onClose={() => {
-            if (identity?.name) setPromptOpen(false);
+            if (identity?.name) setExtraPrompt(false);
           }}
           onIdentified={(name, personId) => {
             applyIdentity({ name, personId });
@@ -107,7 +92,7 @@ export function useIdentity() {
   if (!ctx) {
     return {
       identity: null as ReporterIdentity | null,
-      setIdentity: (_: ReporterIdentity) => {},
+      setIdentity: () => {},
       clearIdentity: () => {},
       promptIdentity: () => {},
     };
