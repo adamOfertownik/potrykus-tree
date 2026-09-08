@@ -13,7 +13,7 @@ export function PrototypeBanner() {
       <strong>Prototyp</strong>
       <span>
         {storage === "file"
-          ? "Zapisy idą lokalnie — podłącz Neon (DATABASE_URL), żeby trwały na produkcji."
+          ? "Ta strona nie widzi Neona — w Vercel włącz DATABASE_URL lub POSTGRES_URL także dla Preview, potem Redeploy."
           : "Ładowanie stanu zapisu…"}
       </span>
     </aside>

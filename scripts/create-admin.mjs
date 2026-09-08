@@ -5,12 +5,13 @@
  */
 import { hash } from "bcryptjs";
 import { Pool } from "@neondatabase/serverless";
+import { databaseUrl } from "./db-url.mjs";
 
 const [email, password] = process.argv.slice(2);
-const url = process.env.DATABASE_URL?.trim();
+const url = databaseUrl();
 
 if (!url) {
-  console.error("DATABASE_URL is missing.");
+  console.error("Brak DATABASE_URL / POSTGRES_URL.");
   process.exit(1);
 }
 if (!email || !password) {

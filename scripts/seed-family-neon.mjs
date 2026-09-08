@@ -7,15 +7,16 @@ import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "@neondatabase/serverless";
+import { databaseUrl } from "./db-url.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 const FAMILY_PATH = join(root, "data", "family.json");
 
 export async function upsertFamilyToNeon(family) {
-  const url = process.env.DATABASE_URL?.trim();
+  const url = databaseUrl();
   if (!url) {
-    throw new Error("DATABASE_URL is missing.");
+    throw new Error("Brak DATABASE_URL / POSTGRES_URL.");
   }
   const pool = new Pool({ connectionString: url });
   try {

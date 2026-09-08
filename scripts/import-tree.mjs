@@ -10,6 +10,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { databaseUrl } from "./db-url.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -185,7 +186,7 @@ async function main() {
   console.log(`Korzeń listy/drzewa: ${ROOT_PERSON_ID}`);
   console.log("config.json nie został zmieniony.");
 
-  if (process.env.DATABASE_URL?.trim()) {
+  if (databaseUrl()) {
     const { upsertFamilyToNeon } = await import("./seed-family-neon.mjs");
     await upsertFamilyToNeon(family);
     console.log("Zapisano to samo drzewo do Neon (family_tree).");
