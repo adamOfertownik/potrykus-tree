@@ -37,7 +37,9 @@ export function Modal({
   const fallbackTitleId = useId();
   const label = labelledBy || titleId || fallbackTitleId;
 
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
