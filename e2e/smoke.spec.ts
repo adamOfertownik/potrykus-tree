@@ -57,8 +57,16 @@ test("add-child name field keeps focus while typing", async ({ browser }) => {
   const page = await ctx.newPage();
   await page.goto("/drzewo");
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
-  await page.getByRole("button", { name: "Dodaj powiązanie" }).first().click({
-    force: true,
+  const search = page.locator(".person-search input").first();
+  await search.fill("Tola Lieske");
+  await page.locator(".person-search__item").first().click();
+  await page.waitForSelector(".is-chart-highlight .chart-card-plus");
+  await page
+    .locator(".is-chart-highlight .chart-card-plus")
+    .first()
+    .evaluate((el) => (el as HTMLButtonElement).click());
+  await expect(page.getByRole("button", { name: "Dziecko" })).toBeVisible({
+    timeout: 15_000,
   });
   await page.getByRole("button", { name: "Dziecko" }).click();
   await expect(page.getByRole("heading", { name: "Dodaj dziecko" })).toBeVisible();
