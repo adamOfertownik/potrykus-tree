@@ -33,8 +33,13 @@ export function Modal({
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
   const fallbackTitleId = useId();
   const label = labelledBy || titleId || fallbackTitleId;
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -58,7 +63,7 @@ export function Modal({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !compulsory) {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !card) return;
@@ -81,7 +86,7 @@ export function Modal({
       window.removeEventListener("keydown", onKey);
       previouslyFocused.current?.focus?.();
     };
-  }, [open, compulsory, onClose]);
+  }, [open, compulsory]);
 
   if (!open || typeof document === "undefined") return null;
 

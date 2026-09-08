@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Modal } from "@/components/Modal";
 import { displayName } from "@/lib/db-client";
@@ -97,7 +97,7 @@ export function GraphEditWizard({
     [people, previewInput],
   );
 
-  const reset = () => {
+  const handleClose = useCallback(() => {
     setStep("pick");
     setMode("existing");
     setQuery("");
@@ -106,12 +106,8 @@ export function GraphEditWizard({
     setNewPerson({ firstName: "", lastName: "", gender: "unknown" });
     setBusy(false);
     setError(null);
-  };
-
-  const handleClose = () => {
-    reset();
     onClose();
-  };
+  }, [onClose]);
 
   const canContinue =
     mode === "existing"

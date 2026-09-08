@@ -104,12 +104,10 @@ export function FamilyChartView({
     syncCanvasHeight();
     window.addEventListener("resize", syncCanvasHeight);
     return () => window.removeEventListener("resize", syncCanvasHeight);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     syncCanvasHeight();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightId, mainId, scale, peopleSig]);
 
   /** Card wrappers carry the tree datum in d3's __data__ — match on person id */

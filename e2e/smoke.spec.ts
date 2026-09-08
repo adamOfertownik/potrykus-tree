@@ -45,6 +45,40 @@ test("search highlights without filtering tree", async ({ browser }) => {
   await ctx.close();
 });
 
+test("add-child name field keeps focus while typing", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  const search = page.locator(".person-search input").first();
+  await search.fill("Tola Lieske");
+  await page.locator(".person-search__item").first().click();
+  await page.waitForSelector(".is-chart-highlight .chart-card-plus");
+  await page
+    .locator(".is-chart-highlight .chart-card-plus")
+    .first()
+    .evaluate((el) => (el as HTMLButtonElement).click());
+  await expect(page.getByRole("button", { name: "Dziecko" })).toBeVisible({
+    timeout: 15_000,
+  });
+  await page.getByRole("button", { name: "Dziecko" }).click();
+  await expect(page.getByRole("heading", { name: "Dodaj dziecko" })).toBeVisible();
+  await page.getByRole("tab", { name: "Nowa osoba" }).click();
+  const nameInput = page.getByLabel("Imię *");
+  await nameInput.click();
+  await nameInput.pressSequentially("Zuzanna", { delay: 40 });
+  await expect(nameInput).toHaveValue("Zuzanna");
+  await expect(nameInput).toBeFocused();
+  await ctx.close();
+});
+
 test("kinship and birthdays pages load", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);
