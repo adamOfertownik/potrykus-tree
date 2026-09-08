@@ -28,6 +28,11 @@ export function PersonSearch({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [activeForQuery, setActiveForQuery] = useState(query);
+  if (activeForQuery !== query) {
+    setActiveForQuery(query);
+    setActive(0);
+  }
   const [missingOpen, setMissingOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const listId = useId();
@@ -37,10 +42,6 @@ export function PersonSearch({
       query.trim().length >= 1 ? searchPeople(people, query).slice(0, 14) : [],
     [people, query],
   );
-
-  useEffect(() => {
-    setActive(0);
-  }, [query]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {

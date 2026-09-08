@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/migrate.mjs && next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "node scripts/generate-seed.mjs",
+    "seed": "node scripts/import-tree.mjs",
     "db:migrate": "node scripts/migrate.mjs",
+    "db:seed-family": "node scripts/seed-family-neon.mjs",
     "db:create-admin": "node scripts/create-admin.mjs",
     "test:e2e": "playwright test"
   },

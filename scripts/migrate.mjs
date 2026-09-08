@@ -7,14 +7,17 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Pool } from "@neondatabase/serverless";
+import { databaseUrl } from "./db-url.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
-const url = process.env.DATABASE_URL?.trim();
+const url = databaseUrl();
 
 if (!url) {
-  console.error("DATABASE_URL is missing. Set it (Neon pooled URL) and retry.");
-  process.exit(1);
+  console.warn(
+    "Pomijam migracje: brak DATABASE_URL / POSTGRES_URL (lokalny build / CI bez Neona).",
+  );
+  process.exit(0);
 }
 
 const pool = new Pool({ connectionString: url });

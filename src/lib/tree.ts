@@ -17,7 +17,7 @@ export interface TreeNode {
 }
 
 export type { ListEntry } from "@/lib/list";
-export { buildDescendantList } from "@/lib/list";
+export { buildDescendantList, buildFamilyForestList } from "@/lib/list";
 export { searchPeople } from "@/lib/search";
 
 /** Build a descendant tree starting from root (blood line through parentIds). */

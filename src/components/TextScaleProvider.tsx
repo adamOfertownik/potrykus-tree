@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useSyncExternalStore } from "react";
 
 export type TextScaleId = "normal" | "large" | "xlarge";
 
@@ -28,31 +28,54 @@ function applyScale(scale: TextScaleId) {
   );
 }
 
+function readStoredScale(): TextScaleId {
+  if (typeof window === "undefined") return "normal";
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY) as TextScaleId | null;
+    if (saved && saved in SCALE_VALUES) return saved;
+  } catch {
+    /* ignore */
+  }
+  return "normal";
+}
+
+let scaleSnapshot: TextScaleId = "normal";
+const scaleListeners = new Set<() => void>();
+
+function subscribeScale(listener: () => void) {
+  scaleListeners.add(listener);
+  return () => scaleListeners.delete(listener);
+}
+
+function emitScale() {
+  for (const listener of scaleListeners) listener();
+}
+
+function getScaleSnapshot(): TextScaleId {
+  scaleSnapshot = readStoredScale();
+  return scaleSnapshot;
+}
+
 export function TextScaleProvider({ children }: { children: React.ReactNode }) {
-  const [scale, setScaleState] = useState<TextScaleId>("normal");
+  const scale = useSyncExternalStore(
+    subscribeScale,
+    getScaleSnapshot,
+    () => "normal" as TextScaleId,
+  );
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) as TextScaleId | null;
-      if (saved && saved in SCALE_VALUES) {
-        setScaleState(saved);
-        applyScale(saved);
-        return;
-      }
-    } catch {
-      /* ignore */
-    }
-    applyScale("normal");
-  }, []);
+    applyScale(scale);
+  }, [scale]);
 
   const setScale = (next: TextScaleId) => {
-    setScaleState(next);
-    applyScale(next);
     try {
       localStorage.setItem(STORAGE_KEY, next);
     } catch {
       /* ignore */
     }
+    scaleSnapshot = next;
+    applyScale(next);
+    emitScale();
   };
 
   return (
@@ -67,7 +90,7 @@ export function useTextScale() {
   if (!ctx) {
     return {
       scale: "normal" as TextScaleId,
-      setScale: (_: TextScaleId) => {},
+      setScale: () => {},
     };
   }
   return ctx;

@@ -35,7 +35,7 @@ test("search highlights without filtering tree", async ({ browser }) => {
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
   const before = await page.locator("#htmlSvg .card_cont").count();
   const input = page.locator(".person-search input").first();
-  await input.fill("Tola Lieske");
+  await input.fill("Adam Lieske");
   await page.waitForTimeout(500);
   await page.locator(".person-search__item").first().click();
   await page.waitForTimeout(1000);
@@ -51,7 +51,7 @@ test("kinship and birthdays pages load", async ({ browser }) => {
   await ctx.addInitScript(() => {
     localStorage.setItem(
       "potrykus_reporter_v1",
-      JSON.stringify({ name: "Adam Lieske", personId: "adam-lieske" }),
+      JSON.stringify({ name: "Adam Lieske", personId: "P297" }),
     );
   });
   const page = await ctx.newPage();

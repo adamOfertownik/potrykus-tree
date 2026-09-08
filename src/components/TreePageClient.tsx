@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { AuthedPage } from "@/components/AuthedPage";
 import { FamilyChartView } from "@/components/FamilyChartView";
 import { PersonSearch } from "@/components/PersonSearch";
@@ -12,10 +12,11 @@ export function TreePageClient() {
   const router = useRouter();
   const rootId = searchParams.get("root");
   const [highlightId, setHighlightId] = useState<string | null>(rootId);
-
-  useEffect(() => {
+  const [syncedRoot, setSyncedRoot] = useState(rootId);
+  if (syncedRoot !== rootId) {
+    setSyncedRoot(rootId);
     if (rootId) setHighlightId(rootId);
-  }, [rootId]);
+  }
 
   return (
     <AuthedPage
