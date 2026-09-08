@@ -45,6 +45,30 @@ test("search highlights without filtering tree", async ({ browser }) => {
   await ctx.close();
 });
 
+test("add-child name field keeps focus while typing", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await page.locator("#htmlSvg .card_cont").first().click();
+  await page.getByRole("button", { name: "Dziecko" }).click();
+  await expect(page.getByRole("heading", { name: "Dodaj dziecko" })).toBeVisible();
+  await page.getByRole("tab", { name: "Nowa osoba" }).click();
+  const nameInput = page.getByLabel("Imię *");
+  await nameInput.click();
+  await nameInput.pressSequentially("Zuzanna", { delay: 40 });
+  await expect(nameInput).toHaveValue("Zuzanna");
+  await expect(nameInput).toBeFocused();
+  await ctx.close();
+});
+
 test("kinship and birthdays pages load", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);
