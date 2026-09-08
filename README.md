@@ -11,7 +11,7 @@ Twórca: **Adam Lieske**
 
 - Next.js 16 (App Router)
 - TanStack Query
-- Lokalna baza w pliku `data/family.json`
+- Drzewo w Neon (`family_tree`); lokalny plik `data/family.json` to ziarno / fallback
 - Dostęp kodem rodzinnym (bez konta użytkownika)
 
 ## Uruchomienie
@@ -42,20 +42,31 @@ Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessC
 
 ## Dane
 
-Źródło prawdy drzewa: plik tekstowy `data/drzewo-potrykus.md` (osoby `P001`…, pola `rodzic:` / `małżonek:`).
+**Baza startowa to 418 osób z `data/drzewo-potrykus.md`.** Nie wgrywasz tego ręcznie w przeglądarce przy pierwszym starcie.
 
-Aplikacja **nie trzyma osób w Neonie**. Neon to zgłoszenia, RSVP i konta adminów. Lista osób jest w `data/family.json` i wjeżdża na produkcję razem z deployem.
+- Plik `data/family.json` jest ziarnem w repozytorium (deploy).
+- Gdy jest `DATABASE_URL`, aplikacja trzyma **aktualne drzewo w Neonie** (tabela `family_tree`). Edycje grafu zapisują się tam, nie giną na Vercel.
+- Pusta tabela przy pierwszym odczycie kopiuje ziarno (418 osób) do Neona. Kolejne deploje **nie** nadpisują już zapisanych zmian.
+- Neon trzyma też zgłoszenia, RSVP i adminów.
 
-### Wgranie nowej bazy z pliku
+### Co zrobić, żeby pracować na dobrej bazie
 
-1. Podmień `data/drzewo-potrykus.md` na nową wersję w tym samym formacie (jedna osoba = jedna linia, ID, `m`/`k`/`?`).
-2. W katalogu projektu: `npm run seed` — skrypt `scripts/import-tree.mjs` nadpisze **tylko** `data/family.json`.
-3. Sprawdź w aplikacji (drzewo / lista / szukaj).
-4. Commit `data/drzewo-potrykus.md` + `data/family.json` i deploy.
+1. Merge / deploy tej wersji aplikacji.
+2. Upewnij się, że na Vercel jest `DATABASE_URL` (ten sam Neon co zgłoszenia).
+3. Raz: `npm run db:migrate` (albo w CI) — tworzy `family_tree`.
+4. Otwórz drzewo. Jeśli Neon był pusty, 418 osób wjeżdża samo.
 
-`npm run seed` **nie** zmienia `data/config.json` (kod rodzinny zostaje).
+Żeby **świadomie** nadpisać Neon ziarnem z repo (np. nowy import PDF): panel admina → „Wgraj 418 osób z pliku” albo lokalnie `npm run db:seed-family`.
 
-Korzeń widoku listy: **P015** Wincenty Potrykus (tytuł raportu PDF). Osoba z linii 3-3: **P060** Franciszek Potrykus. Adam Lieske: **P297**.
+### Nowy plik źródłowy (kolejna transkrypcja)
+
+1. Podmień `data/drzewo-potrykus.md`.
+2. `npm run seed` — odświeża `family.json`; przy ustawionym `DATABASE_URL` od razu upsert do Neona.
+3. Commit i deploy. Jeśli Neon już miał drzewo, po deployu użyj przycisku admina albo `db:seed-family`.
+
+`npm run seed` **nie** zmienia `data/config.json`.
+
+Korzeń listy: **P015** Wincenty Potrykus. Linia 3-3: **P060**. Adam Lieske: **P297**.
 
 ## Docelowo (sklep)
 

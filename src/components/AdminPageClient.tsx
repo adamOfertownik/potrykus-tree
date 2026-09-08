@@ -12,6 +12,24 @@ function AdminPanel({ email }: { email: string }) {
   const [items, setItems] = useState<ChangeSubmission[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [tree, setTree] = useState<{
+    storage: string;
+    peopleCount: number;
+    rootPersonId: string;
+    updatedAt: string;
+  } | null>(null);
+
+  const loadTree = async () => {
+    const res = await fetch("/api/admin/family");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Błąd odczytu drzewa");
+    setTree({
+      storage: data.storage,
+      peopleCount: data.peopleCount,
+      rootPersonId: data.rootPersonId,
+      updatedAt: data.updatedAt,
+    });
+  };
 
   const load = async () => {
     setBusy(true);
@@ -21,6 +39,7 @@ function AdminPanel({ email }: { email: string }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd");
       setItems(data.submissions || []);
+      await loadTree();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -31,6 +50,30 @@ function AdminPanel({ email }: { email: string }) {
   useEffect(() => {
     void load();
   }, []);
+
+  const replaceTree = async () => {
+    const ok = window.confirm(
+      "Nadpisać drzewo w Neonie ziarnem z repozytorium (418 osób z pliku)? Zmiany z grafu zostaną zastąpione.",
+    );
+    if (!ok) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/family", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd wgrywania");
+      setTree({
+        storage: data.storage,
+        peopleCount: data.peopleCount,
+        rootPersonId: data.rootPersonId,
+        updatedAt: data.updatedAt,
+      });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const setStatus = async (
     id: string,
@@ -59,10 +102,10 @@ function AdminPanel({ email }: { email: string }) {
   return (
     <section className="admin-page">
       <header className="admin-page__intro">
-        <h1>Zatwierdzanie zgłoszeń</h1>
+        <h1>Administracja</h1>
         <p>
-          Zalogowany jako <strong>{email}</strong>. Przeglądaj i oznaczaj
-          zgłoszenia złożone przez rodzinę.
+          Zalogowany jako <strong>{email}</strong>. Drzewo żyje w Neonie;
+          zgłoszenia rodziny są poniżej.
         </p>
         <div className="admin-page__toolbar">
           <Link href="/drzewo" className="btn btn-secondary">
@@ -88,6 +131,33 @@ function AdminPanel({ email }: { email: string }) {
           {error}
         </p>
       )}
+
+      <section className="admin-card admin-family">
+        <h2>Baza drzewa</h2>
+        {tree ? (
+          <p>
+            {tree.peopleCount} osób · korzeń {tree.rootPersonId} · zapis:{" "}
+            {tree.storage === "neon" ? "Neon" : "plik lokalny"}
+            {tree.updatedAt ? ` · ${tree.updatedAt.slice(0, 10)}` : ""}
+          </p>
+        ) : (
+          <p className="empty-hint">Ładowanie stanu drzewa…</p>
+        )}
+        <p className="empty-hint">
+          Przy pustym Neonie pierwsze otwarcie drzewa samo wgrywa 418 osób z
+          repozytorium. Ten przycisk nadpisuje bazę na siłę.
+        </p>
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={busy}
+          onClick={() => void replaceTree()}
+        >
+          Wgraj 418 osób z pliku do Neona
+        </button>
+      </section>
+
+      <h2 className="admin-subhead">Zgłoszenia</h2>
       <p className="empty-hint">{items.length} zgłoszeń</p>
       <ul className="admin-list">
         {items.map((s) => (

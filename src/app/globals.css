@@ -2745,3 +2745,13 @@ input {
   gap: 0.4rem;
 }
 
+.admin-family h2,
+.admin-subhead {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.admin-family p {
+  margin: 0 0 0.55rem;
+}
+

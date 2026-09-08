@@ -167,7 +167,7 @@ function buildFamily(people, sourceLabel) {
   };
 }
 
-function main() {
+async function main() {
   const source = resolve(process.argv[2] || DEFAULT_SOURCE);
   const markdown = readFileSync(source, "utf8");
   const people = parseTreeMarkdown(markdown);
@@ -182,10 +182,21 @@ function main() {
   console.log(`Zapisano ${people.length} osób → ${FAMILY_PATH}`);
   console.log(`Korzeń listy/drzewa: ${ROOT_PERSON_ID}`);
   console.log("config.json nie został zmieniony.");
+
+  if (process.env.DATABASE_URL?.trim()) {
+    const { upsertFamilyToNeon } = await import("./seed-family-neon.mjs");
+    await upsertFamilyToNeon(family);
+    console.log("Zapisano to samo drzewo do Neon (family_tree).");
+  }
 }
 
 const isDirect =
   process.argv[1] &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
-if (isDirect) main();
+if (isDirect) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
+}
