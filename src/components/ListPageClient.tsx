@@ -5,23 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
 import { PersonSearch } from "@/components/PersonSearch";
-import { buildDescendantList } from "@/lib/list";
+import { buildFamilyForestList } from "@/lib/list";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import type { Person } from "@/types/family";
 
-function ListInner({
-  people,
-  rootId,
-}: {
-  people: Person[];
-  rootId: string;
-}) {
+function ListInner({ people }: { people: Person[] }) {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const router = useRouter();
   const entries = useMemo(
-    () =>
-      people.length && rootId ? buildDescendantList(people, rootId) : [],
-    [people, rootId],
+    () => (people.length ? buildFamilyForestList(people) : []),
+    [people],
   );
 
   return (
@@ -41,10 +34,10 @@ function ListInner({
 
       <div className="genealogy-panel">
         <header className="genealogy-panel__head">
-          <h1>Lista potomków</h1>
+          <h1>Lista drzewa</h1>
           <p>
-            Hierarchia z widocznymi powiązaniami — jak w dokumencie rodzinnym.
-            PDF pobierzesz z menu u góry.
+            Ta sama hierarchia co na grafie: od najstarszych par w dół, potem
+            pozostałe gałęzie. PDF pobierzesz z menu u góry.
           </p>
         </header>
 
@@ -132,9 +125,7 @@ function ListInner({
 export function ListPageClient() {
   return (
     <AuthedPage loadingLabel="Wczytywanie listy…">
-      {({ people, family }) => (
-        <ListInner people={people} rootId={family.meta.rootPersonId ?? ""} />
-      )}
+      {({ people }) => <ListInner people={people} />}
     </AuthedPage>
   );
 }

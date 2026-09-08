@@ -3,7 +3,7 @@
     "title": "Drzewo rodziny Potrykus",
     "rootPersonId": "P015",
     "creator": "Adam Lieske",
-    "updatedAt": "2026-09-08T08:11:24.447Z",
+    "updatedAt": "2026-09-08T10:54:38.971Z",
     "description": "Potomkowie Wincentego Potrykusa (P015) — import z pliku data/drzewo-potrykus.md (418 osób). Identyfikatory P001… wg źródła. Numery telefonów i zdjęcia uzupełniaj lokalnie."
   },
   "people": [
@@ -59,6 +59,7 @@
       "spouseIds": [
         "P006"
       ],
+      "birthDate": "1665",
       "deathDate": "1752-10-21",
       "notes": "ur. ok. 1665 — ur. Przetoczyno, zm. Szemud. 1. małżeństwo 1687-11-26 Luzino (żona nieznana); 2. małżeństwo: Anna Łojewska (ur. Barłomino)"
     },

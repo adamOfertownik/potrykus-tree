@@ -48,7 +48,7 @@ function AppShellInner({
   }, []);
 
   const downloadList = async () => {
-    if (!people.length || !rootId) return;
+    if (!people.length) return;
     setPdfError(null);
     setPdfBusy("list");
     try {

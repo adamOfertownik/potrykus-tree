@@ -50,6 +50,8 @@ function parseIdList(raw) {
 function parseDateValue(raw) {
   const t = raw.trim();
   if (ISO_DATE_RE.test(t)) return { date: t, extra: null };
+  const approx = t.match(/^ok\.?\s*(\d{4})$/i);
+  if (approx) return { date: approx[1], extra: t };
   return { date: undefined, extra: t };
 }
 

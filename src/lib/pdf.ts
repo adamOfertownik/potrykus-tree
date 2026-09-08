@@ -2,7 +2,7 @@
 
 import { jsPDF } from "jspdf";
 import type { Person } from "@/types/family";
-import { buildDescendantList } from "@/lib/list";
+import { buildFamilyForestList, type ListEntry } from "@/lib/list";
 import { getChildrenIds, getPersonMap } from "@/lib/tree";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 
@@ -59,7 +59,7 @@ function personLine(person: Person, isSpouse: boolean): string {
 
 function drawNestingRails(
   doc: jsPDF,
-  entry: ReturnType<typeof buildDescendantList>[number],
+  entry: ListEntry,
   x0: number,
   y: number,
   lineH: number,
@@ -99,11 +99,10 @@ function drawNestingRails(
 
 async function exportHierarchicalPdf(
   people: Person[],
-  rootId: string,
   title: string,
   format: PdfFormat,
 ) {
-  const entries = buildDescendantList(people, rootId);
+  const entries = buildFamilyForestList(people);
   const isA0 = format === "a0";
   const doc = new jsPDF({
     orientation: isA0 ? "landscape" : "portrait",
@@ -190,10 +189,10 @@ async function exportHierarchicalPdf(
 /** Hierarchical list PDF (A4), Polish fonts + nesting rails. */
 export async function exportListPdf(
   people: Person[],
-  rootId: string,
+  _rootId: string,
   title: string,
 ) {
-  await exportHierarchicalPdf(people, rootId, title, "a4");
+  await exportHierarchicalPdf(people, title, "a4");
 }
 
 /* ——— A0 graph (boxes + lines), max 2 sheets ——— */
