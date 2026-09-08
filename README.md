@@ -42,8 +42,20 @@ Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessC
 
 ## Dane
 
-Seed: `npm run seed` (skrypt `scripts/generate-seed.mjs`)  
-Edycja ręczna: `data/family.json`
+Źródło prawdy drzewa: plik tekstowy `data/drzewo-potrykus.md` (osoby `P001`…, pola `rodzic:` / `małżonek:`).
+
+Aplikacja **nie trzyma osób w Neonie**. Neon to zgłoszenia, RSVP i konta adminów. Lista osób jest w `data/family.json` i wjeżdża na produkcję razem z deployem.
+
+### Wgranie nowej bazy z pliku
+
+1. Podmień `data/drzewo-potrykus.md` na nową wersję w tym samym formacie (jedna osoba = jedna linia, ID, `m`/`k`/`?`).
+2. W katalogu projektu: `npm run seed` — skrypt `scripts/import-tree.mjs` nadpisze **tylko** `data/family.json`.
+3. Sprawdź w aplikacji (drzewo / lista / szukaj).
+4. Commit `data/drzewo-potrykus.md` + `data/family.json` i deploy.
+
+`npm run seed` **nie** zmienia `data/config.json` (kod rodzinny zostaje).
+
+Korzeń widoku listy: **P015** Wincenty Potrykus (tytuł raportu PDF). Osoba z linii 3-3: **P060** Franciszek Potrykus. Adam Lieske: **P297**.
 
 ## Docelowo (sklep)
 

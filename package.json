@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed": "node scripts/generate-seed.mjs",
+    "seed": "node scripts/import-tree.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "db:create-admin": "node scripts/create-admin.mjs",
     "test:e2e": "playwright test"

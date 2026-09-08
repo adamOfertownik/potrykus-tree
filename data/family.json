@@ -1,3649 +1,5159 @@
 {
   "meta": {
     "title": "Drzewo rodziny Potrykus",
-    "rootPersonId": "franciszek-xawery-potrykus",
+    "rootPersonId": "P015",
     "creator": "Adam Lieske",
-    "updatedAt": "2026-07-30T22:43:11.986Z",
-    "description": "Potomkowie Franciszka Xawerego Potrykusa — dane z dokumentów rodzinnych. Numery telefonów i zdjęcia uzupełniaj lokalnie."
+    "updatedAt": "2026-09-08T08:11:24.447Z",
+    "description": "Potomkowie Wincentego Potrykusa (P015) — import z pliku data/drzewo-potrykus.md (418 osób). Identyfikatory P001… wg źródła. Numery telefonów i zdjęcia uzupełniaj lokalnie."
   },
   "people": [
     {
-      "notes": "Przodek — potomkowie według dokumentu rodzinnego",
-      "id": "franciszek-xawery-potrykus",
+      "id": "P001",
+      "firstName": "Andreas",
+      "lastName": "Grabacz",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P002"
+      ]
+    },
+    {
+      "id": "P002",
+      "firstName": "Barbara",
+      "lastName": "Grabacz",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P001"
+      ]
+    },
+    {
+      "id": "P003",
+      "firstName": "Joannes",
+      "lastName": "Sadach",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P004"
+      ],
+      "birthDate": "1654-06-04",
+      "notes": "ur. Rumia Zagórze"
+    },
+    {
+      "id": "P004",
+      "firstName": "NN",
+      "lastName": "Sadach",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P003"
+      ],
+      "notes": "imię nieznane (nn)"
+    },
+    {
+      "id": "P005",
+      "firstName": "Joannes",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P006"
+      ],
+      "deathDate": "1752-10-21",
+      "notes": "ur. ok. 1665 — ur. Przetoczyno, zm. Szemud. 1. małżeństwo 1687-11-26 Luzino (żona nieznana); 2. małżeństwo: Anna Łojewska (ur. Barłomino)"
+    },
+    {
+      "id": "P006",
+      "firstName": "Regina",
+      "lastName": "Grabacz",
+      "gender": "female",
+      "parentIds": [
+        "P001",
+        "P002"
+      ],
+      "spouseIds": [
+        "P005"
+      ],
+      "birthDate": "1664-08-31",
+      "notes": "ur. Luzino"
+    },
+    {
+      "id": "P007",
+      "firstName": "Gottfried",
+      "lastName": "Sadach",
+      "gender": "male",
+      "parentIds": [
+        "P003",
+        "P004"
+      ],
+      "spouseIds": [
+        "P008"
+      ]
+    },
+    {
+      "id": "P008",
+      "firstName": "Elisabeth",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P005",
+        "P006"
+      ],
+      "spouseIds": [
+        "P007"
+      ],
+      "notes": "ur. grudzień, rok nieznany — źródło podaje tylko dzień/miesiąc (gru 7), rok nie występuje w dokumencie"
+    },
+    {
+      "id": "P009",
+      "firstName": "Martinus",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P010"
+      ]
+    },
+    {
+      "id": "P010",
+      "firstName": "Rosalia",
+      "lastName": "Sadach",
+      "gender": "female",
+      "parentIds": [
+        "P007",
+        "P008"
+      ],
+      "spouseIds": [
+        "P009"
+      ],
+      "birthDate": "1722-02-24",
+      "notes": "ur. Przetoczyno"
+    },
+    {
+      "id": "P011",
+      "firstName": "Antonius",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P009",
+        "P010"
+      ],
+      "spouseIds": [
+        "P012"
+      ],
+      "birthDate": "1751-10-26",
+      "notes": "chrzest 1751-10-31 Kielno"
+    },
+    {
+      "id": "P012",
+      "firstName": "Heva (Ewa)",
+      "lastName": "Drogosch",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P011"
+      ],
+      "birthDate": "1771-05-31",
+      "deathDate": "1830-12-24",
+      "notes": "ur. Luzino, zm. Głazica (Glasshutte)"
+    },
+    {
+      "id": "P013",
+      "firstName": "Ignatius",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P011",
+        "P012"
+      ],
+      "spouseIds": [],
+      "birthDate": "1801"
+    },
+    {
+      "id": "P014",
+      "firstName": "Ludwik",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P011",
+        "P012"
+      ],
+      "spouseIds": [],
+      "birthDate": "1804-05-20",
+      "deathDate": "1862-05-07",
+      "notes": "ur. Głazica (Glasshutte), zm. Jeleńska Huta, pogrzeb Kielno"
+    },
+    {
+      "id": "P015",
+      "firstName": "Vincentius Marcelinus (Wincenty)",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P011",
+        "P012"
+      ],
+      "spouseIds": [
+        "P016"
+      ],
+      "birthDate": "1810-04-08",
+      "deathDate": "1870-08-13",
+      "notes": "chrzest 1810-04-08 Kielno; zm. Mała Piaśnica"
+    },
+    {
+      "id": "P016",
+      "firstName": "Anna",
+      "lastName": "Szymańska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P015"
+      ],
+      "birthDate": "1820-04-17",
+      "deathDate": "1884-08-27",
+      "notes": "ur. Bismark, parafia Luzino; ślub 1836-10-17 Luzino; zm. Mała Piaśnica"
+    },
+    {
+      "id": "P017",
+      "firstName": "Augustinus Joannes",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P011",
+        "P012"
+      ],
+      "spouseIds": [],
+      "birthDate": "1814-01-18",
+      "notes": "ur. Głazica (Glasshutte)"
+    },
+    {
+      "id": "P018",
       "firstName": "Franciszek Xawery",
       "lastName": "Potrykus",
       "gender": "male",
-      "parentIds": [],
-      "spouseIds": []
-    },
-    {
-      "id": "leokadia-elizabeth-potrykus-1888-11-19",
-      "firstName": "Leokadia Elizabeth",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1888-11-19",
       "parentIds": [
-        "franciszek-xawery-potrykus"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "xaver-adam-potrykus-1890-01-25",
-      "firstName": "Xaver Adam",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1890-01-25",
-      "parentIds": [
-        "franciszek-xawery-potrykus"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "jozef-edward-potrykus-1891-10-26",
-      "firstName": "Józef Edward",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1891-10-26",
-      "deathDate": "1950-11-19",
-      "parentIds": [
-        "franciszek-xawery-potrykus"
+        "P015",
+        "P016"
       ],
       "spouseIds": [
-        "matylda-potrykus-1895-12-10"
-      ]
+        "P019"
+      ],
+      "birthDate": "1842-11-28",
+      "deathDate": "1906-08-12"
     },
     {
-      "maidenName": "Drzeżdżon",
-      "id": "matylda-potrykus-1895-12-10",
+      "id": "P019",
+      "firstName": "Anna Elżbieta",
+      "lastName": "Marzejon",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P018"
+      ],
+      "birthDate": "1852-02-22",
+      "notes": "ślub 1881-02-27, Darżlubie"
+    },
+    {
+      "id": "P020",
+      "firstName": "Apolonia",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P015",
+        "P016"
+      ],
+      "spouseIds": [],
+      "birthDate": "1845-02-05",
+      "notes": "ur. Mała Piaśnica"
+    },
+    {
+      "id": "P021",
+      "firstName": "August Ignacy (August Ignatz)",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P015",
+        "P016"
+      ],
+      "spouseIds": [],
+      "birthDate": "1848-01-18",
+      "notes": "ur. Mała Piaśnica"
+    },
+    {
+      "id": "P022",
+      "firstName": "Matylda Katarzyna (Mathilda Catharina)",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P015",
+        "P016"
+      ],
+      "spouseIds": [],
+      "birthDate": "1849-04-30",
+      "notes": "ur. Mała Piaśnica"
+    },
+    {
+      "id": "P023",
+      "firstName": "Jan Mateusz (Johann Mathias)",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P015",
+        "P016"
+      ],
+      "spouseIds": [],
+      "birthDate": "1852-02-25",
+      "notes": "ur. Mała Piaśnica"
+    },
+    {
+      "id": "P024",
+      "firstName": "Józef Marceli",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P015",
+        "P016"
+      ],
+      "spouseIds": [],
+      "birthDate": "1854"
+    },
+    {
+      "id": "P025",
+      "firstName": "Julianna Weronika",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P015",
+        "P016"
+      ],
+      "spouseIds": [
+        "P026"
+      ],
+      "birthDate": "1858"
+    },
+    {
+      "id": "P026",
+      "firstName": "Joseph",
+      "lastName": "Ceynowa",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P025"
+      ],
+      "notes": "ślub 1876"
+    },
+    {
+      "id": "P030",
+      "firstName": "Kunegunda",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P018",
+        "P019"
+      ],
+      "spouseIds": [
+        "P031"
+      ],
+      "birthDate": "1877"
+    },
+    {
+      "id": "P031",
+      "firstName": "Józef",
+      "lastName": "Ryga",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P030"
+      ],
+      "birthDate": "1869",
+      "notes": "ślub 1899"
+    },
+    {
+      "id": "P032",
+      "firstName": "NN",
+      "lastName": "Ryga",
+      "gender": "unknown",
+      "parentIds": [
+        "P030",
+        "P031"
+      ],
+      "spouseIds": [],
+      "notes": "imię nieznane (dziecko Kunegundy i Józefa Ryga)"
+    },
+    {
+      "id": "P033",
+      "firstName": "NN",
+      "lastName": "Ryga",
+      "gender": "unknown",
+      "parentIds": [
+        "P030",
+        "P031"
+      ],
+      "spouseIds": [],
+      "notes": "imię nieznane (dziecko Kunegundy i Józefa Ryga)"
+    },
+    {
+      "id": "P034",
+      "firstName": "NN",
+      "lastName": "Ryga",
+      "gender": "unknown",
+      "parentIds": [
+        "P030",
+        "P031"
+      ],
+      "spouseIds": [],
+      "notes": "imię nieznane (dziecko Kunegundy i Józefa Ryga)"
+    },
+    {
+      "id": "P035",
+      "firstName": "NN",
+      "lastName": "Ryga",
+      "gender": "unknown",
+      "parentIds": [
+        "P030",
+        "P031"
+      ],
+      "spouseIds": [],
+      "notes": "imię nieznane (dziecko Kunegundy i Józefa Ryga)"
+    },
+    {
+      "id": "P036",
+      "firstName": "NN",
+      "lastName": "Ryga",
+      "gender": "unknown",
+      "parentIds": [
+        "P030",
+        "P031"
+      ],
+      "spouseIds": [],
+      "notes": "imię nieznane (dziecko Kunegundy i Józefa Ryga)"
+    },
+    {
+      "id": "P037",
+      "firstName": "NN",
+      "lastName": "Ryga",
+      "gender": "unknown",
+      "parentIds": [
+        "P030",
+        "P031"
+      ],
+      "spouseIds": [],
+      "notes": "imię nieznane (dziecko Kunegundy i Józefa Ryga)"
+    },
+    {
+      "id": "P038",
+      "firstName": "Józef",
+      "lastName": "Ryga",
+      "gender": "male",
+      "parentIds": [
+        "P030",
+        "P031"
+      ],
+      "spouseIds": [],
+      "notes": "dziecko Kunegundy i Józefa Ryga (jedyne z podanym imieniem)"
+    },
+    {
+      "id": "P040",
       "firstName": "Matylda",
       "lastName": "Potrykus",
       "gender": "female",
-      "birthDate": "1895-12-10",
-      "deathDate": "1980-07-13",
+      "parentIds": [
+        "P018",
+        "P019"
+      ],
+      "spouseIds": [
+        "P041"
+      ],
+      "birthDate": "1877"
+    },
+    {
+      "id": "P041",
+      "firstName": "Feliks",
+      "lastName": "Schornak",
+      "gender": "male",
       "parentIds": [],
       "spouseIds": [
-        "jozef-edward-potrykus-1891-10-26"
+        "P040"
+      ],
+      "birthDate": "1870",
+      "notes": "ślub 1903"
+    },
+    {
+      "id": "P042",
+      "firstName": "Cecylia",
+      "lastName": "Szornak",
+      "gender": "female",
+      "parentIds": [
+        "P040",
+        "P041"
+      ],
+      "spouseIds": [
+        "P043"
       ]
     },
     {
-      "id": "eryka-potrykus-1925-02-27",
-      "firstName": "Eryka",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1925-02-27",
-      "deathDate": "1999-03-12",
+      "id": "P043",
+      "firstName": "NN",
+      "lastName": "Turynian",
+      "gender": "unknown",
+      "parentIds": [],
+      "spouseIds": [
+        "P042"
+      ],
+      "notes": "imię nieznane"
+    },
+    {
+      "id": "P044",
+      "firstName": "Jan",
+      "lastName": "Turynian",
+      "gender": "male",
       "parentIds": [
-        "jozef-edward-potrykus-1891-10-26",
-        "matylda-potrykus-1895-12-10"
+        "P042",
+        "P043"
       ],
       "spouseIds": []
     },
     {
-      "id": "matylda-potrykus-x",
-      "firstName": "Matylda",
-      "lastName": "Potrykus",
+      "id": "P045",
+      "firstName": "Łucja",
+      "lastName": "Turynian",
       "gender": "female",
       "parentIds": [
-        "jozef-edward-potrykus-1891-10-26",
-        "matylda-potrykus-1895-12-10"
+        "P042",
+        "P043"
       ],
       "spouseIds": []
     },
     {
-      "id": "brunon-potrykus-x",
-      "firstName": "Brunon",
+      "id": "P046",
+      "firstName": "Ksawery",
+      "lastName": "Szornak",
+      "gender": "male",
+      "parentIds": [
+        "P040",
+        "P041"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P047",
+      "firstName": "Franciszek",
+      "lastName": "Szornak",
+      "gender": "male",
+      "parentIds": [
+        "P040",
+        "P041"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P050",
+      "firstName": "Agnieszka",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P018",
+        "P019"
+      ],
+      "spouseIds": [
+        "P051"
+      ],
+      "birthDate": "1883"
+    },
+    {
+      "id": "P051",
+      "firstName": "Augustyn",
+      "lastName": "Lesner",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P050"
+      ],
+      "birthDate": "1871",
+      "notes": "ślub 1906"
+    },
+    {
+      "id": "P052",
+      "firstName": "Cecylia",
+      "lastName": "Lesner",
+      "gender": "female",
+      "parentIds": [
+        "P050",
+        "P051"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P053",
+      "firstName": "Walerian",
+      "lastName": "Lesner",
+      "gender": "male",
+      "parentIds": [
+        "P050",
+        "P051"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P054",
+      "firstName": "Anna",
+      "lastName": "Lesner",
+      "gender": "female",
+      "parentIds": [
+        "P050",
+        "P051"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P055",
+      "firstName": "Józef",
+      "lastName": "Lesner",
+      "gender": "male",
+      "parentIds": [
+        "P050",
+        "P051"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P060",
+      "firstName": "Franciszek",
       "lastName": "Potrykus",
       "gender": "male",
       "parentIds": [
-        "jozef-edward-potrykus-1891-10-26",
-        "matylda-potrykus-1895-12-10"
+        "P018",
+        "P019"
+      ],
+      "spouseIds": [
+        "P061"
+      ],
+      "birthDate": "1884-06-01",
+      "deathDate": "1945-04-04",
+      "notes": "SZUKANA OSOBA -- linia 3-3 z oryginalnego raportu PDF"
+    },
+    {
+      "id": "P061",
+      "firstName": "Helena",
+      "lastName": "Gurska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P060"
+      ],
+      "birthDate": "1891-11-01",
+      "deathDate": "1972-10-03"
+    },
+    {
+      "id": "P062",
+      "firstName": "Rozalia",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P060",
+        "P061"
+      ],
+      "spouseIds": [
+        "P063"
+      ],
+      "birthDate": "1916-09-04",
+      "deathDate": "1988-11-21"
+    },
+    {
+      "id": "P063",
+      "firstName": "Feliks",
+      "lastName": "Pieper",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P062"
+      ],
+      "birthDate": "1911-08-29",
+      "deathDate": "1981-01-19"
+    },
+    {
+      "id": "P064",
+      "firstName": "Jan",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P060",
+        "P061"
+      ],
+      "spouseIds": [
+        "P065"
+      ],
+      "birthDate": "1918-05-06"
+    },
+    {
+      "id": "P065",
+      "firstName": "Cecylia",
+      "lastName": "Zielke",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P064"
+      ],
+      "birthDate": "1923-11-20",
+      "deathDate": "1995-08-23"
+    },
+    {
+      "id": "P066",
+      "firstName": "Jerzy",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P064",
+        "P065"
+      ],
+      "spouseIds": [
+        "P067"
+      ],
+      "birthDate": "1952-01-23"
+    },
+    {
+      "id": "P067",
+      "firstName": "Jolanta",
+      "lastName": "Siatkowska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P066"
+      ],
+      "birthDate": "1956-08-23"
+    },
+    {
+      "id": "P068",
+      "firstName": "Marcin",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P066",
+        "P067"
       ],
       "spouseIds": []
     },
     {
-      "id": "wladyslaw-potrykus-jozef-edward",
+      "id": "P069",
+      "firstName": "Magda",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P066",
+        "P067"
+      ],
+      "spouseIds": [
+        "P070"
+      ],
+      "birthDate": "1985-02-25"
+    },
+    {
+      "id": "P070",
+      "firstName": "Rafał",
+      "lastName": "Banaśkiewicz",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P069"
+      ],
+      "birthDate": "1981-06-11",
+      "notes": "ślub 2009-08-29"
+    },
+    {
+      "id": "P071",
+      "firstName": "Maja",
+      "lastName": "Banaśkiewicz",
+      "gender": "female",
+      "parentIds": [
+        "P069",
+        "P070"
+      ],
+      "spouseIds": [],
+      "birthDate": "2010-12-24"
+    },
+    {
+      "id": "P072",
+      "firstName": "Franciszek",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P060",
+        "P061"
+      ],
+      "spouseIds": [
+        "P073"
+      ],
+      "birthDate": "1920-02-12",
+      "deathDate": "1986-03-09"
+    },
+    {
+      "id": "P073",
+      "firstName": "Józefa Zofia",
+      "lastName": "Dorsch",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P072"
+      ],
+      "birthDate": "1924-11-06"
+    },
+    {
+      "id": "P074",
+      "firstName": "Jadwiga",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P072",
+        "P073"
+      ],
+      "spouseIds": [
+        "P075"
+      ],
+      "birthDate": "1948-02-17"
+    },
+    {
+      "id": "P075",
+      "firstName": "Ryszard",
+      "lastName": "Belle",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P074"
+      ],
+      "birthDate": "1943-03-28"
+    },
+    {
+      "id": "P076",
+      "firstName": "Marcin",
+      "lastName": "Belle",
+      "gender": "male",
+      "parentIds": [
+        "P074",
+        "P075"
+      ],
+      "spouseIds": [
+        "P077"
+      ],
+      "birthDate": "1974-01-05"
+    },
+    {
+      "id": "P077",
+      "firstName": "Beata",
+      "lastName": "Pstrągowska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P076"
+      ]
+    },
+    {
+      "id": "P078",
+      "firstName": "Maks",
+      "lastName": "Belle",
+      "gender": "male",
+      "parentIds": [
+        "P076",
+        "P077"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P079",
+      "firstName": "Katarzyna",
+      "lastName": "Belle",
+      "gender": "female",
+      "parentIds": [
+        "P076",
+        "P077"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P080",
+      "firstName": "Danuta",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P072",
+        "P073"
+      ],
+      "spouseIds": [
+        "P081"
+      ],
+      "birthDate": "1952-01-06"
+    },
+    {
+      "id": "P081",
+      "firstName": "Bolesław",
+      "lastName": "Bodziński",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P080"
+      ],
+      "birthDate": "1948-01-24",
+      "deathDate": "1993-10-25"
+    },
+    {
+      "id": "P082",
+      "firstName": "Piotr",
+      "lastName": "Bodziński",
+      "gender": "male",
+      "parentIds": [
+        "P080",
+        "P081"
+      ],
+      "spouseIds": [
+        "P083"
+      ]
+    },
+    {
+      "id": "P083",
+      "firstName": "NN",
+      "lastName": "Bodzińska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P082"
+      ],
+      "notes": "imię nieznane"
+    },
+    {
+      "id": "P084",
+      "firstName": "Amanda",
+      "lastName": "Bodzińska",
+      "gender": "female",
+      "parentIds": [
+        "P082",
+        "P083"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P085",
+      "firstName": "Dorota",
+      "lastName": "Bodzińska",
+      "gender": "female",
+      "parentIds": [
+        "P080",
+        "P081"
+      ],
+      "spouseIds": [
+        "P086",
+        "P089"
+      ]
+    },
+    {
+      "id": "P086",
+      "firstName": "Rafał",
+      "lastName": "Borudzki",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P085"
+      ],
+      "notes": "1. mąż Doroty"
+    },
+    {
+      "id": "P087",
+      "firstName": "Natalia",
+      "lastName": "Borudzka",
+      "gender": "female",
+      "parentIds": [
+        "P085",
+        "P086"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P088",
+      "firstName": "Maciej",
+      "lastName": "Borudzki",
+      "gender": "male",
+      "parentIds": [
+        "P085",
+        "P086"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P089",
+      "firstName": "Roman",
+      "lastName": "Szumełda",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P085"
+      ],
+      "notes": "2. mąż Doroty (wg oryg. zapisu na tej samej pozycji co 1. mąż)"
+    },
+    {
+      "id": "P090",
+      "firstName": "Józef",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P072",
+        "P073"
+      ],
+      "spouseIds": [
+        "P091"
+      ],
+      "birthDate": "1953-01-22"
+    },
+    {
+      "id": "P091",
+      "firstName": "Grażyna",
+      "lastName": "Moniuszko",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P090"
+      ],
+      "birthDate": "1953-11-30"
+    },
+    {
+      "id": "P092",
+      "firstName": "Przemek",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P090",
+        "P091"
+      ],
+      "spouseIds": [
+        "P093"
+      ]
+    },
+    {
+      "id": "P093",
+      "firstName": "Joanna",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P092"
+      ]
+    },
+    {
+      "id": "P094",
+      "firstName": "Franciszek",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P092",
+        "P093"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P095",
+      "firstName": "Julia",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P092",
+        "P093"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P096",
+      "firstName": "Marcin",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P090",
+        "P091"
+      ],
+      "spouseIds": [
+        "P097"
+      ],
+      "birthDate": "1982-03-18"
+    },
+    {
+      "id": "P097",
+      "firstName": "Agnieszka",
+      "lastName": "Łozińska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P096"
+      ]
+    },
+    {
+      "id": "P098",
+      "firstName": "Stanisław",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P096",
+        "P097"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P099",
+      "firstName": "Franciszek",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P072",
+        "P073"
+      ],
+      "spouseIds": [],
+      "birthDate": "1956-06-16"
+    },
+    {
+      "id": "P100",
+      "firstName": "Anna",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P072",
+        "P073"
+      ],
+      "spouseIds": [
+        "P101"
+      ],
+      "birthDate": "1959-04-23"
+    },
+    {
+      "id": "P101",
+      "firstName": "Józef",
+      "lastName": "Leśniak",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P100"
+      ],
+      "birthDate": "1953-12-23"
+    },
+    {
+      "id": "P102",
+      "firstName": "Agnieszka",
+      "lastName": "Leśniak",
+      "gender": "female",
+      "parentIds": [
+        "P100",
+        "P101"
+      ],
+      "spouseIds": [
+        "P103"
+      ],
+      "birthDate": "1980-07-02"
+    },
+    {
+      "id": "P103",
+      "firstName": "Piotr",
+      "lastName": "Trella",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P102"
+      ],
+      "birthDate": "1979-05-18"
+    },
+    {
+      "id": "P104",
+      "firstName": "Jakub",
+      "lastName": "Trella",
+      "gender": "male",
+      "parentIds": [
+        "P102",
+        "P103"
+      ],
+      "spouseIds": [],
+      "birthDate": "2004-01-15"
+    },
+    {
+      "id": "P105",
+      "firstName": "Maja",
+      "lastName": "Trella",
+      "gender": "female",
+      "parentIds": [
+        "P102",
+        "P103"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P106",
+      "firstName": "Małgorzata",
+      "lastName": "Leśniak",
+      "gender": "female",
+      "parentIds": [
+        "P100",
+        "P101"
+      ],
+      "spouseIds": [
+        "P107"
+      ],
+      "birthDate": "1981-08-13"
+    },
+    {
+      "id": "P107",
+      "firstName": "Grzegorz",
+      "lastName": "Kotarba",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P106"
+      ],
+      "birthDate": "1977-01-31"
+    },
+    {
+      "id": "P108",
+      "firstName": "Aleksandra",
+      "lastName": "Kotarba",
+      "gender": "female",
+      "parentIds": [
+        "P106",
+        "P107"
+      ],
+      "spouseIds": [],
+      "birthDate": "2007-10-28"
+    },
+    {
+      "id": "P109",
+      "firstName": "Dariusz",
+      "lastName": "Leśniak",
+      "gender": "male",
+      "parentIds": [
+        "P100",
+        "P101"
+      ],
+      "spouseIds": [],
+      "birthDate": "1986-05-11"
+    },
+    {
+      "id": "P110",
+      "firstName": "Maria",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P072",
+        "P073"
+      ],
+      "spouseIds": [
+        "P111"
+      ],
+      "birthDate": "1962-01-30"
+    },
+    {
+      "id": "P111",
+      "firstName": "Waldemar",
+      "lastName": "Szczuko",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P110"
+      ],
+      "birthDate": "1951-10-12"
+    },
+    {
+      "id": "P112",
+      "firstName": "Magdalena",
+      "lastName": "Szczuko",
+      "gender": "female",
+      "parentIds": [
+        "P110",
+        "P111"
+      ],
+      "spouseIds": [
+        "P113"
+      ],
+      "birthDate": "1982-09-29"
+    },
+    {
+      "id": "P113",
+      "firstName": "Arkadiusz",
+      "lastName": "Bieniek",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P112"
+      ],
+      "birthDate": "1982-09-04"
+    },
+    {
+      "id": "P114",
+      "firstName": "Gabriela",
+      "lastName": "Bieniek",
+      "gender": "female",
+      "parentIds": [
+        "P112",
+        "P113"
+      ],
+      "spouseIds": [],
+      "birthDate": "2008-07-08"
+    },
+    {
+      "id": "P115",
+      "firstName": "Anna",
+      "lastName": "Szczuko",
+      "gender": "female",
+      "parentIds": [
+        "P110",
+        "P111"
+      ],
+      "spouseIds": [],
+      "birthDate": "1984-12-09"
+    },
+    {
+      "id": "P116",
+      "firstName": "Beata",
+      "lastName": "Szczuko",
+      "gender": "female",
+      "parentIds": [
+        "P110",
+        "P111"
+      ],
+      "spouseIds": [],
+      "birthDate": "1989-06-27"
+    },
+    {
+      "id": "P117",
+      "firstName": "Adam",
+      "lastName": "Szczuko",
+      "gender": "male",
+      "parentIds": [
+        "P110",
+        "P111"
+      ],
+      "spouseIds": [],
+      "birthDate": "1997-05-15"
+    },
+    {
+      "id": "P118",
+      "firstName": "Joanna",
+      "lastName": "Szczuko",
+      "gender": "female",
+      "parentIds": [
+        "P110",
+        "P111"
+      ],
+      "spouseIds": [],
+      "birthDate": "1999-08-09"
+    },
+    {
+      "id": "P119",
+      "firstName": "Wincenty",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P072",
+        "P073"
+      ],
+      "spouseIds": [
+        "P120"
+      ],
+      "birthDate": "1964-05-14"
+    },
+    {
+      "id": "P120",
+      "firstName": "Marzena",
+      "lastName": "Wiczling",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P119"
+      ]
+    },
+    {
+      "id": "P121",
+      "firstName": "Szymon",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P119",
+        "P120"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P122",
+      "firstName": "Monika",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P119",
+        "P120"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P123",
+      "firstName": "Justyna",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P119",
+        "P120"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P124",
+      "firstName": "Magdalena",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P119",
+        "P120"
+      ],
+      "spouseIds": [],
+      "birthDate": "1999-11-11"
+    },
+    {
+      "id": "P125",
+      "firstName": "Helena",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P060",
+        "P061"
+      ],
+      "spouseIds": [
+        "P126"
+      ],
+      "birthDate": "1921-07-20",
+      "deathDate": "1998-12-19"
+    },
+    {
+      "id": "P126",
+      "firstName": "Józef",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P125"
+      ],
+      "birthDate": "1909-11-12",
+      "deathDate": "1999-06-09",
+      "notes": "ślub 1947-11-11"
+    },
+    {
+      "id": "P127",
+      "firstName": "Genowefa",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [
+        "P128"
+      ],
+      "birthDate": "1948-09-06"
+    },
+    {
+      "id": "P128",
+      "firstName": "Karol",
+      "lastName": "Szornak",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P127"
+      ],
+      "birthDate": "1941-10-19",
+      "deathDate": "2008-05-17"
+    },
+    {
+      "id": "P129",
+      "firstName": "Hanna",
+      "lastName": "Szornak",
+      "gender": "female",
+      "parentIds": [
+        "P127",
+        "P128"
+      ],
+      "spouseIds": [
+        "P130"
+      ],
+      "birthDate": "1968-09-18"
+    },
+    {
+      "id": "P130",
+      "firstName": "Józef",
+      "lastName": "Miotk",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P129"
+      ],
+      "birthDate": "1968-01-09"
+    },
+    {
+      "id": "P131",
+      "firstName": "Oskar",
+      "lastName": "Miotk",
+      "gender": "male",
+      "parentIds": [
+        "P129",
+        "P130"
+      ],
+      "spouseIds": [],
+      "birthDate": "1996-05-01"
+    },
+    {
+      "id": "P132",
+      "firstName": "Eryk",
+      "lastName": "Miotk",
+      "gender": "male",
+      "parentIds": [
+        "P129",
+        "P130"
+      ],
+      "spouseIds": [],
+      "birthDate": "1998-03-14"
+    },
+    {
+      "id": "P133",
+      "firstName": "Dawid",
+      "lastName": "Miotk",
+      "gender": "male",
+      "parentIds": [
+        "P129",
+        "P130"
+      ],
+      "spouseIds": [],
+      "birthDate": "1999-07-15"
+    },
+    {
+      "id": "P134",
+      "firstName": "Kacper",
+      "lastName": "Miotk",
+      "gender": "male",
+      "parentIds": [
+        "P129",
+        "P130"
+      ],
+      "spouseIds": [],
+      "birthDate": "2005-01-06"
+    },
+    {
+      "id": "P135",
+      "firstName": "Grzegorz",
+      "lastName": "Szornak",
+      "gender": "male",
+      "parentIds": [
+        "P127",
+        "P128"
+      ],
+      "spouseIds": [
+        "P136"
+      ],
+      "birthDate": "1971-03-12"
+    },
+    {
+      "id": "P136",
+      "firstName": "Beata",
+      "lastName": "Szeszko",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P135"
+      ],
+      "birthDate": "1971-08-16"
+    },
+    {
+      "id": "P137",
+      "firstName": "Aleksandra",
+      "lastName": "Szornak",
+      "gender": "female",
+      "parentIds": [
+        "P135",
+        "P136"
+      ],
+      "spouseIds": [],
+      "birthDate": "1992-11-27"
+    },
+    {
+      "id": "P138",
+      "firstName": "Piotr",
+      "lastName": "Szornak",
+      "gender": "male",
+      "parentIds": [
+        "P135",
+        "P136"
+      ],
+      "spouseIds": [],
+      "birthDate": "1995-04-22"
+    },
+    {
+      "id": "P139",
+      "firstName": "Małgorzata",
+      "lastName": "Szornak",
+      "gender": "female",
+      "parentIds": [
+        "P127",
+        "P128"
+      ],
+      "spouseIds": [
+        "P140"
+      ],
+      "birthDate": "1976-09-15"
+    },
+    {
+      "id": "P140",
+      "firstName": "Grzegorz",
+      "lastName": "Boczyński",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P139"
+      ],
+      "birthDate": "1981-09-09"
+    },
+    {
+      "id": "P141",
+      "firstName": "Kamil",
+      "lastName": "Boczyński",
+      "gender": "male",
+      "parentIds": [
+        "P139",
+        "P140"
+      ],
+      "spouseIds": [],
+      "birthDate": "2003-07-10"
+    },
+    {
+      "id": "P142",
+      "firstName": "Wiktoria",
+      "lastName": "Boczyńska",
+      "gender": "female",
+      "parentIds": [
+        "P139",
+        "P140"
+      ],
+      "spouseIds": [],
+      "birthDate": "2006-05-30"
+    },
+    {
+      "id": "P143",
+      "firstName": "Kazimierz",
+      "lastName": "Szornak",
+      "gender": "male",
+      "parentIds": [
+        "P127",
+        "P128"
+      ],
+      "spouseIds": [
+        "P144"
+      ],
+      "birthDate": "1980-03-04"
+    },
+    {
+      "id": "P144",
+      "firstName": "Magdalena",
+      "lastName": "Kreft",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P143"
+      ],
+      "birthDate": "1981-05-30"
+    },
+    {
+      "id": "P145",
+      "firstName": "Tymoteusz",
+      "lastName": "Szornak",
+      "gender": "male",
+      "parentIds": [
+        "P143",
+        "P144"
+      ],
+      "spouseIds": [],
+      "birthDate": "2007-01-21"
+    },
+    {
+      "id": "P146",
+      "firstName": "Bernadeta",
+      "lastName": "Szornak",
+      "gender": "female",
+      "parentIds": [
+        "P127",
+        "P128"
+      ],
+      "spouseIds": [
+        "P147"
+      ],
+      "birthDate": "1985-06-28"
+    },
+    {
+      "id": "P147",
+      "firstName": "Rafał",
+      "lastName": "Śluzewski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P146"
+      ],
+      "birthDate": "1982-04-27"
+    },
+    {
+      "id": "P148",
+      "firstName": "Maksymilian",
+      "lastName": "Śluzewski",
+      "gender": "male",
+      "parentIds": [
+        "P146",
+        "P147"
+      ],
+      "spouseIds": [],
+      "birthDate": "2008-03-19"
+    },
+    {
+      "id": "P149",
+      "firstName": "Helena",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [
+        "P150"
+      ],
+      "birthDate": "1949-09-22"
+    },
+    {
+      "id": "P150",
+      "firstName": "Herbert",
+      "lastName": "Kiepke",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P149"
+      ],
+      "birthDate": "1943-09-17",
+      "deathDate": "1987-02-14"
+    },
+    {
+      "id": "P151",
+      "firstName": "Gabriela",
+      "lastName": "Kiepke",
+      "gender": "female",
+      "parentIds": [
+        "P149",
+        "P150"
+      ],
+      "spouseIds": [],
+      "birthDate": "1972-07-14"
+    },
+    {
+      "id": "P152",
+      "firstName": "Marek",
+      "lastName": "Kiepke",
+      "gender": "male",
+      "parentIds": [
+        "P149",
+        "P150"
+      ],
+      "spouseIds": [
+        "P153"
+      ],
+      "birthDate": "1974-06-14"
+    },
+    {
+      "id": "P153",
+      "firstName": "Marzena",
+      "lastName": "Okoń",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P152"
+      ],
+      "birthDate": "1973-05-20"
+    },
+    {
+      "id": "P154",
+      "firstName": "Kinga",
+      "lastName": "Kiepke",
+      "gender": "female",
+      "parentIds": [
+        "P152",
+        "P153"
+      ],
+      "spouseIds": [],
+      "birthDate": "2007-04-08"
+    },
+    {
+      "id": "P155",
+      "firstName": "Konrad",
+      "lastName": "Kiepke",
+      "gender": "male",
+      "parentIds": [
+        "P152",
+        "P153"
+      ],
+      "spouseIds": [],
+      "birthDate": "2009-06-18"
+    },
+    {
+      "id": "P156",
+      "firstName": "Teresa",
+      "lastName": "Kiepke",
+      "gender": "female",
+      "parentIds": [
+        "P149",
+        "P150"
+      ],
+      "spouseIds": [
+        "P157"
+      ],
+      "birthDate": "1977-10-31"
+    },
+    {
+      "id": "P157",
+      "firstName": "Tomasz",
+      "lastName": "Kosmala",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P156"
+      ]
+    },
+    {
+      "id": "P158",
+      "firstName": "Nikodem",
+      "lastName": "Kosmala",
+      "gender": "male",
+      "parentIds": [
+        "P156",
+        "P157"
+      ],
+      "spouseIds": [],
+      "birthDate": "2005-11-08"
+    },
+    {
+      "id": "P159",
+      "firstName": "Mateusz",
+      "lastName": "Kosmala",
+      "gender": "male",
+      "parentIds": [
+        "P156",
+        "P157"
+      ],
+      "spouseIds": [],
+      "birthDate": "2009-11-15"
+    },
+    {
+      "id": "P160",
+      "firstName": "Janusz",
+      "lastName": "Kiepke",
+      "gender": "male",
+      "parentIds": [
+        "P149",
+        "P150"
+      ],
+      "spouseIds": [],
+      "birthDate": "1983-07-28"
+    },
+    {
+      "id": "P161",
+      "firstName": "Adam",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [],
+      "birthDate": "1950-11-24",
+      "deathDate": "1950-11-24"
+    },
+    {
+      "id": "P162",
+      "firstName": "Łucja",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [],
+      "birthDate": "1951-12-12",
+      "deathDate": "1959-07-22"
+    },
+    {
+      "id": "P163",
+      "firstName": "Franciszek",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [
+        "P164"
+      ],
+      "birthDate": "1953-02-19"
+    },
+    {
+      "id": "P164",
+      "firstName": "Ludgarda",
+      "lastName": "Górska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P163"
+      ],
+      "birthDate": "1954-12-24"
+    },
+    {
+      "id": "P165",
+      "firstName": "Monika",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P163",
+        "P164"
+      ],
+      "spouseIds": [
+        "P166"
+      ],
+      "birthDate": "1979-10-02"
+    },
+    {
+      "id": "P166",
+      "firstName": "Piotr",
+      "lastName": "Czujkowski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P165"
+      ]
+    },
+    {
+      "id": "P167",
+      "firstName": "Magdalena",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P163",
+        "P164"
+      ],
+      "spouseIds": [
+        "P168"
+      ],
+      "birthDate": "1981-07-06"
+    },
+    {
+      "id": "P168",
+      "firstName": "Marcin",
+      "lastName": "Marszall",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P167"
+      ],
+      "birthDate": "1980-07-03"
+    },
+    {
+      "id": "P169",
+      "firstName": "Aleksandra",
+      "lastName": "Marszall",
+      "gender": "female",
+      "parentIds": [
+        "P167",
+        "P168"
+      ],
+      "spouseIds": [],
+      "birthDate": "2007-11-17"
+    },
+    {
+      "id": "P170",
+      "firstName": "Zofia",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [],
+      "birthDate": "1954-02-04"
+    },
+    {
+      "id": "P171",
+      "firstName": "Stanisław",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [],
+      "birthDate": "1955-05-12",
+      "deathDate": "2004-01-24"
+    },
+    {
+      "id": "P172",
+      "firstName": "Józef",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [
+        "P173"
+      ],
+      "birthDate": "1957-07-30"
+    },
+    {
+      "id": "P173",
+      "firstName": "Mirosława",
+      "lastName": "Karsznia",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P172"
+      ],
+      "birthDate": "1959-11-25"
+    },
+    {
+      "id": "P174",
+      "firstName": "Łukasz",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P172",
+        "P173"
+      ],
+      "spouseIds": [
+        "P175"
+      ],
+      "birthDate": "1981-05-26"
+    },
+    {
+      "id": "P175",
+      "firstName": "Aleksandra",
+      "lastName": "Grubba",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P174"
+      ],
+      "birthDate": "1982-12-14"
+    },
+    {
+      "id": "P176",
+      "firstName": "Maja",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P174",
+        "P175"
+      ],
+      "spouseIds": [],
+      "birthDate": "2003-04-17"
+    },
+    {
+      "id": "P177",
+      "firstName": "Oliwia",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P174",
+        "P175"
+      ],
+      "spouseIds": [],
+      "birthDate": "2008-10-14"
+    },
+    {
+      "id": "P178",
+      "firstName": "Mateusz",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P172",
+        "P173"
+      ],
+      "spouseIds": [
+        "P179"
+      ],
+      "birthDate": "1982-04-17"
+    },
+    {
+      "id": "P179",
+      "firstName": "Ewa",
+      "lastName": "Dettlaff",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P178"
+      ]
+    },
+    {
+      "id": "P180",
+      "firstName": "Anna",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P172",
+        "P173"
+      ],
+      "spouseIds": [],
+      "birthDate": "1987-01-24"
+    },
+    {
+      "id": "P181",
+      "firstName": "Joanna",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P172",
+        "P173"
+      ],
+      "spouseIds": [],
+      "birthDate": "1991-02-18"
+    },
+    {
+      "id": "P182",
+      "firstName": "Alicja",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P172",
+        "P173"
+      ],
+      "spouseIds": [],
+      "birthDate": "1993-10-11"
+    },
+    {
+      "id": "P183",
+      "firstName": "Rozalia",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [
+        "P184"
+      ],
+      "birthDate": "1958-09-17"
+    },
+    {
+      "id": "P184",
+      "firstName": "Kazimierz",
+      "lastName": "Orzeł",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P183"
+      ],
+      "birthDate": "1958-03-02",
+      "deathDate": "1989-08-09"
+    },
+    {
+      "id": "P185",
+      "firstName": "Franciszek",
+      "lastName": "Orzeł",
+      "gender": "male",
+      "parentIds": [
+        "P183",
+        "P184"
+      ],
+      "spouseIds": [],
+      "birthDate": "1981-05-11",
+      "deathDate": "1987-04-26"
+    },
+    {
+      "id": "P186",
+      "firstName": "Mariusz",
+      "lastName": "Orzeł",
+      "gender": "male",
+      "parentIds": [
+        "P183",
+        "P184"
+      ],
+      "spouseIds": [
+        "P187"
+      ],
+      "birthDate": "1982-10-01"
+    },
+    {
+      "id": "P187",
+      "firstName": "Magdalena",
+      "lastName": "Szweda",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P186"
+      ],
+      "birthDate": "1985-06-11"
+    },
+    {
+      "id": "P188",
+      "firstName": "Julia",
+      "lastName": "Orzeł",
+      "gender": "female",
+      "parentIds": [
+        "P186",
+        "P187"
+      ],
+      "spouseIds": [],
+      "birthDate": "2007-01-02"
+    },
+    {
+      "id": "P189",
+      "firstName": "Dariusz",
+      "lastName": "Orzeł",
+      "gender": "male",
+      "parentIds": [
+        "P183",
+        "P184"
+      ],
+      "spouseIds": [
+        "P190"
+      ],
+      "birthDate": "1987-02-12"
+    },
+    {
+      "id": "P190",
+      "firstName": "Zenon",
+      "lastName": "Cinkel",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P189"
+      ],
+      "birthDate": "1964-05-31",
+      "notes": "zapis wg oryginału (małżonek Dariusza)"
+    },
+    {
+      "id": "P191",
+      "firstName": "Ewelina",
+      "lastName": "Cinkel",
+      "gender": "female",
+      "parentIds": [
+        "P189",
+        "P190"
+      ],
+      "spouseIds": [],
+      "birthDate": "1997-10-21",
+      "notes": "w oryginale oznaczona jako pokolenie '6', mimo że pozycja sugeruje '7' -- niespójność źródła"
+    },
+    {
+      "id": "P192",
+      "firstName": "Marian",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [
+        "P193"
+      ],
+      "birthDate": "1960-03-25"
+    },
+    {
+      "id": "P193",
+      "firstName": "Anita",
+      "lastName": "Kołoszyńska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P192"
+      ],
+      "birthDate": "1963-10-16"
+    },
+    {
+      "id": "P194",
+      "firstName": "Monika",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P192",
+        "P193"
+      ],
+      "spouseIds": [
+        "P195"
+      ],
+      "birthDate": "1983-04-13"
+    },
+    {
+      "id": "P195",
+      "firstName": "Waldemar",
+      "lastName": "Witkowski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P194"
+      ],
+      "birthDate": "1981-08-09"
+    },
+    {
+      "id": "P196",
+      "firstName": "Melisa",
+      "lastName": "Witkowska",
+      "gender": "female",
+      "parentIds": [
+        "P194",
+        "P195"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P197",
+      "firstName": "Róża",
+      "lastName": "Witkowska",
+      "gender": "female",
+      "parentIds": [
+        "P194",
+        "P195"
+      ],
+      "spouseIds": [],
+      "birthDate": "2004-06-12"
+    },
+    {
+      "id": "P198",
+      "firstName": "Bogusława",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P192",
+        "P193"
+      ],
+      "spouseIds": [
+        "P199"
+      ],
+      "birthDate": "1983"
+    },
+    {
+      "id": "P199",
+      "firstName": "Tomasz",
+      "lastName": "Lehman",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P198"
+      ]
+    },
+    {
+      "id": "P200",
+      "firstName": "Jadwiga",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P192",
+        "P193"
+      ],
+      "spouseIds": [],
+      "birthDate": "1992-10-15"
+    },
+    {
+      "id": "P201",
+      "firstName": "Weronika",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P192",
+        "P193"
+      ],
+      "spouseIds": [],
+      "birthDate": "1994-01-13",
+      "deathDate": "2008-02-03"
+    },
+    {
+      "id": "P202",
+      "firstName": "Józef",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P192",
+        "P193"
+      ],
+      "spouseIds": [],
+      "birthDate": "1996-04-27"
+    },
+    {
+      "id": "P203",
+      "firstName": "Bronisław",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [
+        "P204"
+      ],
+      "birthDate": "1961-12-11"
+    },
+    {
+      "id": "P204",
+      "firstName": "Bożena",
+      "lastName": "Machalińska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P203"
+      ],
+      "birthDate": "1965-04-26"
+    },
+    {
+      "id": "P205",
+      "firstName": "Katarzyna",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [
+        "P203",
+        "P204"
+      ],
+      "spouseIds": [
+        "P206"
+      ],
+      "birthDate": "1983-11-30"
+    },
+    {
+      "id": "P206",
+      "firstName": "Bartosz",
+      "lastName": "Drzeżdżon",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P205"
+      ],
+      "deathDate": "2008-02-03"
+    },
+    {
+      "id": "P207",
+      "firstName": "Anna",
+      "lastName": "Drzeżdżon",
+      "gender": "female",
+      "parentIds": [
+        "P205",
+        "P206"
+      ],
+      "spouseIds": [],
+      "birthDate": "2006-11-18"
+    },
+    {
+      "id": "P208",
+      "firstName": "Radosław",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P203",
+        "P204"
+      ],
+      "spouseIds": [],
+      "birthDate": "1988-12-06"
+    },
+    {
+      "id": "P209",
+      "firstName": "Czesław",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P125",
+        "P126"
+      ],
+      "spouseIds": [
+        "P210"
+      ],
+      "birthDate": "1963-07-01"
+    },
+    {
+      "id": "P210",
+      "firstName": "Maria",
+      "lastName": "Kołoszyńska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P209"
+      ]
+    },
+    {
+      "id": "P211",
+      "firstName": "Michał Przemysław",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P209",
+        "P210"
+      ],
+      "spouseIds": [],
+      "birthDate": "1990-08-13"
+    },
+    {
+      "id": "P212",
+      "firstName": "Bartosz",
+      "lastName": "Hallmann",
+      "gender": "male",
+      "parentIds": [
+        "P209",
+        "P210"
+      ],
+      "spouseIds": [],
+      "birthDate": "1993-05-11"
+    },
+    {
+      "id": "P213",
+      "firstName": "Bronisław",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P060",
+        "P061"
+      ],
+      "spouseIds": [
+        "P214"
+      ],
+      "birthDate": "1922-10-31"
+    },
+    {
+      "id": "P214",
+      "firstName": "Stanisława",
+      "lastName": "Hollender",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P213"
+      ]
+    },
+    {
+      "id": "P215",
+      "firstName": "Jan",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P213",
+        "P214"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P216",
+      "firstName": "Bronisław",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P213",
+        "P214"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P217",
+      "firstName": "Antoni",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P060",
+        "P061"
+      ],
+      "spouseIds": [
+        "P218"
+      ],
+      "birthDate": "1924-04-23",
+      "deathDate": "1989-03-06"
+    },
+    {
+      "id": "P218",
+      "firstName": "Teresa",
+      "lastName": "Kupferschmidt",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P217"
+      ],
+      "birthDate": "1930-08-06"
+    },
+    {
+      "id": "P219",
+      "firstName": "Maria",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P217",
+        "P218"
+      ],
+      "spouseIds": [
+        "P220"
+      ],
+      "birthDate": "1954-02-17"
+    },
+    {
+      "id": "P220",
+      "firstName": "Adam",
+      "lastName": "Piontek",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P219"
+      ],
+      "birthDate": "1941-01-27",
+      "deathDate": "2012-04-21"
+    },
+    {
+      "id": "P221",
+      "firstName": "Daniel",
+      "lastName": "Piontek",
+      "gender": "male",
+      "parentIds": [
+        "P219",
+        "P220"
+      ],
+      "spouseIds": [
+        "P222"
+      ],
+      "birthDate": "1977-02-12"
+    },
+    {
+      "id": "P222",
+      "firstName": "Urszula",
+      "lastName": "Klonowska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P221"
+      ],
+      "birthDate": "1984-08-14"
+    },
+    {
+      "id": "P223",
+      "firstName": "Dawid",
+      "lastName": "Piontek",
+      "gender": "male",
+      "parentIds": [
+        "P221",
+        "P222"
+      ],
+      "spouseIds": [],
+      "birthDate": "2004-06-01"
+    },
+    {
+      "id": "P224",
+      "firstName": "Aleksandra",
+      "lastName": "Piontek",
+      "gender": "female",
+      "parentIds": [
+        "P221",
+        "P222"
+      ],
+      "spouseIds": [],
+      "birthDate": "2007-07-29"
+    },
+    {
+      "id": "P225",
+      "firstName": "Lucyna",
+      "lastName": "Piontek",
+      "gender": "female",
+      "parentIds": [
+        "P219",
+        "P220"
+      ],
+      "spouseIds": [
+        "P226"
+      ],
+      "birthDate": "1978-08-15",
+      "notes": "obok tej linii w oryginale odręczny dopisek 'Lucja Rinc - 2025' -- prawdopodobnie późniejsza notatka o ponownym zamążpójściu, nieoficjalnie dopisana do wydruku; przepisano literalnie, treść niepewna"
+    },
+    {
+      "id": "P226",
+      "firstName": "Arkadiusz Stanisław",
+      "lastName": "Trendel",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P225"
+      ],
+      "birthDate": "1975-12-11"
+    },
+    {
+      "id": "P227",
+      "firstName": "Dominika",
+      "lastName": "Trendel",
+      "gender": "female",
+      "parentIds": [
+        "P225",
+        "P226"
+      ],
+      "spouseIds": [],
+      "birthDate": "1995-09-24"
+    },
+    {
+      "id": "P228",
+      "firstName": "Damian",
+      "lastName": "Trendel",
+      "gender": "male",
+      "parentIds": [
+        "P225",
+        "P226"
+      ],
+      "spouseIds": [],
+      "birthDate": "1997-04-07"
+    },
+    {
+      "id": "P229",
+      "firstName": "Kordian",
+      "lastName": "Trendel",
+      "gender": "male",
+      "parentIds": [
+        "P225",
+        "P226"
+      ],
+      "spouseIds": [],
+      "birthDate": "1998-06-03"
+    },
+    {
+      "id": "P230",
+      "firstName": "Maria",
+      "lastName": "Piontek",
+      "gender": "female",
+      "parentIds": [
+        "P219",
+        "P220"
+      ],
+      "spouseIds": [
+        "P231"
+      ],
+      "birthDate": "1979-08-17"
+    },
+    {
+      "id": "P231",
+      "firstName": "Michał",
+      "lastName": "Antosiewicz",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P230"
+      ],
+      "birthDate": "1975-08-31"
+    },
+    {
+      "id": "P232",
+      "firstName": "Amadeusz",
+      "lastName": "Antosiewicz",
+      "gender": "male",
+      "parentIds": [
+        "P230",
+        "P231"
+      ],
+      "spouseIds": [],
+      "birthDate": "2006-06-03"
+    },
+    {
+      "id": "P233",
+      "firstName": "Elżbieta",
+      "lastName": "Piontek",
+      "gender": "female",
+      "parentIds": [
+        "P219",
+        "P220"
+      ],
+      "spouseIds": [
+        "P234"
+      ],
+      "birthDate": "1983-04-14"
+    },
+    {
+      "id": "P234",
+      "firstName": "Marek",
+      "lastName": "Czarnecki",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P233"
+      ],
+      "birthDate": "1963-07-14"
+    },
+    {
+      "id": "P235",
+      "firstName": "Fabian",
+      "lastName": "Piontek",
+      "gender": "male",
+      "parentIds": [
+        "P233",
+        "P234"
+      ],
+      "spouseIds": [],
+      "birthDate": "2004-11-29"
+    },
+    {
+      "id": "P236",
+      "firstName": "Barbara",
+      "lastName": "Piontek",
+      "gender": "female",
+      "parentIds": [
+        "P219",
+        "P220"
+      ],
+      "spouseIds": [],
+      "birthDate": "1992-09-02"
+    },
+    {
+      "id": "P237",
+      "firstName": "Józef",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P217",
+        "P218"
+      ],
+      "spouseIds": [],
+      "birthDate": "1963-06-26"
+    },
+    {
+      "id": "P240",
+      "firstName": "Stanisław",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P060",
+        "P061"
+      ],
+      "spouseIds": [
+        "P241"
+      ],
+      "birthDate": "1925-11-12",
+      "deathDate": "1993-12-16"
+    },
+    {
+      "id": "P241",
+      "firstName": "Rozalia",
+      "lastName": "Kollek",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P240"
+      ],
+      "birthDate": "1925-11-16",
+      "deathDate": "2009-05-28",
+      "notes": "ślub gru 1948"
+    },
+    {
+      "id": "P242",
+      "firstName": "Tadeusz",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P240",
+        "P241"
+      ],
+      "spouseIds": [
+        "P243"
+      ],
+      "birthDate": "1949-06-20"
+    },
+    {
+      "id": "P243",
+      "firstName": "Ewa",
+      "lastName": "Królikowska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P242"
+      ],
+      "birthDate": "1952-01-31"
+    },
+    {
+      "id": "P244",
+      "firstName": "Aleksandra",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P242",
+        "P243"
+      ],
+      "spouseIds": [
+        "P245"
+      ],
+      "birthDate": "1973-05-31"
+    },
+    {
+      "id": "P245",
+      "firstName": "Piotr",
+      "lastName": "Wojciechowski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P244"
+      ]
+    },
+    {
+      "id": "P246",
+      "firstName": "Maja",
+      "lastName": "Wojciechowska",
+      "gender": "female",
+      "parentIds": [
+        "P244",
+        "P245"
+      ],
+      "spouseIds": [],
+      "birthDate": "2009-03-06"
+    },
+    {
+      "id": "P247",
+      "firstName": "Błażej",
+      "lastName": "Wojciechowski",
+      "gender": "male",
+      "parentIds": [
+        "P244",
+        "P245"
+      ],
+      "spouseIds": [],
+      "birthDate": "2010-12"
+    },
+    {
+      "id": "P248",
+      "firstName": "Agnieszka",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P242",
+        "P243"
+      ],
+      "spouseIds": [],
+      "birthDate": "1986-08-18"
+    },
+    {
+      "id": "P249",
+      "firstName": "Elżbieta",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P240",
+        "P241"
+      ],
+      "spouseIds": [
+        "P250"
+      ],
+      "birthDate": "1959-03-05"
+    },
+    {
+      "id": "P250",
+      "firstName": "Jerzy",
+      "lastName": "Lieder",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P249"
+      ],
+      "birthDate": "1956-09-07"
+    },
+    {
+      "id": "P251",
+      "firstName": "Iwona",
+      "lastName": "Lieder",
+      "gender": "female",
+      "parentIds": [
+        "P249",
+        "P250"
+      ],
+      "spouseIds": [
+        "P252"
+      ],
+      "birthDate": "1985-07-22"
+    },
+    {
+      "id": "P252",
+      "firstName": "Karol",
+      "lastName": "Kryszewski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P251"
+      ],
+      "birthDate": "1982",
+      "notes": "ślub 2012-01-28"
+    },
+    {
+      "id": "P253",
+      "firstName": "Maciej",
+      "lastName": "Lieder",
+      "gender": "male",
+      "parentIds": [
+        "P249",
+        "P250"
+      ],
+      "spouseIds": [],
+      "birthDate": "1988-02-13"
+    },
+    {
+      "id": "P254",
+      "firstName": "Rafał",
+      "lastName": "Lieder",
+      "gender": "male",
+      "parentIds": [
+        "P249",
+        "P250"
+      ],
+      "spouseIds": [],
+      "birthDate": "1990-11-05"
+    },
+    {
+      "id": "P255",
+      "firstName": "Józef",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P060",
+        "P061"
+      ],
+      "spouseIds": [
+        "P256"
+      ],
+      "birthDate": "1927-02-08",
+      "deathDate": "2001-07-04"
+    },
+    {
+      "id": "P256",
+      "firstName": "Jadwiga",
+      "lastName": "Trendel",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P255"
+      ],
+      "birthDate": "1928-06-27",
+      "deathDate": "2008-07-06"
+    },
+    {
+      "id": "P257",
+      "firstName": "Małgorzata",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P255",
+        "P256"
+      ],
+      "spouseIds": [
+        "P258"
+      ],
+      "birthDate": "1954-04-04"
+    },
+    {
+      "id": "P258",
+      "firstName": "Jan",
+      "lastName": "Okrój",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P257"
+      ],
+      "birthDate": "1954-06-20"
+    },
+    {
+      "id": "P259",
+      "firstName": "Franciszek",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P255",
+        "P256"
+      ],
+      "spouseIds": [
+        "P260"
+      ],
+      "birthDate": "1956-01-29",
+      "deathDate": "2009-08-07"
+    },
+    {
+      "id": "P260",
+      "firstName": "Irena",
+      "lastName": "Paczul",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P259"
+      ],
+      "birthDate": "1956-02-26"
+    },
+    {
+      "id": "P261",
+      "firstName": "Sylwia",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P259",
+        "P260"
+      ],
+      "spouseIds": [
+        "P262"
+      ],
+      "birthDate": "1979-08-01"
+    },
+    {
+      "id": "P262",
+      "firstName": "Adrian",
+      "lastName": "Chmiel",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P261"
+      ],
+      "birthDate": "1982-03-05"
+    },
+    {
+      "id": "P263",
+      "firstName": "Natalia",
+      "lastName": "Chmiel",
+      "gender": "female",
+      "parentIds": [
+        "P261",
+        "P262"
+      ],
+      "spouseIds": [],
+      "birthDate": "2003-06-24"
+    },
+    {
+      "id": "P264",
+      "firstName": "Marcin",
+      "lastName": "Chmiel",
+      "gender": "male",
+      "parentIds": [
+        "P261",
+        "P262"
+      ],
+      "spouseIds": [],
+      "birthDate": "2006-04-02"
+    },
+    {
+      "id": "P265",
+      "firstName": "Mateusz",
+      "lastName": "Chmiel",
+      "gender": "male",
+      "parentIds": [
+        "P261",
+        "P262"
+      ],
+      "spouseIds": [],
+      "birthDate": "2008-12-28"
+    },
+    {
+      "id": "P266",
+      "firstName": "Justyna",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P259",
+        "P260"
+      ],
+      "spouseIds": [
+        "P267"
+      ],
+      "birthDate": "1987-01-10"
+    },
+    {
+      "id": "P267",
+      "firstName": "Łukasz",
+      "lastName": "Jakubczyk",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P266"
+      ],
+      "birthDate": "1987-08-25"
+    },
+    {
+      "id": "P268",
+      "firstName": "Jakub",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P266",
+        "P267"
+      ],
+      "spouseIds": [],
+      "birthDate": "2008-11-08",
+      "notes": "w oryginale nosi nazwisko Potrykus mimo że matka (Justyna) jest zamężna z Jakubczykiem -- przepisano literalnie"
+    },
+    {
+      "id": "P270",
       "firstName": "Władysław",
       "lastName": "Potrykus",
       "gender": "male",
       "parentIds": [
-        "jozef-edward-potrykus-1891-10-26",
-        "matylda-potrykus-1895-12-10"
+        "P060",
+        "P061"
       ],
-      "spouseIds": []
+      "spouseIds": [
+        "P271"
+      ],
+      "birthDate": "1928-06-11",
+      "deathDate": "1997-11-18"
     },
     {
-      "id": "theophil-teofil-potrykus-1893-10-11",
-      "firstName": "Theophil (Teofil)",
+      "id": "P271",
+      "firstName": "Maria",
+      "lastName": "Hallmann",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P270"
+      ],
+      "birthDate": "1936-04-25"
+    },
+    {
+      "id": "P272",
+      "firstName": "Stanisław",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1893-10-11",
-      "deathDate": "1899-06-19",
       "parentIds": [
-        "franciszek-xawery-potrykus"
+        "P270",
+        "P271"
+      ],
+      "spouseIds": [
+        "P273"
+      ],
+      "birthDate": "1956-05-18",
+      "deathDate": "1997-06-22"
+    },
+    {
+      "id": "P273",
+      "firstName": "Małgorzata",
+      "lastName": "Kollek",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P272"
+      ],
+      "birthDate": "1959-06-28"
+    },
+    {
+      "id": "P274",
+      "firstName": "Weronika",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P272",
+        "P273"
+      ],
+      "spouseIds": [],
+      "birthDate": "1985-09-05"
+    },
+    {
+      "id": "P275",
+      "firstName": "Jadwiga",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P270",
+        "P271"
+      ],
+      "spouseIds": [
+        "P276"
+      ],
+      "birthDate": "1957-08-17"
+    },
+    {
+      "id": "P276",
+      "firstName": "Kazimierz",
+      "lastName": "Tarnowski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P275"
+      ],
+      "birthDate": "1954-12-11"
+    },
+    {
+      "id": "P277",
+      "firstName": "Dorota",
+      "lastName": "Tarnowska",
+      "gender": "female",
+      "parentIds": [
+        "P275",
+        "P276"
+      ],
+      "spouseIds": [
+        "P278"
+      ],
+      "birthDate": "1978-03-07"
+    },
+    {
+      "id": "P278",
+      "firstName": "Bogdan",
+      "lastName": "Sikora",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P277"
+      ],
+      "birthDate": "1969-04-18"
+    },
+    {
+      "id": "P279",
+      "firstName": "Paulina",
+      "lastName": "Sikora",
+      "gender": "female",
+      "parentIds": [
+        "P277",
+        "P278"
+      ],
+      "spouseIds": [],
+      "birthDate": "1998-04-28"
+    },
+    {
+      "id": "P280",
+      "firstName": "Klaudia",
+      "lastName": "Sikora",
+      "gender": "female",
+      "parentIds": [
+        "P277",
+        "P278"
+      ],
+      "spouseIds": [],
+      "birthDate": "1999-05-21"
+    },
+    {
+      "id": "P281",
+      "firstName": "Katarzyna",
+      "lastName": "Tarnowska",
+      "gender": "female",
+      "parentIds": [
+        "P275",
+        "P276"
+      ],
+      "spouseIds": [
+        "P282"
+      ],
+      "birthDate": "1979-11-29"
+    },
+    {
+      "id": "P282",
+      "firstName": "Ryszard",
+      "lastName": "Wikowski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P281"
+      ],
+      "birthDate": "1978-12-01"
+    },
+    {
+      "id": "P283",
+      "firstName": "Tomasz",
+      "lastName": "Wikowski",
+      "gender": "male",
+      "parentIds": [
+        "P281",
+        "P282"
+      ],
+      "spouseIds": [],
+      "birthDate": "2003-04-12"
+    },
+    {
+      "id": "P284",
+      "firstName": "Agnieszka",
+      "lastName": "Wikowska",
+      "gender": "female",
+      "parentIds": [
+        "P281",
+        "P282"
+      ],
+      "spouseIds": [],
+      "birthDate": "2007-05-09"
+    },
+    {
+      "id": "P285",
+      "firstName": "Małgorzata",
+      "lastName": "Tarnowska",
+      "gender": "female",
+      "parentIds": [
+        "P275",
+        "P276"
+      ],
+      "spouseIds": [
+        "P286"
+      ],
+      "birthDate": "1984-06-01"
+    },
+    {
+      "id": "P286",
+      "firstName": "Marek",
+      "lastName": "Wikowski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P285"
+      ]
+    },
+    {
+      "id": "P287",
+      "firstName": "Aleksander",
+      "lastName": "Wikowski",
+      "gender": "male",
+      "parentIds": [
+        "P285",
+        "P286"
+      ],
+      "spouseIds": [],
+      "birthDate": "2009-09-01"
+    },
+    {
+      "id": "P288",
+      "firstName": "Karol",
+      "lastName": "Tarnowski",
+      "gender": "male",
+      "parentIds": [
+        "P275",
+        "P276"
+      ],
+      "spouseIds": [],
+      "birthDate": "1994-07"
+    },
+    {
+      "id": "P289",
+      "firstName": "Maria",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P270",
+        "P271"
+      ],
+      "spouseIds": [
+        "P290"
+      ],
+      "birthDate": "1959-09-08"
+    },
+    {
+      "id": "P290",
+      "firstName": "Brunon Tadeusz",
+      "lastName": "Lieske",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P289"
+      ],
+      "birthDate": "1956-08-26"
+    },
+    {
+      "id": "P291",
+      "firstName": "Andrzej",
+      "lastName": "Lieske",
+      "gender": "male",
+      "parentIds": [
+        "P289",
+        "P290"
+      ],
+      "spouseIds": [
+        "P292"
+      ],
+      "birthDate": "1981-06-07"
+    },
+    {
+      "id": "P292",
+      "firstName": "Anna",
+      "lastName": "Miotk",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P291"
+      ],
+      "birthDate": "1983-04-17"
+    },
+    {
+      "id": "P293",
+      "firstName": "Sandra",
+      "lastName": "Lieske",
+      "gender": "female",
+      "parentIds": [
+        "P291",
+        "P292"
+      ],
+      "spouseIds": [],
+      "birthDate": "2003-09-24"
+    },
+    {
+      "id": "P294",
+      "firstName": "Inga",
+      "lastName": "Lieske",
+      "gender": "female",
+      "parentIds": [
+        "P291",
+        "P292"
+      ],
+      "spouseIds": [],
+      "birthDate": "2009-08-20"
+    },
+    {
+      "id": "P295",
+      "firstName": "Krystian",
+      "lastName": "Lieske",
+      "gender": "male",
+      "parentIds": [
+        "P289",
+        "P290"
+      ],
+      "spouseIds": [],
+      "birthDate": "1983-06-13",
+      "deathDate": "1996-03-04"
+    },
+    {
+      "id": "P296",
+      "firstName": "Barbara",
+      "lastName": "Lieske",
+      "gender": "female",
+      "parentIds": [
+        "P289",
+        "P290"
+      ],
+      "spouseIds": [],
+      "birthDate": "1995-01-27"
+    },
+    {
+      "id": "P297",
+      "firstName": "Adam",
+      "lastName": "Lieske",
+      "gender": "male",
+      "parentIds": [
+        "P289",
+        "P290"
+      ],
+      "spouseIds": [],
+      "birthDate": "1997-12-11"
+    },
+    {
+      "id": "P298",
+      "firstName": "Walerian",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P060",
+        "P061"
+      ],
+      "spouseIds": [
+        "P299"
+      ],
+      "birthDate": "1929-09-12"
+    },
+    {
+      "id": "P299",
+      "firstName": "Bernadeta",
+      "lastName": "Groth",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P298"
+      ],
+      "birthDate": "1936-12-03"
+    },
+    {
+      "id": "P300",
+      "firstName": "Teresa",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P298",
+        "P299"
+      ],
+      "spouseIds": [
+        "P301"
+      ],
+      "birthDate": "1957-05-15"
+    },
+    {
+      "id": "P301",
+      "firstName": "Roman",
+      "lastName": "NN",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P300"
+      ],
+      "notes": "nazwisko nieznane"
+    },
+    {
+      "id": "P302",
+      "firstName": "Marcin",
+      "lastName": "NN",
+      "gender": "male",
+      "parentIds": [
+        "P300",
+        "P301"
+      ],
+      "spouseIds": [],
+      "birthDate": "1984-12-11",
+      "notes": "nazwisko nieznane"
+    },
+    {
+      "id": "P303",
+      "firstName": "NN",
+      "lastName": "NN",
+      "gender": "unknown",
+      "parentIds": [
+        "P300",
+        "P301"
+      ],
+      "spouseIds": [],
+      "notes": "dziecko bez podanych danych (\"nn\") w oryginale"
+    },
+    {
+      "id": "P304",
+      "firstName": "Anna",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P298",
+        "P299"
+      ],
+      "spouseIds": [
+        "P305"
+      ],
+      "birthDate": "1959-06-05"
+    },
+    {
+      "id": "P305",
+      "firstName": "Ireneusz",
+      "lastName": "Frankowski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P304"
+      ],
+      "birthDate": "1958-05-15"
+    },
+    {
+      "id": "P306",
+      "firstName": "Rafał",
+      "lastName": "Frankowski",
+      "gender": "male",
+      "parentIds": [
+        "P304",
+        "P305"
+      ],
+      "spouseIds": [
+        "P307"
+      ]
+    },
+    {
+      "id": "P307",
+      "firstName": "NN",
+      "lastName": "Frankowska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P306"
+      ],
+      "notes": "imię nieznane"
+    },
+    {
+      "id": "P310",
+      "firstName": "Józef",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P018",
+        "P019"
+      ],
+      "spouseIds": [
+        "P311"
+      ],
+      "birthDate": "1891-10-26",
+      "deathDate": "1950-11-19"
+    },
+    {
+      "id": "P311",
+      "firstName": "Matylda",
+      "lastName": "Drzeżdżon",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P310"
+      ],
+      "birthDate": "1895-12-10",
+      "deathDate": "1980-07-13"
+    },
+    {
+      "id": "P312",
+      "firstName": "Eryka",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P310",
+        "P311"
+      ],
+      "spouseIds": [],
+      "birthDate": "1925-02-27",
+      "deathDate": "1999-03-12"
+    },
+    {
+      "id": "P313",
+      "firstName": "Matylda",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P310",
+        "P311"
       ],
       "spouseIds": []
     },
     {
-      "id": "antoni-potrykus-1897-05-04",
+      "id": "P314",
+      "firstName": "Brunon",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P310",
+        "P311"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P315",
+      "firstName": "Władysław",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P310",
+        "P311"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P320",
       "firstName": "Antoni",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1897-05-04",
-      "deathDate": "1945-03-27",
       "parentIds": [
-        "franciszek-xawery-potrykus"
+        "P018",
+        "P019"
       ],
       "spouseIds": [
-        "gertruda-potrykus-1900-11-13"
-      ]
+        "P321"
+      ],
+      "birthDate": "1897-05-04",
+      "deathDate": "1945-03-27"
     },
     {
-      "notes": "ślub 3 lip 1921",
-      "maidenName": "Dorsch",
-      "id": "gertruda-potrykus-1900-11-13",
+      "id": "P321",
       "firstName": "Gertruda",
-      "lastName": "Potrykus",
+      "lastName": "Dorsch",
       "gender": "female",
-      "birthDate": "1900-11-13",
-      "deathDate": "1988-07-16",
       "parentIds": [],
       "spouseIds": [
-        "antoni-potrykus-1897-05-04"
-      ]
+        "P320"
+      ],
+      "birthDate": "1900-11-13",
+      "deathDate": "1988-07-16",
+      "notes": "ślub 1921-07-03"
     },
     {
-      "id": "grzegorz-potrykus-1922-09-10",
+      "id": "P322",
       "firstName": "Grzegorz",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1922-09-10",
-      "deathDate": "2001-09-25",
       "parentIds": [
-        "antoni-potrykus-1897-05-04",
-        "gertruda-potrykus-1900-11-13"
+        "P320",
+        "P321"
       ],
       "spouseIds": [
-        "urszula-potrykus-1922-08-30"
-      ]
+        "P323"
+      ],
+      "birthDate": "1922-09-10",
+      "deathDate": "2001-09-25"
     },
     {
-      "maidenName": "Engling",
-      "id": "urszula-potrykus-1922-08-30",
+      "id": "P323",
       "firstName": "Urszula",
-      "lastName": "Potrykus",
+      "lastName": "Engling",
       "gender": "female",
-      "birthDate": "1922-08-30",
-      "deathDate": "2004-06-11",
       "parentIds": [],
       "spouseIds": [
-        "grzegorz-potrykus-1922-09-10"
-      ]
+        "P322"
+      ],
+      "birthDate": "1922-08-30",
+      "deathDate": "2004-06-11"
     },
     {
-      "maidenName": "Potrykus",
-      "id": "wieslawa-schroeder-1949-05-14",
+      "id": "P324",
       "firstName": "Wiesława",
-      "lastName": "Schroeder",
+      "lastName": "Potrykus",
       "gender": "female",
-      "birthDate": "1949-05-14",
-      "deathDate": "2003-04-23",
       "parentIds": [
-        "grzegorz-potrykus-1922-09-10",
-        "urszula-potrykus-1922-08-30"
+        "P322",
+        "P323"
       ],
       "spouseIds": [
-        "ryszard-schroeder-x"
-      ]
+        "P325"
+      ],
+      "birthDate": "1949-05-14",
+      "deathDate": "2003-04-23"
     },
     {
-      "id": "ryszard-schroeder-x",
+      "id": "P325",
       "firstName": "Ryszard",
       "lastName": "Schroeder",
       "gender": "male",
       "parentIds": [],
       "spouseIds": [
-        "wieslawa-schroeder-1949-05-14"
+        "P324"
       ]
     },
     {
-      "id": "izabela-schroeder-x",
+      "id": "P326",
       "firstName": "Izabela",
       "lastName": "Schroeder",
       "gender": "female",
       "parentIds": [
-        "wieslawa-schroeder-1949-05-14",
-        "ryszard-schroeder-x"
+        "P324",
+        "P325"
       ],
       "spouseIds": []
     },
     {
-      "id": "przemyslaw-schroeder-x",
+      "id": "P327",
       "firstName": "Przemysław",
       "lastName": "Schroeder",
       "gender": "male",
       "parentIds": [
-        "wieslawa-schroeder-1949-05-14",
-        "ryszard-schroeder-x"
+        "P324",
+        "P325"
       ],
       "spouseIds": []
     },
     {
-      "maidenName": "Potrykus",
-      "id": "irena-konieczny-1950",
+      "id": "P328",
       "firstName": "Irena",
-      "lastName": "Konieczny",
+      "lastName": "Potrykus",
       "gender": "female",
-      "birthDate": "1950",
       "parentIds": [
-        "grzegorz-potrykus-1922-09-10",
-        "urszula-potrykus-1922-08-30"
+        "P322",
+        "P323"
       ],
       "spouseIds": [
-        "miroslaw-konieczny-x"
-      ]
+        "P329"
+      ],
+      "birthDate": "1950"
     },
     {
-      "id": "miroslaw-konieczny-x",
+      "id": "P329",
       "firstName": "Mirosław",
       "lastName": "Konieczny",
       "gender": "male",
       "parentIds": [],
       "spouseIds": [
-        "irena-konieczny-1950"
+        "P328"
       ]
     },
     {
-      "id": "dominik-konieczny-x",
+      "id": "P330",
       "firstName": "Dominik",
       "lastName": "Konieczny",
       "gender": "male",
       "parentIds": [
-        "irena-konieczny-1950",
-        "miroslaw-konieczny-x"
+        "P328",
+        "P329"
       ],
       "spouseIds": []
     },
     {
-      "id": "mieczyslaw-potrykus-1951-11-16",
+      "id": "P331",
       "firstName": "Mieczysław",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1951-11-16",
       "parentIds": [
-        "grzegorz-potrykus-1922-09-10",
-        "urszula-potrykus-1922-08-30"
+        "P322",
+        "P323"
       ],
       "spouseIds": [
-        "renata-potrykus-1951"
-      ]
+        "P332"
+      ],
+      "birthDate": "1951-11-16"
     },
     {
-      "maidenName": "Figlarek",
-      "id": "renata-potrykus-1951",
+      "id": "P332",
       "firstName": "Renata",
-      "lastName": "Potrykus",
+      "lastName": "Figlarek",
       "gender": "female",
-      "birthDate": "1951",
-      "deathDate": "2012-10-18",
       "parentIds": [],
       "spouseIds": [
-        "mieczyslaw-potrykus-1951-11-16"
-      ]
+        "P331"
+      ],
+      "birthDate": "1951"
     },
     {
-      "id": "piotr-potrykus-mieczyslaw",
+      "id": "P333",
       "firstName": "Piotr",
       "lastName": "Potrykus",
       "gender": "male",
       "parentIds": [
-        "mieczyslaw-potrykus-1951-11-16",
-        "renata-potrykus-1951"
+        "P331",
+        "P332"
       ],
       "spouseIds": []
     },
     {
-      "id": "slawomir-potrykus-mieczyslaw",
+      "id": "P334",
       "firstName": "Sławomir",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1972-05-30",
       "parentIds": [
-        "mieczyslaw-potrykus-1951-11-16",
-        "renata-potrykus-1951"
+        "P331",
+        "P332"
       ],
       "spouseIds": []
     },
     {
-      "id": "andrzej-potrykus-1954-09-10",
+      "id": "P335",
       "firstName": "Andrzej",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1954-09-10",
       "parentIds": [
-        "grzegorz-potrykus-1922-09-10",
-        "urszula-potrykus-1922-08-30"
+        "P322",
+        "P323"
       ],
       "spouseIds": [
-        "bozena-potrykus-1955-09-04"
-      ]
+        "P336"
+      ],
+      "birthDate": "1954-09-10"
     },
     {
-      "maidenName": "Palach",
-      "id": "bozena-potrykus-1955-09-04",
+      "id": "P336",
       "firstName": "Bożena",
-      "lastName": "Potrykus",
+      "lastName": "Palach",
       "gender": "female",
-      "birthDate": "1955-09-04",
       "parentIds": [],
       "spouseIds": [
-        "andrzej-potrykus-1954-09-10"
+        "P335"
       ]
     },
     {
-      "id": "marian-potrykus-1957-12-22",
+      "id": "P337",
       "firstName": "Marian",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1957-12-22",
       "parentIds": [
-        "grzegorz-potrykus-1922-09-10",
-        "urszula-potrykus-1922-08-30"
+        "P322",
+        "P323"
       ],
       "spouseIds": [
-        "maria-potrykus-1954-09-13"
-      ]
+        "P338"
+      ],
+      "birthDate": "1957-12-22"
     },
     {
-      "maidenName": "Karczewska",
-      "id": "maria-potrykus-1954-09-13",
+      "id": "P338",
       "firstName": "Maria",
-      "lastName": "Potrykus",
+      "lastName": "Karczewska",
       "gender": "female",
-      "birthDate": "1954-09-13",
       "parentIds": [],
       "spouseIds": [
-        "marian-potrykus-1957-12-22"
-      ]
+        "P337"
+      ],
+      "birthDate": "1954-09-13"
     },
     {
-      "id": "daniel-potrykus-1978-07-10",
+      "id": "P339",
       "firstName": "Daniel",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1978-07-10",
       "parentIds": [
-        "marian-potrykus-1957-12-22",
-        "maria-potrykus-1954-09-13"
+        "P337",
+        "P338"
       ],
       "spouseIds": [
-        "kinga-potrykus-purzycka"
+        "P340"
+      ],
+      "birthDate": "1978-07-10"
+    },
+    {
+      "id": "P340",
+      "firstName": "Kinga",
+      "lastName": "Purzycka",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P339"
       ]
     },
     {
-      "maidenName": "Purzycka",
-      "id": "kinga-potrykus-purzycka",
-      "firstName": "Kinga",
+      "id": "P341",
+      "firstName": "Joanna",
       "lastName": "Potrykus",
       "gender": "female",
-      "parentIds": [],
-      "spouseIds": [
-        "daniel-potrykus-1978-07-10"
-      ]
+      "parentIds": [
+        "P337",
+        "P338"
+      ],
+      "spouseIds": [],
+      "birthDate": "1980-04-01"
     },
     {
-      "notes": "Łącznik pokoleniowy (dane przodka do uzupełnienia z pełnego dokumentu)",
-      "id": "linia-glowna-potrykus",
-      "firstName": "Linia główna",
+      "id": "P342",
+      "firstName": "Robert",
       "lastName": "Potrykus",
-      "gender": "unknown",
-      "parentIds": [
-        "franciszek-xawery-potrykus"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "helena-hallmann-1921-07-20",
-      "firstName": "Helena",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "1921-07-20",
-      "deathDate": "1998-12-19",
-      "parentIds": [
-        "linia-glowna-potrykus"
-      ],
-      "spouseIds": [
-        "jozef-hallmann-1909-11-12"
-      ]
-    },
-    {
-      "notes": "ślub 11 lis 1947",
-      "id": "jozef-hallmann-1909-11-12",
-      "firstName": "Józef",
-      "lastName": "Hallmann",
       "gender": "male",
-      "birthDate": "1909-11-12",
-      "deathDate": "1999-06-09",
-      "parentIds": [],
-      "spouseIds": [
-        "helena-hallmann-1921-07-20"
-      ]
-    },
-    {
-      "maidenName": "Hallmann",
-      "id": "genowefa-szornak-1948-09-06",
-      "firstName": "Genowefa",
-      "lastName": "Szornak",
-      "gender": "female",
-      "birthDate": "1948-09-06",
       "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
+        "P337",
+        "P338"
       ],
-      "spouseIds": [
-        "karol-szornak-1941-10-19"
-      ]
+      "spouseIds": [],
+      "birthDate": "1990-09-19"
     },
     {
-      "id": "karol-szornak-1941-10-19",
-      "firstName": "Karol",
-      "lastName": "Szornak",
-      "gender": "male",
-      "birthDate": "1941-10-19",
-      "deathDate": "2008-05-17",
-      "parentIds": [],
-      "spouseIds": [
-        "genowefa-szornak-1948-09-06"
-      ]
-    },
-    {
-      "maidenName": "Szornak",
-      "id": "hanna-miotk-1968-09-18",
-      "firstName": "Hanna",
-      "lastName": "Miotk",
-      "gender": "female",
-      "birthDate": "1968-09-18",
-      "parentIds": [
-        "genowefa-szornak-1948-09-06",
-        "karol-szornak-1941-10-19"
-      ],
-      "spouseIds": [
-        "jozef-miotk-1968-01-09"
-      ]
-    },
-    {
-      "id": "jozef-miotk-1968-01-09",
-      "firstName": "Józef",
-      "lastName": "Miotk",
-      "gender": "male",
-      "birthDate": "1968-01-09",
-      "parentIds": [],
-      "spouseIds": [
-        "hanna-miotk-1968-09-18"
-      ]
-    },
-    {
-      "id": "oskar-miotk-1996-05-01",
-      "firstName": "Oskar",
-      "lastName": "Miotk",
-      "gender": "male",
-      "birthDate": "1996-05-01",
-      "parentIds": [
-        "hanna-miotk-1968-09-18",
-        "jozef-miotk-1968-01-09"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "eryk-miotk-1998-03-14",
-      "firstName": "Eryk",
-      "lastName": "Miotk",
-      "gender": "male",
-      "birthDate": "1998-03-14",
-      "parentIds": [
-        "hanna-miotk-1968-09-18",
-        "jozef-miotk-1968-01-09"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "dawid-miotk-1999-07-15",
-      "firstName": "Dawid",
-      "lastName": "Miotk",
-      "gender": "male",
-      "birthDate": "1999-07-15",
-      "parentIds": [
-        "hanna-miotk-1968-09-18",
-        "jozef-miotk-1968-01-09"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "kacper-miotk-2005-01-06",
-      "firstName": "Kacper",
-      "lastName": "Miotk",
-      "gender": "male",
-      "birthDate": "2005-01-06",
-      "parentIds": [
-        "hanna-miotk-1968-09-18",
-        "jozef-miotk-1968-01-09"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "grzegorz-szornak-1971-03-12",
-      "firstName": "Grzegorz",
-      "lastName": "Szornak",
-      "gender": "male",
-      "birthDate": "1971-03-12",
-      "parentIds": [
-        "genowefa-szornak-1948-09-06",
-        "karol-szornak-1941-10-19"
-      ],
-      "spouseIds": [
-        "beata-szornak-1971-08-16"
-      ]
-    },
-    {
-      "maidenName": "Szeszko",
-      "id": "beata-szornak-1971-08-16",
-      "firstName": "Beata",
-      "lastName": "Szornak",
-      "gender": "female",
-      "birthDate": "1971-08-16",
-      "parentIds": [],
-      "spouseIds": [
-        "grzegorz-szornak-1971-03-12"
-      ]
-    },
-    {
-      "id": "aleksandra-szornak-1992-11-27",
-      "firstName": "Aleksandra",
-      "lastName": "Szornak",
-      "gender": "female",
-      "birthDate": "1992-11-27",
-      "parentIds": [
-        "grzegorz-szornak-1971-03-12",
-        "beata-szornak-1971-08-16"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Szornak",
-      "id": "malgorzata-boczynski-1976-09-15",
-      "firstName": "Małgorzata",
-      "lastName": "Boczyński",
-      "gender": "female",
-      "birthDate": "1976-09-15",
-      "parentIds": [
-        "genowefa-szornak-1948-09-06",
-        "karol-szornak-1941-10-19"
-      ],
-      "spouseIds": [
-        "grzegorz-boczynski-1981-09-09"
-      ]
-    },
-    {
-      "id": "grzegorz-boczynski-1981-09-09",
-      "firstName": "Grzegorz",
-      "lastName": "Boczyński",
-      "gender": "male",
-      "birthDate": "1981-09-09",
-      "parentIds": [],
-      "spouseIds": [
-        "malgorzata-boczynski-1976-09-15"
-      ]
-    },
-    {
-      "id": "kamil-boczynski-2003-07-10",
-      "firstName": "Kamil",
-      "lastName": "Boczyński",
-      "gender": "male",
-      "birthDate": "2003-07-10",
-      "parentIds": [
-        "malgorzata-boczynski-1976-09-15",
-        "grzegorz-boczynski-1981-09-09"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Hallmann",
-      "id": "helena-kiepke-1949-09-22",
-      "firstName": "Helena",
-      "lastName": "Kiepke",
-      "gender": "female",
-      "birthDate": "1949-09-22",
-      "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
-      ],
-      "spouseIds": [
-        "herbert-kiepke-1943-09-17"
-      ]
-    },
-    {
-      "id": "herbert-kiepke-1943-09-17",
-      "firstName": "Herbert",
-      "lastName": "Kiepke",
-      "gender": "male",
-      "birthDate": "1943-09-17",
-      "deathDate": "1987-02-14",
-      "parentIds": [],
-      "spouseIds": [
-        "helena-kiepke-1949-09-22"
-      ]
-    },
-    {
-      "id": "gabriela-kiepke-1972-07-14",
-      "firstName": "Gabriela",
-      "lastName": "Kiepke",
-      "gender": "female",
-      "birthDate": "1972-07-14",
-      "parentIds": [
-        "helena-kiepke-1949-09-22",
-        "herbert-kiepke-1943-09-17"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "marek-kiepke-1974-06-14",
-      "firstName": "Marek",
-      "lastName": "Kiepke",
-      "gender": "male",
-      "birthDate": "1974-06-14",
-      "parentIds": [
-        "helena-kiepke-1949-09-22",
-        "herbert-kiepke-1943-09-17"
-      ],
-      "spouseIds": [
-        "marzena-kiepke-1973-05-20"
-      ]
-    },
-    {
-      "maidenName": "Okoń",
-      "id": "marzena-kiepke-1973-05-20",
-      "firstName": "Marzena",
-      "lastName": "Kiepke",
-      "gender": "female",
-      "birthDate": "1973-05-20",
-      "parentIds": [],
-      "spouseIds": [
-        "marek-kiepke-1974-06-14"
-      ]
-    },
-    {
-      "id": "kinga-kiepke-2007-04-08",
-      "firstName": "Kinga",
-      "lastName": "Kiepke",
-      "gender": "female",
-      "birthDate": "2007-04-08",
-      "parentIds": [
-        "marek-kiepke-1974-06-14",
-        "marzena-kiepke-1973-05-20"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "konrad-kiepke-2009-06-18",
-      "firstName": "Konrad",
-      "lastName": "Kiepke",
-      "gender": "male",
-      "birthDate": "2009-06-18",
-      "parentIds": [
-        "marek-kiepke-1974-06-14",
-        "marzena-kiepke-1973-05-20"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Kiepke",
-      "id": "teresa-kosmala-1977-10-31",
-      "firstName": "Teresa",
-      "lastName": "Kosmala",
-      "gender": "female",
-      "birthDate": "1977-10-31",
-      "parentIds": [
-        "helena-kiepke-1949-09-22",
-        "herbert-kiepke-1943-09-17"
-      ],
-      "spouseIds": [
-        "tomasz-kosmala-x"
-      ]
-    },
-    {
-      "id": "tomasz-kosmala-x",
-      "firstName": "Tomasz",
-      "lastName": "Kosmala",
-      "gender": "male",
-      "parentIds": [],
-      "spouseIds": [
-        "teresa-kosmala-1977-10-31"
-      ]
-    },
-    {
-      "id": "nikodem-kosmala-2005-11-08",
-      "firstName": "Nikodem",
-      "lastName": "Kosmala",
-      "gender": "male",
-      "birthDate": "2005-11-08",
-      "parentIds": [
-        "teresa-kosmala-1977-10-31",
-        "tomasz-kosmala-x"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "mateusz-kosmala-2009-11-15",
-      "firstName": "Mateusz",
-      "lastName": "Kosmala",
-      "gender": "male",
-      "birthDate": "2009-11-15",
-      "parentIds": [
-        "teresa-kosmala-1977-10-31",
-        "tomasz-kosmala-x"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "adam-hallmann-1950-11-24",
-      "firstName": "Adam",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1950-11-24",
-      "deathDate": "1950-11-24",
-      "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "lucja-hallmann-1951-12-12",
-      "firstName": "Łucja",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "1951-12-12",
-      "deathDate": "1959-07-22",
-      "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "franciszek-hallmann-1953-02-19",
-      "firstName": "Franciszek",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1953-02-19",
-      "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
-      ],
-      "spouseIds": [
-        "ludgarda-hallmann-1954-12-24"
-      ]
-    },
-    {
-      "maidenName": "Górska",
-      "id": "ludgarda-hallmann-1954-12-24",
-      "firstName": "Ludgarda",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "1954-12-24",
-      "parentIds": [],
-      "spouseIds": [
-        "franciszek-hallmann-1953-02-19"
-      ]
-    },
-    {
-      "maidenName": "Hallmann",
-      "id": "monika-czujkowski-1979-10-02",
-      "firstName": "Monika",
-      "lastName": "Czujkowski",
-      "gender": "female",
-      "birthDate": "1979-10-02",
-      "parentIds": [
-        "franciszek-hallmann-1953-02-19",
-        "ludgarda-hallmann-1954-12-24"
-      ],
-      "spouseIds": [
-        "piotr-czujkowski-x"
-      ]
-    },
-    {
-      "id": "piotr-czujkowski-x",
-      "firstName": "Piotr",
-      "lastName": "Czujkowski",
-      "gender": "male",
-      "parentIds": [],
-      "spouseIds": [
-        "monika-czujkowski-1979-10-02"
-      ]
-    },
-    {
-      "maidenName": "Hallmann",
-      "id": "magdalena-marszall-1981-07-06",
-      "firstName": "Magdalena",
-      "lastName": "Marszall",
-      "gender": "female",
-      "birthDate": "1981-07-06",
-      "parentIds": [
-        "franciszek-hallmann-1953-02-19",
-        "ludgarda-hallmann-1954-12-24"
-      ],
-      "spouseIds": [
-        "marcin-marszall-1980-07-03"
-      ]
-    },
-    {
-      "id": "marcin-marszall-1980-07-03",
-      "firstName": "Marcin",
-      "lastName": "Marszall",
-      "gender": "male",
-      "birthDate": "1980-07-03",
-      "parentIds": [],
-      "spouseIds": [
-        "magdalena-marszall-1981-07-06"
-      ]
-    },
-    {
-      "id": "aleksandra-marszall-2007-11-17",
-      "firstName": "Aleksandra",
-      "lastName": "Marszall",
-      "gender": "female",
-      "birthDate": "2007-11-17",
-      "parentIds": [
-        "magdalena-marszall-1981-07-06",
-        "marcin-marszall-1980-07-03"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "stanislaw-hallmann-1955-05-12",
-      "firstName": "Stanisław",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1955-05-12",
-      "deathDate": "2004-01-24",
-      "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "jozef-hallmann-1957",
-      "firstName": "Józef",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1957-07-30",
-      "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
-      ],
-      "spouseIds": [
-        "miroslawa-hallmann-1959-11-25"
-      ]
-    },
-    {
-      "maidenName": "Karsznia",
-      "id": "miroslawa-hallmann-1959-11-25",
-      "firstName": "Mirosława",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "1959-11-25",
-      "parentIds": [],
-      "spouseIds": [
-        "jozef-hallmann-1957"
-      ]
-    },
-    {
-      "id": "lukasz-hallmann-1981-05-26",
-      "firstName": "Łukasz",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1981-05-26",
-      "parentIds": [
-        "jozef-hallmann-1957",
-        "miroslawa-hallmann-1959-11-25"
-      ],
-      "spouseIds": [
-        "aleksandra-hallmann-1982-12-14"
-      ]
-    },
-    {
-      "maidenName": "Grubba",
-      "id": "aleksandra-hallmann-1982-12-14",
-      "firstName": "Aleksandra",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "1982-12-14",
-      "parentIds": [],
-      "spouseIds": [
-        "lukasz-hallmann-1981-05-26"
-      ]
-    },
-    {
-      "id": "maja-hallmann-2003-04-17",
-      "firstName": "Maja",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "2003-04-17",
-      "parentIds": [
-        "lukasz-hallmann-1981-05-26",
-        "aleksandra-hallmann-1982-12-14"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "marian-hallmann-1960-03-25",
-      "firstName": "Marian",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1960-03-25",
-      "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
-      ],
-      "spouseIds": [
-        "anita-hallmann-1963-10-16"
-      ]
-    },
-    {
-      "maidenName": "Kołoszyńska",
-      "id": "anita-hallmann-1963-10-16",
-      "firstName": "Anita",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "1963-10-16",
-      "parentIds": [],
-      "spouseIds": [
-        "marian-hallmann-1960-03-25"
-      ]
-    },
-    {
-      "maidenName": "Hallmann",
-      "id": "monika-hallmann-1983",
-      "firstName": "Monika",
-      "lastName": "Witkowski",
-      "gender": "female",
-      "birthDate": "1983-04-13",
-      "parentIds": [
-        "marian-hallmann-1960-03-25",
-        "anita-hallmann-1963-10-16"
-      ],
-      "spouseIds": [
-        "waldemar-witkowski-1981-08-09"
-      ]
-    },
-    {
-      "id": "waldemar-witkowski-1981-08-09",
-      "firstName": "Waldemar",
-      "lastName": "Witkowski",
-      "gender": "male",
-      "birthDate": "1981-08-09",
-      "parentIds": [],
-      "spouseIds": [
-        "monika-hallmann-1983"
-      ]
-    },
-    {
-      "id": "melisa-witkowska-x",
-      "firstName": "Melisa",
-      "lastName": "Witkowska",
-      "gender": "female",
-      "parentIds": [
-        "monika-hallmann-1983",
-        "waldemar-witkowski-1981-08-09"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "roza-witkowska-2004-06-12",
-      "firstName": "Róża",
-      "lastName": "Witkowska",
-      "gender": "female",
-      "birthDate": "2004-06-12",
-      "parentIds": [
-        "monika-hallmann-1983",
-        "waldemar-witkowski-1981-08-09"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Hallmann",
-      "id": "boguslawa-lehman-1983",
-      "firstName": "Bogusława",
-      "lastName": "Lehman",
-      "gender": "female",
-      "birthDate": "1983",
-      "parentIds": [
-        "marian-hallmann-1960-03-25",
-        "anita-hallmann-1963-10-16"
-      ],
-      "spouseIds": [
-        "tomasz-lehman-x"
-      ]
-    },
-    {
-      "id": "tomasz-lehman-x",
-      "firstName": "Tomasz",
-      "lastName": "Lehman",
-      "gender": "male",
-      "parentIds": [],
-      "spouseIds": [
-        "boguslawa-lehman-1983"
-      ]
-    },
-    {
-      "id": "jadwiga-hallmann-1992-10-15",
-      "firstName": "Jadwiga",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "1992-10-15",
-      "parentIds": [
-        "marian-hallmann-1960-03-25",
-        "anita-hallmann-1963-10-16"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "weronika-hallmann-1994-01-13",
-      "firstName": "Weronika",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "1994-01-13",
-      "deathDate": "2008-02-03",
-      "parentIds": [
-        "marian-hallmann-1960-03-25",
-        "anita-hallmann-1963-10-16"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "jozef-hallmann-1996",
-      "firstName": "Józef",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1996-04-27",
-      "parentIds": [
-        "marian-hallmann-1960-03-25",
-        "anita-hallmann-1963-10-16"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "bronislaw-hallmann-1961-12-11",
-      "firstName": "Bronisław",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1961-12-11",
-      "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
-      ],
-      "spouseIds": [
-        "bozena-hallmann-1965-04-26"
-      ]
-    },
-    {
-      "maidenName": "Machalińska",
-      "id": "bozena-hallmann-1965-04-26",
-      "firstName": "Bożena",
-      "lastName": "Hallmann",
-      "gender": "female",
-      "birthDate": "1965-04-26",
-      "parentIds": [],
-      "spouseIds": [
-        "bronislaw-hallmann-1961-12-11"
-      ]
-    },
-    {
-      "maidenName": "Hallmann",
-      "id": "katarzyna-drzezdzon-1983-11-30",
-      "firstName": "Katarzyna",
-      "lastName": "Drzeżdżon",
-      "gender": "female",
-      "birthDate": "1983-11-30",
-      "parentIds": [
-        "bronislaw-hallmann-1961-12-11",
-        "bozena-hallmann-1965-04-26"
-      ],
-      "spouseIds": [
-        "bartosz-drzezdzon-x"
-      ]
-    },
-    {
-      "id": "bartosz-drzezdzon-x",
-      "firstName": "Bartosz",
-      "lastName": "Drzeżdżon",
-      "gender": "male",
-      "parentIds": [],
-      "spouseIds": [
-        "katarzyna-drzezdzon-1983-11-30"
-      ]
-    },
-    {
-      "id": "anna-drzezdzon-2006-11-18",
-      "firstName": "Anna",
-      "lastName": "Drzeżdżon",
-      "gender": "female",
-      "birthDate": "2006-11-18",
-      "parentIds": [
-        "katarzyna-drzezdzon-1983-11-30",
-        "bartosz-drzezdzon-x"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "radoslaw-hallmann-1988-12-06",
-      "firstName": "Radosław",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1988-12-06",
-      "parentIds": [
-        "bronislaw-hallmann-1961-12-11",
-        "bozena-hallmann-1965-04-26"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "czeslaw-hallmann-1963-07-01",
-      "firstName": "Czesław",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1963-07-01",
-      "parentIds": [
-        "helena-hallmann-1921-07-20",
-        "jozef-hallmann-1909-11-12"
-      ],
-      "spouseIds": [
-        "maria-hallmann-koloszynska"
-      ]
-    },
-    {
-      "maidenName": "Kołoszyńska",
-      "id": "maria-hallmann-koloszynska",
+      "id": "P343",
       "firstName": "Maria",
-      "lastName": "Hallmann",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P320",
+        "P321"
+      ],
+      "spouseIds": [
+        "P344"
+      ],
+      "birthDate": "1923-07-29",
+      "deathDate": "2011-12-05"
+    },
+    {
+      "id": "P344",
+      "firstName": "Florian",
+      "lastName": "Król",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P343"
+      ],
+      "birthDate": "1922-01-20",
+      "deathDate": "1977-10-26"
+    },
+    {
+      "id": "P345",
+      "firstName": "Roman",
+      "lastName": "Król",
+      "gender": "male",
+      "parentIds": [
+        "P343",
+        "P344"
+      ],
+      "spouseIds": [
+        "P346"
+      ],
+      "birthDate": "1949-12-10"
+    },
+    {
+      "id": "P346",
+      "firstName": "Danuta",
+      "lastName": "Wiśniewska",
       "gender": "female",
       "parentIds": [],
       "spouseIds": [
-        "czeslaw-hallmann-1963-07-01"
+        "P345"
+      ],
+      "birthDate": "1948",
+      "notes": "ślub 1973"
+    },
+    {
+      "id": "P347",
+      "firstName": "Agnieszka",
+      "lastName": "Król",
+      "gender": "female",
+      "parentIds": [
+        "P345",
+        "P346"
+      ],
+      "spouseIds": [],
+      "birthDate": "1975-07-24"
+    },
+    {
+      "id": "P348",
+      "firstName": "Elżbieta",
+      "lastName": "Król",
+      "gender": "female",
+      "parentIds": [
+        "P343",
+        "P344"
+      ],
+      "spouseIds": [
+        "P349"
+      ],
+      "notes": "UWAGA: ten fragment leży dokładnie na granicy stron 6/7 oryginału i jest niejednoznaczny -- wydruk pokazuje 'małż. Elżbieta Król' nad 'małż. 1983 Iwona Krzemińska', co sugeruje możliwy błąd odczytu/cięcia strony; nie udało się jednoznacznie ustalić, czy Iwona Krzemińska jest małżonką Elżbiety, czy to osobny, nieopisany fragment drzewa"
+    },
+    {
+      "id": "P349",
+      "firstName": "Iwona",
+      "lastName": "Krzemińska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P348"
+      ],
+      "birthDate": "1947-05-23",
+      "deathDate": "2003-12-11",
+      "notes": "ślub 1983 -- patrz uwaga przy P348"
+    },
+    {
+      "id": "P350",
+      "firstName": "Piotr",
+      "lastName": "Król",
+      "gender": "male",
+      "parentIds": [
+        "P348",
+        "P349"
+      ],
+      "spouseIds": [],
+      "birthDate": "1984-10-16"
+    },
+    {
+      "id": "P351",
+      "firstName": "Filip",
+      "lastName": "Król",
+      "gender": "male",
+      "parentIds": [
+        "P348",
+        "P349"
+      ],
+      "spouseIds": [],
+      "birthDate": "1984-10-16"
+    },
+    {
+      "id": "P352",
+      "firstName": "Bolesław",
+      "lastName": "Król",
+      "gender": "male",
+      "parentIds": [
+        "P343",
+        "P344"
+      ],
+      "spouseIds": [
+        "P353"
+      ],
+      "birthDate": "1951-01-09"
+    },
+    {
+      "id": "P353",
+      "firstName": "Bożena",
+      "lastName": "Żurdzińska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P352"
+      ],
+      "birthDate": "1951-12-23"
+    },
+    {
+      "id": "P354",
+      "firstName": "Rafał",
+      "lastName": "Król",
+      "gender": "male",
+      "parentIds": [
+        "P352",
+        "P353"
+      ],
+      "spouseIds": [],
+      "birthDate": "1976-06-06"
+    },
+    {
+      "id": "P355",
+      "firstName": "Karolina",
+      "lastName": "Król",
+      "gender": "female",
+      "parentIds": [
+        "P352",
+        "P353"
+      ],
+      "spouseIds": [
+        "P356"
+      ],
+      "birthDate": "1980-05-07"
+    },
+    {
+      "id": "P356",
+      "firstName": "Maciej",
+      "lastName": "Zaworski",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P355"
+      ],
+      "birthDate": "1980-02-01"
+    },
+    {
+      "id": "P357",
+      "firstName": "Jerzy",
+      "lastName": "Król",
+      "gender": "male",
+      "parentIds": [
+        "P343",
+        "P344"
+      ],
+      "spouseIds": [
+        "P358"
+      ],
+      "birthDate": "1953-03-28",
+      "deathDate": "1982-11-25"
+    },
+    {
+      "id": "P358",
+      "firstName": "Justyna",
+      "lastName": "Król",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P357"
+      ],
+      "birthDate": "1953-08-08"
+    },
+    {
+      "id": "P359",
+      "firstName": "Monika",
+      "lastName": "Król",
+      "gender": "female",
+      "parentIds": [
+        "P357",
+        "P358"
+      ],
+      "spouseIds": [
+        "P360"
+      ],
+      "birthDate": "1978-02-28"
+    },
+    {
+      "id": "P360",
+      "firstName": "NN",
+      "lastName": "NN",
+      "gender": "unknown",
+      "parentIds": [],
+      "spouseIds": [
+        "P359"
+      ],
+      "notes": "\"n n\" w oryginale -- małżonek nieznany"
+    },
+    {
+      "id": "P361",
+      "firstName": "Kamila",
+      "lastName": "Król",
+      "gender": "female",
+      "parentIds": [
+        "P357",
+        "P358"
+      ],
+      "spouseIds": [
+        "P362"
+      ],
+      "birthDate": "1980-03-15"
+    },
+    {
+      "id": "P362",
+      "firstName": "Paweł",
+      "lastName": "Dominiak",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P361"
       ]
     },
     {
-      "id": "michal-przemyslaw-hallmann-1990-08-13",
-      "firstName": "Michał Przemysław",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1990-08-13",
+      "id": "P363",
+      "firstName": "Patrycja",
+      "lastName": "Dominiak",
+      "gender": "female",
       "parentIds": [
-        "czeslaw-hallmann-1963-07-01",
-        "maria-hallmann-koloszynska"
+        "P361",
+        "P362"
       ],
       "spouseIds": []
     },
     {
-      "id": "bartosz-hallmann-1993-05-11",
-      "firstName": "Bartosz",
-      "lastName": "Hallmann",
-      "gender": "male",
-      "birthDate": "1993-05-11",
+      "id": "P364",
+      "firstName": "Julia",
+      "lastName": "Dominiak",
+      "gender": "female",
       "parentIds": [
-        "czeslaw-hallmann-1963-07-01",
-        "maria-hallmann-koloszynska"
+        "P361",
+        "P362"
       ],
       "spouseIds": []
     },
     {
-      "id": "bronislaw-potrykus-1922-10-31",
-      "firstName": "Bronisław",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1922-10-31",
-      "parentIds": [
-        "linia-glowna-potrykus"
-      ],
-      "spouseIds": [
-        "stanislawa-potrykus-hollender"
-      ]
-    },
-    {
-      "maidenName": "Hollender",
-      "id": "stanislawa-potrykus-hollender",
-      "firstName": "Stanisława",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "parentIds": [],
-      "spouseIds": [
-        "bronislaw-potrykus-1922-10-31"
-      ]
-    },
-    {
-      "id": "jan-potrykus-bronislaw",
+      "id": "P365",
       "firstName": "Jan",
       "lastName": "Potrykus",
       "gender": "male",
       "parentIds": [
-        "bronislaw-potrykus-1922-10-31",
-        "stanislawa-potrykus-hollender"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "bronislaw-potrykus-jr",
-      "firstName": "Bronisław",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "parentIds": [
-        "bronislaw-potrykus-1922-10-31",
-        "stanislawa-potrykus-hollender"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "antoni-potrykus-1924",
-      "firstName": "Antoni",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1924-04-23",
-      "deathDate": "1989-03-06",
-      "parentIds": [
-        "linia-glowna-potrykus"
+        "P320",
+        "P321"
       ],
       "spouseIds": [
-        "teresa-potrykus-1930-08-06"
-      ]
+        "P366"
+      ],
+      "birthDate": "1924-12-28"
     },
     {
-      "maidenName": "Kupferschmidt",
-      "id": "teresa-potrykus-1930-08-06",
-      "firstName": "Teresa",
+      "id": "P366",
+      "firstName": "Jadwiga Maria",
       "lastName": "Potrykus",
       "gender": "female",
-      "birthDate": "1930-08-06",
       "parentIds": [],
       "spouseIds": [
-        "antoni-potrykus-1924"
-      ]
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "maria-piontek-1954-02-17",
-      "firstName": "Maria",
-      "lastName": "Piontek",
-      "gender": "female",
-      "birthDate": "1954-02-17",
-      "parentIds": [
-        "antoni-potrykus-1924",
-        "teresa-potrykus-1930-08-06"
+        "P365"
       ],
-      "spouseIds": [
-        "adam-piontek-1941-01-27"
-      ]
+      "birthDate": "1924-02-05",
+      "deathDate": "2000-03-14"
     },
     {
-      "id": "adam-piontek-1941-01-27",
-      "firstName": "Adam",
-      "lastName": "Piontek",
-      "gender": "male",
-      "birthDate": "1941-01-27",
-      "parentIds": [],
-      "spouseIds": [
-        "maria-piontek-1954-02-17"
-      ]
-    },
-    {
-      "id": "daniel-piontek-1977-02-12",
-      "firstName": "Daniel",
-      "lastName": "Piontek",
-      "gender": "male",
-      "birthDate": "1977-02-12",
-      "parentIds": [
-        "maria-piontek-1954-02-17",
-        "adam-piontek-1941-01-27"
-      ],
-      "spouseIds": [
-        "urszula-piontek-1984-08-14"
-      ]
-    },
-    {
-      "maidenName": "Klonowska",
-      "id": "urszula-piontek-1984-08-14",
-      "firstName": "Urszula",
-      "lastName": "Piontek",
-      "gender": "female",
-      "birthDate": "1984-08-14",
-      "parentIds": [],
-      "spouseIds": [
-        "daniel-piontek-1977-02-12"
-      ]
-    },
-    {
-      "id": "dawid-piontek-2004-06-01",
-      "firstName": "Dawid",
-      "lastName": "Piontek",
-      "gender": "male",
-      "birthDate": "2004-06-01",
-      "parentIds": [
-        "daniel-piontek-1977-02-12",
-        "urszula-piontek-1984-08-14"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "aleksandra-piontek-2007-07-29",
-      "firstName": "Aleksandra",
-      "lastName": "Piontek",
-      "gender": "female",
-      "birthDate": "2007-07-29",
-      "parentIds": [
-        "daniel-piontek-1977-02-12",
-        "urszula-piontek-1984-08-14"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Piontek",
-      "id": "lucyna-trendel-1978-08-15",
-      "firstName": "Lucyna",
-      "lastName": "Trendel",
-      "gender": "female",
-      "birthDate": "1978-08-15",
-      "parentIds": [
-        "maria-piontek-1954-02-17",
-        "adam-piontek-1941-01-27"
-      ],
-      "spouseIds": [
-        "arkadiusz-stanislaw-trendel-1975-12-11"
-      ]
-    },
-    {
-      "id": "arkadiusz-stanislaw-trendel-1975-12-11",
-      "firstName": "Arkadiusz Stanisław",
-      "lastName": "Trendel",
-      "gender": "male",
-      "birthDate": "1975-12-11",
-      "parentIds": [],
-      "spouseIds": [
-        "lucyna-trendel-1978-08-15"
-      ]
-    },
-    {
-      "id": "dominika-trendel-1995-09-24",
-      "firstName": "Dominika",
-      "lastName": "Trendel",
-      "gender": "female",
-      "birthDate": "1995-09-24",
-      "parentIds": [
-        "lucyna-trendel-1978-08-15",
-        "arkadiusz-stanislaw-trendel-1975-12-11"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "damian-trendel-1997-04-07",
-      "firstName": "Damian",
-      "lastName": "Trendel",
-      "gender": "male",
-      "birthDate": "1997-04-07",
-      "parentIds": [
-        "lucyna-trendel-1978-08-15",
-        "arkadiusz-stanislaw-trendel-1975-12-11"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "kordian-trendel-1998-06-03",
-      "firstName": "Kordian",
-      "lastName": "Trendel",
-      "gender": "male",
-      "birthDate": "1998-06-03",
-      "parentIds": [
-        "lucyna-trendel-1978-08-15",
-        "arkadiusz-stanislaw-trendel-1975-12-11"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Piontek",
-      "id": "maria-piontek-1979",
-      "firstName": "Maria",
-      "lastName": "Antosiewicz",
-      "gender": "female",
-      "birthDate": "1979-08-17",
-      "parentIds": [
-        "maria-piontek-1954-02-17",
-        "adam-piontek-1941-01-27"
-      ],
-      "spouseIds": [
-        "michal-antosiewicz-1975-08-31"
-      ]
-    },
-    {
-      "id": "michal-antosiewicz-1975-08-31",
-      "firstName": "Michał",
-      "lastName": "Antosiewicz",
-      "gender": "male",
-      "birthDate": "1975-08-31",
-      "parentIds": [],
-      "spouseIds": [
-        "maria-piontek-1979"
-      ]
-    },
-    {
-      "id": "amadeusz-antosiewicz-2006-06-03",
-      "firstName": "Amadeusz",
-      "lastName": "Antosiewicz",
-      "gender": "male",
-      "birthDate": "2006-06-03",
-      "parentIds": [
-        "maria-piontek-1979",
-        "michal-antosiewicz-1975-08-31"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Piontek",
-      "id": "elzbieta-czarnecki-1983-04-14",
-      "firstName": "Elżbieta",
-      "lastName": "Czarnecki",
-      "gender": "female",
-      "birthDate": "1983-04-14",
-      "parentIds": [
-        "maria-piontek-1954-02-17",
-        "adam-piontek-1941-01-27"
-      ],
-      "spouseIds": [
-        "marek-czarnecki-1963-07-14"
-      ]
-    },
-    {
-      "id": "marek-czarnecki-1963-07-14",
-      "firstName": "Marek",
-      "lastName": "Czarnecki",
-      "gender": "male",
-      "birthDate": "1963-07-14",
-      "parentIds": [],
-      "spouseIds": [
-        "elzbieta-czarnecki-1983-04-14"
-      ]
-    },
-    {
-      "notes": "Nazwisko według dokumentu rodzinnego",
-      "id": "fabian-piontek-2004-11-29",
-      "firstName": "Fabian",
-      "lastName": "Piontek",
-      "gender": "male",
-      "birthDate": "2004-11-29",
-      "parentIds": [
-        "elzbieta-czarnecki-1983-04-14",
-        "marek-czarnecki-1963-07-14"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "barbara-piontek-1992-09-02",
-      "firstName": "Barbara",
-      "lastName": "Piontek",
-      "gender": "female",
-      "birthDate": "1992-09-02",
-      "parentIds": [
-        "maria-piontek-1954-02-17",
-        "adam-piontek-1941-01-27"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "stanislaw-potrykus-1925-11-12",
-      "firstName": "Stanisław",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1925-11-12",
-      "deathDate": "1993-12-16",
-      "parentIds": [
-        "linia-glowna-potrykus"
-      ],
-      "spouseIds": [
-        "rozalia-potrykus-1925-11-16"
-      ]
-    },
-    {
-      "notes": "ślub 1948",
-      "maidenName": "Kollek",
-      "id": "rozalia-potrykus-1925-11-16",
-      "firstName": "Rozalia",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1925-11-16",
-      "deathDate": "2009-05-28",
-      "parentIds": [],
-      "spouseIds": [
-        "stanislaw-potrykus-1925-11-12"
-      ]
-    },
-    {
-      "id": "tadeusz-potrykus-1949-06-20",
-      "firstName": "Tadeusz",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1949-06-20",
-      "parentIds": [
-        "stanislaw-potrykus-1925-11-12",
-        "rozalia-potrykus-1925-11-16"
-      ],
-      "spouseIds": [
-        "ewa-potrykus-1952-01-31"
-      ]
-    },
-    {
-      "maidenName": "Królikowska",
-      "id": "ewa-potrykus-1952-01-31",
+      "id": "P367",
       "firstName": "Ewa",
       "lastName": "Potrykus",
       "gender": "female",
-      "birthDate": "1952-01-31",
-      "parentIds": [],
-      "spouseIds": [
-        "tadeusz-potrykus-1949-06-20"
-      ]
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "aleksandra-wojciechowski-1973-05-31",
-      "firstName": "Aleksandra",
-      "lastName": "Wojciechowski",
-      "gender": "female",
-      "birthDate": "1973-05-31",
       "parentIds": [
-        "tadeusz-potrykus-1949-06-20",
-        "ewa-potrykus-1952-01-31"
+        "P365",
+        "P366"
       ],
       "spouseIds": [
-        "piotr-wojciechowski-x"
-      ]
-    },
-    {
-      "id": "piotr-wojciechowski-x",
-      "firstName": "Piotr",
-      "lastName": "Wojciechowski",
-      "gender": "male",
-      "parentIds": [],
-      "spouseIds": [
-        "aleksandra-wojciechowski-1973-05-31"
-      ]
-    },
-    {
-      "id": "maja-wojciechowska-2009-03-06",
-      "firstName": "Maja",
-      "lastName": "Wojciechowska",
-      "gender": "female",
-      "birthDate": "2009-03-06",
-      "parentIds": [
-        "aleksandra-wojciechowski-1973-05-31",
-        "piotr-wojciechowski-x"
+        "P368"
       ],
-      "spouseIds": []
+      "birthDate": "1949-07-06"
     },
     {
-      "id": "blazej-wojciechowski-2010-12",
-      "firstName": "Błażej",
-      "lastName": "Wojciechowski",
-      "gender": "male",
-      "birthDate": "2010-12",
-      "parentIds": [
-        "aleksandra-wojciechowski-1973-05-31",
-        "piotr-wojciechowski-x"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "agnieszka-potrykus-1986",
-      "firstName": "Agnieszka",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1986-08-18",
-      "parentIds": [
-        "tadeusz-potrykus-1949-06-20",
-        "ewa-potrykus-1952-01-31"
-      ],
-      "spouseIds": []
-    },
-    {
-      "notes": "Ciocia Ela — organizacja spotkań rodzinnych",
-      "maidenName": "Potrykus",
-      "id": "elzbieta-lieder-1959-03-05",
-      "firstName": "Elżbieta",
-      "lastName": "Lieder",
-      "gender": "female",
-      "birthDate": "1959-03-05",
-      "parentIds": [
-        "stanislaw-potrykus-1925-11-12",
-        "rozalia-potrykus-1925-11-16"
-      ],
-      "spouseIds": [
-        "jerzy-lieder-1956-09-07"
-      ]
-    },
-    {
-      "id": "jerzy-lieder-1956-09-07",
-      "firstName": "Jerzy",
-      "lastName": "Lieder",
-      "gender": "male",
-      "birthDate": "1956-09-07",
-      "parentIds": [],
-      "spouseIds": [
-        "elzbieta-lieder-1959-03-05"
-      ]
-    },
-    {
-      "maidenName": "Lieder",
-      "id": "iwona-kryszewski-1985-07-22",
-      "firstName": "Iwona",
-      "lastName": "Kryszewski",
-      "gender": "female",
-      "birthDate": "1985-07-22",
-      "parentIds": [
-        "elzbieta-lieder-1959-03-05",
-        "jerzy-lieder-1956-09-07"
-      ],
-      "spouseIds": [
-        "karol-kryszewski-1982"
-      ]
-    },
-    {
-      "notes": "ślub 28 sty 2012",
-      "id": "karol-kryszewski-1982",
-      "firstName": "Karol",
-      "lastName": "Kryszewski",
-      "gender": "male",
-      "birthDate": "1982",
-      "parentIds": [],
-      "spouseIds": [
-        "iwona-kryszewski-1985-07-22"
-      ]
-    },
-    {
-      "id": "maciej-lieder-1988-02-13",
-      "firstName": "Maciej",
-      "lastName": "Lieder",
-      "gender": "male",
-      "birthDate": "1988-02-13",
-      "parentIds": [
-        "elzbieta-lieder-1959-03-05",
-        "jerzy-lieder-1956-09-07"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "rafal-lieder-1990-11-05",
-      "firstName": "Rafał",
-      "lastName": "Lieder",
-      "gender": "male",
-      "birthDate": "1990-11-05",
-      "parentIds": [
-        "elzbieta-lieder-1959-03-05",
-        "jerzy-lieder-1956-09-07"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "jozef-potrykus-1927-02-08",
-      "firstName": "Józef",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1927-02-08",
-      "deathDate": "2001-07-04",
-      "parentIds": [
-        "linia-glowna-potrykus"
-      ],
-      "spouseIds": [
-        "jadwiga-potrykus-1928-06-27"
-      ]
-    },
-    {
-      "maidenName": "Trendel",
-      "id": "jadwiga-potrykus-1928-06-27",
-      "firstName": "Jadwiga",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1928-06-27",
-      "deathDate": "2008-07-06",
-      "parentIds": [],
-      "spouseIds": [
-        "jozef-potrykus-1927-02-08"
-      ]
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "malgorzata-okroj-1954-04-04",
-      "firstName": "Małgorzata",
-      "lastName": "Okrój",
-      "gender": "female",
-      "birthDate": "1954-04-04",
-      "parentIds": [
-        "jozef-potrykus-1927-02-08",
-        "jadwiga-potrykus-1928-06-27"
-      ],
-      "spouseIds": [
-        "jan-okroj-1954-06-20"
-      ]
-    },
-    {
-      "id": "jan-okroj-1954-06-20",
-      "firstName": "Jan",
-      "lastName": "Okrój",
-      "gender": "male",
-      "birthDate": "1954-06-20",
-      "parentIds": [],
-      "spouseIds": [
-        "malgorzata-okroj-1954-04-04"
-      ]
-    },
-    {
-      "id": "franciszek-potrykus-1956",
-      "firstName": "Franciszek",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1956-01-29",
-      "deathDate": "2009-08-07",
-      "parentIds": [
-        "jozef-potrykus-1927-02-08",
-        "jadwiga-potrykus-1928-06-27"
-      ],
-      "spouseIds": [
-        "irena-potrykus-1956-02-26"
-      ]
-    },
-    {
-      "maidenName": "Paczul",
-      "id": "irena-potrykus-1956-02-26",
-      "firstName": "Irena",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1956-02-26",
-      "parentIds": [],
-      "spouseIds": [
-        "franciszek-potrykus-1956"
-      ]
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "sylwia-chmiel-1979-08-01",
-      "firstName": "Sylwia",
-      "lastName": "Chmiel",
-      "gender": "female",
-      "birthDate": "1979-08-01",
-      "parentIds": [
-        "franciszek-potrykus-1956",
-        "irena-potrykus-1956-02-26"
-      ],
-      "spouseIds": [
-        "adrian-chmiel-1982-03-05"
-      ]
-    },
-    {
-      "id": "adrian-chmiel-1982-03-05",
-      "firstName": "Adrian",
-      "lastName": "Chmiel",
-      "gender": "male",
-      "birthDate": "1982-03-05",
-      "parentIds": [],
-      "spouseIds": [
-        "sylwia-chmiel-1979-08-01"
-      ]
-    },
-    {
-      "id": "natalia-chmiel-2003-06-24",
-      "firstName": "Natalia",
-      "lastName": "Chmiel",
-      "gender": "female",
-      "birthDate": "2003-06-24",
-      "parentIds": [
-        "sylwia-chmiel-1979-08-01",
-        "adrian-chmiel-1982-03-05"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "marcin-chmiel-2006-04-02",
-      "firstName": "Marcin",
-      "lastName": "Chmiel",
-      "gender": "male",
-      "birthDate": "2006-04-02",
-      "parentIds": [
-        "sylwia-chmiel-1979-08-01",
-        "adrian-chmiel-1982-03-05"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "mateusz-chmiel-2008-12-28",
-      "firstName": "Mateusz",
-      "lastName": "Chmiel",
-      "gender": "male",
-      "birthDate": "2008-12-28",
-      "parentIds": [
-        "sylwia-chmiel-1979-08-01",
-        "adrian-chmiel-1982-03-05"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "justyna-jakubczyk-1987-01-10",
-      "firstName": "Justyna",
-      "lastName": "Jakubczyk",
-      "gender": "female",
-      "birthDate": "1987-01-10",
-      "parentIds": [
-        "franciszek-potrykus-1956",
-        "irena-potrykus-1956-02-26"
-      ],
-      "spouseIds": [
-        "lukasz-jakubczyk-1987-08-25"
-      ]
-    },
-    {
-      "id": "lukasz-jakubczyk-1987-08-25",
-      "firstName": "Łukasz",
-      "lastName": "Jakubczyk",
-      "gender": "male",
-      "birthDate": "1987-08-25",
-      "parentIds": [],
-      "spouseIds": [
-        "justyna-jakubczyk-1987-01-10"
-      ]
-    },
-    {
-      "notes": "Nazwisko według dokumentu",
-      "id": "jakub-potrykus-2008",
-      "firstName": "Jakub",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "2008-11-08",
-      "parentIds": [
-        "justyna-jakubczyk-1987-01-10",
-        "lukasz-jakubczyk-1987-08-25"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "wladyslaw-potrykus-1928-06-11",
-      "firstName": "Władysław",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1928-06-11",
-      "deathDate": "1997-11-18",
-      "parentIds": [
-        "linia-glowna-potrykus"
-      ],
-      "spouseIds": [
-        "maria-potrykus-1936-04-25"
-      ]
-    },
-    {
-      "maidenName": "Hallmann",
-      "id": "maria-potrykus-1936-04-25",
-      "firstName": "Maria",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1936-04-25",
-      "parentIds": [],
-      "spouseIds": [
-        "wladyslaw-potrykus-1928-06-11"
-      ]
-    },
-    {
-      "id": "stanislaw-potrykus-1956",
-      "firstName": "Stanisław",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1956-05-18",
-      "deathDate": "1997-06-22",
-      "parentIds": [
-        "wladyslaw-potrykus-1928-06-11",
-        "maria-potrykus-1936-04-25"
-      ],
-      "spouseIds": [
-        "malgorzata-potrykus-1959-06-28"
-      ]
-    },
-    {
-      "maidenName": "Kollek",
-      "id": "malgorzata-potrykus-1959-06-28",
-      "firstName": "Małgorzata",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1959-06-28",
-      "parentIds": [],
-      "spouseIds": [
-        "stanislaw-potrykus-1956"
-      ]
-    },
-    {
-      "id": "weronika-potrykus-1985-08-09",
-      "firstName": "Weronika",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1985-08-09",
-      "parentIds": [
-        "stanislaw-potrykus-1956",
-        "malgorzata-potrykus-1959-06-28"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "jadwiga-tarnowski-1957-08-17",
-      "firstName": "Jadwiga",
-      "lastName": "Tarnowski",
-      "gender": "female",
-      "birthDate": "1957-08-17",
-      "parentIds": [
-        "wladyslaw-potrykus-1928-06-11",
-        "maria-potrykus-1936-04-25"
-      ],
-      "spouseIds": [
-        "kazimierz-tarnowski-1954-12-11"
-      ]
-    },
-    {
-      "id": "kazimierz-tarnowski-1954-12-11",
-      "firstName": "Kazimierz",
-      "lastName": "Tarnowski",
-      "gender": "male",
-      "birthDate": "1954-12-11",
-      "parentIds": [],
-      "spouseIds": [
-        "jadwiga-tarnowski-1957-08-17"
-      ]
-    },
-    {
-      "maidenName": "Tarnowska",
-      "id": "dorota-sikora-1978-03-07",
-      "firstName": "Dorota",
-      "lastName": "Sikora",
-      "gender": "female",
-      "birthDate": "1978-03-07",
-      "parentIds": [
-        "jadwiga-tarnowski-1957-08-17",
-        "kazimierz-tarnowski-1954-12-11"
-      ],
-      "spouseIds": [
-        "bogdan-sikora-1969-04-18"
-      ]
-    },
-    {
-      "id": "bogdan-sikora-1969-04-18",
-      "firstName": "Bogdan",
-      "lastName": "Sikora",
-      "gender": "male",
-      "birthDate": "1969-04-18",
-      "parentIds": [],
-      "spouseIds": [
-        "dorota-sikora-1978-03-07"
-      ]
-    },
-    {
-      "id": "paulina-sikora-1998-04-28",
-      "firstName": "Paulina",
-      "lastName": "Sikora",
-      "gender": "female",
-      "birthDate": "1998-04-28",
-      "parentIds": [
-        "dorota-sikora-1978-03-07",
-        "bogdan-sikora-1969-04-18"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "klaudia-sikora-1999-05-21",
-      "firstName": "Klaudia",
-      "lastName": "Sikora",
-      "gender": "female",
-      "birthDate": "1999-05-21",
-      "parentIds": [
-        "dorota-sikora-1978-03-07",
-        "bogdan-sikora-1969-04-18"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Tarnowska",
-      "id": "katarzyna-wikowski-1979-11-29",
-      "firstName": "Katarzyna",
-      "lastName": "Wikowski",
-      "gender": "female",
-      "birthDate": "1979-11-29",
-      "parentIds": [
-        "jadwiga-tarnowski-1957-08-17",
-        "kazimierz-tarnowski-1954-12-11"
-      ],
-      "spouseIds": [
-        "ryszard-wikowski-1978-12-01"
-      ]
-    },
-    {
-      "id": "ryszard-wikowski-1978-12-01",
-      "firstName": "Ryszard",
-      "lastName": "Wikowski",
-      "gender": "male",
-      "birthDate": "1978-12-01",
-      "parentIds": [],
-      "spouseIds": [
-        "katarzyna-wikowski-1979-11-29"
-      ]
-    },
-    {
-      "id": "tomasz-wikowski-2003-04-12",
-      "firstName": "Tomasz",
-      "lastName": "Wikowski",
-      "gender": "male",
-      "birthDate": "2003-04-12",
-      "parentIds": [
-        "katarzyna-wikowski-1979-11-29",
-        "ryszard-wikowski-1978-12-01"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "agnieszka-wikowska-2007-05-09",
-      "firstName": "Agnieszka",
-      "lastName": "Wikowska",
-      "gender": "female",
-      "birthDate": "2007-05-09",
-      "parentIds": [
-        "katarzyna-wikowski-1979-11-29",
-        "ryszard-wikowski-1978-12-01"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Tarnowska",
-      "id": "malgorzata-wikowski-1984-06-01",
-      "firstName": "Małgorzata",
-      "lastName": "Wikowski",
-      "gender": "female",
-      "birthDate": "1984-06-01",
-      "parentIds": [
-        "jadwiga-tarnowski-1957-08-17",
-        "kazimierz-tarnowski-1954-12-11"
-      ],
-      "spouseIds": [
-        "marek-wikowski-x"
-      ]
-    },
-    {
-      "id": "marek-wikowski-x",
-      "firstName": "Marek",
-      "lastName": "Wikowski",
-      "gender": "male",
-      "parentIds": [],
-      "spouseIds": [
-        "malgorzata-wikowski-1984-06-01"
-      ]
-    },
-    {
-      "id": "aleksander-wikowski-2009-09-01",
-      "firstName": "Aleksander",
-      "lastName": "Wikowski",
-      "gender": "male",
-      "birthDate": "2009-09-01",
-      "parentIds": [
-        "malgorzata-wikowski-1984-06-01",
-        "marek-wikowski-x"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "karol-tarnowski-1994-07",
-      "firstName": "Karol",
-      "lastName": "Tarnowski",
-      "gender": "male",
-      "birthDate": "1994-07",
-      "parentIds": [
-        "jadwiga-tarnowski-1957-08-17",
-        "kazimierz-tarnowski-1954-12-11"
-      ],
-      "spouseIds": []
-    },
-    {
-      "notes": "Maryśka Lieske — organizacja spotkań rodzinnych",
-      "maidenName": "Potrykus",
-      "id": "maria-lieske-1959-09-08",
-      "firstName": "Maria",
-      "lastName": "Lieske",
-      "gender": "female",
-      "birthDate": "1959-09-08",
-      "parentIds": [
-        "wladyslaw-potrykus-1928-06-11",
-        "maria-potrykus-1936-04-25"
-      ],
-      "spouseIds": [
-        "brunon-tadeusz-lieske-1956-08-26"
-      ]
-    },
-    {
-      "id": "brunon-tadeusz-lieske-1956-08-26",
-      "firstName": "Brunon Tadeusz",
-      "lastName": "Lieske",
-      "gender": "male",
-      "birthDate": "1956-08-26",
-      "parentIds": [],
-      "spouseIds": [
-        "maria-lieske-1959-09-08"
-      ]
-    },
-    {
-      "id": "andrzej-lieske-1981-06-07",
+      "id": "P368",
       "firstName": "Andrzej",
-      "lastName": "Lieske",
-      "gender": "male",
-      "birthDate": "1981-06-07",
-      "parentIds": [
-        "maria-lieske-1959-09-08",
-        "brunon-tadeusz-lieske-1956-08-26"
-      ],
-      "spouseIds": [
-        "anna-lieske-1983-04-17"
-      ]
-    },
-    {
-      "maidenName": "Miotk",
-      "id": "anna-lieske-1983-04-17",
-      "firstName": "Anna",
-      "lastName": "Lieske",
-      "gender": "female",
-      "birthDate": "1983-04-17",
-      "parentIds": [],
-      "spouseIds": [
-        "andrzej-lieske-1981-06-07"
-      ]
-    },
-    {
-      "id": "sandra-lieske-2003-09-24",
-      "firstName": "Sandra",
-      "lastName": "Lieske",
-      "gender": "female",
-      "birthDate": "2003-09-24",
-      "parentIds": [
-        "andrzej-lieske-1981-06-07",
-        "anna-lieske-1983-04-17"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "inga-lieske-2009-08-20",
-      "firstName": "Inga",
-      "lastName": "Lieske",
-      "gender": "female",
-      "birthDate": "2009-08-20",
-      "parentIds": [
-        "andrzej-lieske-1981-06-07",
-        "anna-lieske-1983-04-17"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "krystian-lieske-1983-06-13",
-      "firstName": "Krystian",
-      "lastName": "Lieske",
-      "gender": "male",
-      "birthDate": "1983-06-13",
-      "deathDate": "1996-03-04",
-      "parentIds": [
-        "maria-lieske-1959-09-08",
-        "brunon-tadeusz-lieske-1956-08-26"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "barbara-lieske-1995-01-27",
-      "firstName": "Barbara",
-      "lastName": "Kałuzińska",
-      "gender": "female",
-      "birthDate": "1995-01-27",
-      "parentIds": [
-        "maria-lieske-1959-09-08",
-        "brunon-tadeusz-lieske-1956-08-26"
-      ],
-      "spouseIds": [
-        "michal-kaluzinski-1986-07-22"
-      ],
-      "maidenName": "Lieske"
-    },
-    {
-      "notes": "Twórca aplikacji Drzewo Potrykus",
-      "id": "adam-lieske",
-      "firstName": "Adam",
-      "lastName": "Lieske",
-      "gender": "male",
-      "birthDate": "1997-12-11",
-      "parentIds": [
-        "maria-lieske-1959-09-08",
-        "brunon-tadeusz-lieske-1956-08-26"
-      ],
-      "spouseIds": [
-        "julia-lieske-1999-04-04"
-      ]
-    },
-    {
-      "id": "walerian-potrykus-1929-09-12",
-      "firstName": "Walerian",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1929-09-12",
-      "parentIds": [
-        "linia-glowna-potrykus"
-      ],
-      "spouseIds": [
-        "bernadeta-potrykus-1936-12-03"
-      ]
-    },
-    {
-      "maidenName": "Groth",
-      "id": "bernadeta-potrykus-1936-12-03",
-      "firstName": "Bernadeta",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1936-12-03",
-      "parentIds": [],
-      "spouseIds": [
-        "walerian-potrykus-1929-09-12"
-      ]
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "teresa-kostrach-1957-05-15",
-      "firstName": "Teresa",
-      "lastName": "Kostrach",
-      "gender": "female",
-      "birthDate": "1957-05-15",
-      "parentIds": [
-        "walerian-potrykus-1929-09-12",
-        "bernadeta-potrykus-1936-12-03"
-      ],
-      "spouseIds": [
-        "roman-kostrach-x"
-      ]
-    },
-    {
-      "id": "roman-kostrach-x",
-      "firstName": "Roman",
-      "lastName": "Kostrach",
+      "lastName": "Bigus",
       "gender": "male",
       "parentIds": [],
       "spouseIds": [
-        "teresa-kostrach-1957-05-15"
-      ]
-    },
-    {
-      "id": "marcin-kostrach-1984-12-11",
-      "firstName": "Marcin",
-      "lastName": "Kostrach",
-      "gender": "male",
-      "birthDate": "1984-12-11",
-      "parentIds": [
-        "teresa-kostrach-1957-05-15",
-        "roman-kostrach-x"
+        "P367"
       ],
-      "spouseIds": []
+      "birthDate": "1949-12-08"
     },
     {
-      "maidenName": "Kostrach",
-      "id": "anna-kulakowski-kostrach",
-      "firstName": "Anna",
-      "lastName": "Kułakowski",
-      "gender": "female",
-      "parentIds": [
-        "teresa-kostrach-1957-05-15",
-        "roman-kostrach-x"
-      ],
-      "spouseIds": [
-        "malz-kulakowski-x"
-      ]
-    },
-    {
-      "id": "malz-kulakowski-x",
-      "firstName": "(małż.)",
-      "lastName": "Kułakowski",
-      "gender": "male",
-      "parentIds": [],
-      "spouseIds": [
-        "anna-kulakowski-kostrach"
-      ]
-    },
-    {
-      "id": "alicja-kostrach-x",
-      "firstName": "Alicja",
-      "lastName": "Kostrach",
-      "gender": "female",
-      "parentIds": [
-        "teresa-kostrach-1957-05-15",
-        "roman-kostrach-x"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "anna-frankowski-1959-06-05",
-      "firstName": "Anna",
-      "lastName": "Frankowski",
-      "gender": "female",
-      "birthDate": "1959-06-05",
-      "parentIds": [
-        "walerian-potrykus-1929-09-12",
-        "bernadeta-potrykus-1936-12-03"
-      ],
-      "spouseIds": [
-        "ireneusz-frankowski-1958-05-15"
-      ]
-    },
-    {
-      "id": "ireneusz-frankowski-1958-05-15",
-      "firstName": "Ireneusz",
-      "lastName": "Frankowski",
-      "gender": "male",
-      "birthDate": "1958-05-15",
-      "parentIds": [],
-      "spouseIds": [
-        "anna-frankowski-1959-06-05"
-      ]
-    },
-    {
-      "id": "rafal-frankowski-1978-05-02",
-      "firstName": "Rafał",
-      "lastName": "Frankowski",
-      "gender": "male",
-      "birthDate": "1978-05-02",
-      "parentIds": [
-        "anna-frankowski-1959-06-05",
-        "ireneusz-frankowski-1958-05-15"
-      ],
-      "spouseIds": [
-        "karina-frankowski-1978-09-23"
-      ]
-    },
-    {
-      "maidenName": "Karnowska",
-      "id": "karina-frankowski-1978-09-23",
-      "firstName": "Karina",
-      "lastName": "Frankowski",
-      "gender": "female",
-      "birthDate": "1978-09-23",
-      "parentIds": [],
-      "spouseIds": [
-        "rafal-frankowski-1978-05-02"
-      ]
-    },
-    {
-      "id": "maksymilian-frankowski-2003-01-12",
-      "firstName": "Maksymilian",
-      "lastName": "Frankowski",
-      "gender": "male",
-      "birthDate": "2003-01-12",
-      "parentIds": [
-        "rafal-frankowski-1978-05-02",
-        "karina-frankowski-1978-09-23"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "mateusz-frankowski-2006-08-04",
-      "firstName": "Mateusz",
-      "lastName": "Frankowski",
-      "gender": "male",
-      "birthDate": "2006-08-04",
-      "parentIds": [
-        "rafal-frankowski-1978-05-02",
-        "karina-frankowski-1978-09-23"
-      ],
-      "spouseIds": []
-    },
-    {
-      "notes": "Przodek do uzupełnienia — dzieci z dokumentu str. 2",
-      "id": "galaz-page2-potrykus",
-      "firstName": "Gałąź (str. 2)",
-      "lastName": "Potrykus",
-      "gender": "unknown",
-      "parentIds": [
-        "linia-glowna-potrykus"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "jozef-potrykus-1953-01-22",
-      "firstName": "Józef",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1953-01-22",
-      "parentIds": [
-        "galaz-page2-potrykus"
-      ],
-      "spouseIds": [
-        "grazyna-potrykus-1953-11-30"
-      ]
-    },
-    {
-      "maidenName": "Moniuszko",
-      "id": "grazyna-potrykus-1953-11-30",
-      "firstName": "Grażyna",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1953-11-30",
-      "parentIds": [],
-      "spouseIds": [
-        "jozef-potrykus-1953-01-22"
-      ]
-    },
-    {
-      "id": "przemek-potrykus-x",
-      "firstName": "Przemek",
-      "lastName": "Potrykus",
+      "id": "P369",
+      "firstName": "Krzysztof",
+      "lastName": "Bigus",
       "gender": "male",
       "parentIds": [
-        "jozef-potrykus-1953-01-22",
-        "grazyna-potrykus-1953-11-30"
+        "P367",
+        "P368"
       ],
       "spouseIds": [
-        "joanna-potrykus-x"
-      ]
+        "P370"
+      ],
+      "birthDate": "1973-05-30"
     },
     {
-      "id": "joanna-potrykus-x",
-      "firstName": "Joanna",
-      "lastName": "Potrykus",
+      "id": "P370",
+      "firstName": "Krystyna",
+      "lastName": "Kupska",
       "gender": "female",
       "parentIds": [],
       "spouseIds": [
-        "przemek-potrykus-x"
-      ]
-    },
-    {
-      "id": "franciszek-potrykus-przemek",
-      "firstName": "Franciszek",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "parentIds": [
-        "przemek-potrykus-x",
-        "joanna-potrykus-x"
+        "P369"
       ],
-      "spouseIds": []
+      "birthDate": "1973-04-12"
     },
     {
-      "id": "julia-potrykus-x",
-      "firstName": "Julia",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "parentIds": [
-        "przemek-potrykus-x",
-        "joanna-potrykus-x"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "marcin-potrykus-1982-03-18",
-      "firstName": "Marcin",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1982-03-18",
-      "parentIds": [
-        "jozef-potrykus-1953-01-22",
-        "grazyna-potrykus-1953-11-30"
-      ],
-      "spouseIds": [
-        "agnieszka-potrykus-lozinska"
-      ]
-    },
-    {
-      "maidenName": "Łozińska",
-      "id": "agnieszka-potrykus-lozinska",
-      "firstName": "Agnieszka",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "parentIds": [],
-      "spouseIds": [
-        "marcin-potrykus-1982-03-18"
-      ]
-    },
-    {
-      "id": "stanislaw-potrykus-marcin",
-      "firstName": "Stanisław",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "parentIds": [
-        "marcin-potrykus-1982-03-18",
-        "agnieszka-potrykus-lozinska"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "franciszek-potrykus-1956-06",
-      "firstName": "Franciszek",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1956-06-16",
-      "parentIds": [
-        "galaz-page2-potrykus"
-      ],
-      "spouseIds": []
-    },
-    {
-      "notes": "Ania Leśniak — organizacja spotkań rodzinnych",
-      "maidenName": "Potrykus",
-      "id": "anna-lesniak-1959-04-23",
-      "firstName": "Anna",
-      "lastName": "Leśniak",
-      "gender": "female",
-      "birthDate": "1959-04-23",
-      "parentIds": [
-        "galaz-page2-potrykus"
-      ],
-      "spouseIds": [
-        "jozef-lesniak-1953-12-23"
-      ]
-    },
-    {
-      "id": "jozef-lesniak-1953-12-23",
-      "firstName": "Józef",
-      "lastName": "Leśniak",
-      "gender": "male",
-      "birthDate": "1953-12-23",
-      "parentIds": [],
-      "spouseIds": [
-        "anna-lesniak-1959-04-23"
-      ]
-    },
-    {
-      "maidenName": "Leśniak",
-      "id": "agnieszka-trella-1980-07-02",
-      "firstName": "Agnieszka",
-      "lastName": "Trella",
-      "gender": "female",
-      "birthDate": "1980-07-02",
-      "parentIds": [
-        "anna-lesniak-1959-04-23",
-        "jozef-lesniak-1953-12-23"
-      ],
-      "spouseIds": [
-        "piotr-trella-1979-05-18"
-      ]
-    },
-    {
-      "id": "piotr-trella-1979-05-18",
-      "firstName": "Piotr",
-      "lastName": "Trella",
-      "gender": "male",
-      "birthDate": "1979-05-18",
-      "parentIds": [],
-      "spouseIds": [
-        "agnieszka-trella-1980-07-02"
-      ]
-    },
-    {
-      "id": "jakub-trella-2004-01-15",
+      "id": "P371",
       "firstName": "Jakub",
-      "lastName": "Trella",
+      "lastName": "Bigus",
       "gender": "male",
-      "birthDate": "2004-01-15",
       "parentIds": [
-        "agnieszka-trella-1980-07-02",
-        "piotr-trella-1979-05-18"
+        "P369",
+        "P370"
       ],
-      "spouseIds": []
+      "spouseIds": [],
+      "birthDate": "2002-07-03"
     },
     {
-      "id": "maja-trella-x",
-      "firstName": "Maja",
-      "lastName": "Trella",
-      "gender": "female",
+      "id": "P372",
+      "firstName": "Jan",
+      "lastName": "Bigus",
+      "gender": "male",
       "parentIds": [
-        "agnieszka-trella-1980-07-02",
-        "piotr-trella-1979-05-18"
+        "P369",
+        "P370"
       ],
-      "spouseIds": []
+      "spouseIds": [],
+      "birthDate": "2005-07-06"
     },
     {
-      "maidenName": "Leśniak",
-      "id": "malgorzata-kotarba-1981-08-13",
-      "firstName": "Małgorzata",
-      "lastName": "Kotarba",
+      "id": "P373",
+      "firstName": "Teresa",
+      "lastName": "Potrykus",
       "gender": "female",
-      "birthDate": "1981-08-13",
       "parentIds": [
-        "anna-lesniak-1959-04-23",
-        "jozef-lesniak-1953-12-23"
+        "P365",
+        "P366"
       ],
       "spouseIds": [
-        "grzegorz-kotarba-1977-01-31"
-      ]
+        "P374"
+      ],
+      "birthDate": "1950-11-09"
     },
     {
-      "id": "grzegorz-kotarba-1977-01-31",
-      "firstName": "Grzegorz",
-      "lastName": "Kotarba",
+      "id": "P374",
+      "firstName": "Eugeniusz",
+      "lastName": "Dawidowski",
       "gender": "male",
-      "birthDate": "1977-01-31",
       "parentIds": [],
       "spouseIds": [
-        "malgorzata-kotarba-1981-08-13"
-      ]
-    },
-    {
-      "id": "aleksandra-kotarba-2007-10-28",
-      "firstName": "Aleksandra",
-      "lastName": "Kotarba",
-      "gender": "female",
-      "birthDate": "2007-10-28",
-      "parentIds": [
-        "malgorzata-kotarba-1981-08-13",
-        "grzegorz-kotarba-1977-01-31"
+        "P373"
       ],
-      "spouseIds": []
+      "birthDate": "1950-07-17"
     },
     {
-      "id": "dariusz-lesniak-1986-05-11",
-      "firstName": "Dariusz",
-      "lastName": "Leśniak",
+      "id": "P375",
+      "firstName": "Michał",
+      "lastName": "Dawidowski",
       "gender": "male",
-      "birthDate": "1986-05-11",
       "parentIds": [
-        "anna-lesniak-1959-04-23",
-        "jozef-lesniak-1953-12-23"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "maria-szczuko-1962-01-30",
-      "firstName": "Maria",
-      "lastName": "Szczuko",
-      "gender": "female",
-      "birthDate": "1962-01-30",
-      "parentIds": [
-        "galaz-page2-potrykus"
+        "P373",
+        "P374"
       ],
       "spouseIds": [
-        "waldemar-szczuko-1951-10-12"
-      ]
-    },
-    {
-      "id": "waldemar-szczuko-1951-10-12",
-      "firstName": "Waldemar",
-      "lastName": "Szczuko",
-      "gender": "male",
-      "birthDate": "1951-10-12",
-      "parentIds": [],
-      "spouseIds": [
-        "maria-szczuko-1962-01-30"
-      ]
-    },
-    {
-      "maidenName": "Szczuko",
-      "id": "magdalena-bieniek-1982-09-29",
-      "firstName": "Magdalena",
-      "lastName": "Bieniek",
-      "gender": "female",
-      "birthDate": "1982-09-29",
-      "parentIds": [
-        "maria-szczuko-1962-01-30",
-        "waldemar-szczuko-1951-10-12"
+        "P376"
       ],
-      "spouseIds": [
-        "arkadiusz-bieniek-1982-09-04"
-      ]
+      "birthDate": "1978-05-01"
     },
     {
-      "id": "arkadiusz-bieniek-1982-09-04",
-      "firstName": "Arkadiusz",
-      "lastName": "Bieniek",
-      "gender": "male",
-      "birthDate": "1982-09-04",
-      "parentIds": [],
-      "spouseIds": [
-        "magdalena-bieniek-1982-09-29"
-      ]
-    },
-    {
-      "id": "gabriela-bieniek-2008-07-08",
-      "firstName": "Gabriela",
-      "lastName": "Bieniek",
-      "gender": "female",
-      "birthDate": "2008-07-08",
-      "parentIds": [
-        "magdalena-bieniek-1982-09-29",
-        "arkadiusz-bieniek-1982-09-04"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "anna-szczuko-1984-12-09",
+      "id": "P376",
       "firstName": "Anna",
-      "lastName": "Szczuko",
-      "gender": "female",
-      "birthDate": "1984-12-09",
-      "parentIds": [
-        "maria-szczuko-1962-01-30",
-        "waldemar-szczuko-1951-10-12"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "beata-szczuko-1989-06-27",
-      "firstName": "Beata",
-      "lastName": "Szczuko",
-      "gender": "female",
-      "birthDate": "1989-06-27",
-      "parentIds": [
-        "maria-szczuko-1962-01-30",
-        "waldemar-szczuko-1951-10-12"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "adam-szczuko-1997-05-15",
-      "firstName": "Adam",
-      "lastName": "Szczuko",
-      "gender": "male",
-      "birthDate": "1997-05-15",
-      "parentIds": [
-        "maria-szczuko-1962-01-30",
-        "waldemar-szczuko-1951-10-12"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "joanna-szczuko-1999-08-09",
-      "firstName": "Joanna",
-      "lastName": "Szczuko",
-      "gender": "female",
-      "birthDate": "1999-08-09",
-      "parentIds": [
-        "maria-szczuko-1962-01-30",
-        "waldemar-szczuko-1951-10-12"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "wincenty-potrykus-1964-05-14",
-      "firstName": "Wincenty",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1964-05-14",
-      "parentIds": [
-        "galaz-page2-potrykus"
-      ],
-      "spouseIds": [
-        "marzena-potrykus-wiczling"
-      ]
-    },
-    {
-      "maidenName": "Wiczling",
-      "id": "marzena-potrykus-wiczling",
-      "firstName": "Marzena",
-      "lastName": "Potrykus",
+      "lastName": "Dettlaff",
       "gender": "female",
       "parentIds": [],
       "spouseIds": [
-        "wincenty-potrykus-1964-05-14"
-      ]
+        "P375"
+      ],
+      "birthDate": "1979-04-24"
     },
     {
-      "id": "szymon-potrykus-wincenty-x",
-      "firstName": "Szymon",
-      "lastName": "Potrykus",
+      "id": "P377",
+      "firstName": "Marta",
+      "lastName": "Dawidowska",
+      "gender": "female",
+      "parentIds": [
+        "P375",
+        "P376"
+      ],
+      "spouseIds": [],
+      "birthDate": "2003-07-02",
+      "deathDate": "2003-02-09",
+      "notes": "daty jak w źródle (zgon przed urodzeniem -- błąd w oryginale)"
+    },
+    {
+      "id": "P378",
+      "firstName": "Natalia",
+      "lastName": "Dawidowska",
+      "gender": "female",
+      "parentIds": [
+        "P375",
+        "P376"
+      ],
+      "spouseIds": [],
+      "birthDate": "2004-07-26"
+    },
+    {
+      "id": "P379",
+      "firstName": "Tymoteusz",
+      "lastName": "Dawidowski",
       "gender": "male",
       "parentIds": [
-        "wincenty-potrykus-1964-05-14",
-        "marzena-potrykus-wiczling"
+        "P375",
+        "P376"
       ],
-      "spouseIds": []
+      "spouseIds": [],
+      "birthDate": "2009-08-03"
     },
     {
-      "id": "monika-potrykus-wincenty-x",
-      "firstName": "Monika",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "parentIds": [
-        "wincenty-potrykus-1964-05-14",
-        "marzena-potrykus-wiczling"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "justyna-potrykus-wincenty-x",
-      "firstName": "Justyna",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "parentIds": [
-        "wincenty-potrykus-1964-05-14",
-        "marzena-potrykus-wiczling"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "magdalena-potrykus-wincenty-1999-11-11",
+      "id": "P380",
       "firstName": "Magdalena",
-      "lastName": "Potrykus",
+      "lastName": "Dawidowska",
       "gender": "female",
-      "birthDate": "1999-11-11",
       "parentIds": [
-        "wincenty-potrykus-1964-05-14",
-        "marzena-potrykus-wiczling"
-      ],
-      "spouseIds": []
-    },
-    {
-      "notes": "Gałąź ze str. 9 — pełne dane do uzupełnienia",
-      "id": "xawery-potrykus-branch",
-      "firstName": "Xawery",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "parentIds": [
-        "linia-glowna-potrykus"
+        "P373",
+        "P374"
       ],
       "spouseIds": [
-        "odona-potrykus-1949-07-25"
-      ]
-    },
-    {
-      "maidenName": "Szymańska",
-      "id": "odona-potrykus-1949-07-25",
-      "firstName": "Odona",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1949-07-25",
-      "parentIds": [],
-      "spouseIds": [
-        "xawery-potrykus-branch"
-      ]
-    },
-    {
-      "id": "ryszard-potrykus-1971-06-18",
-      "firstName": "Ryszard",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1971-06-18",
-      "parentIds": [
-        "xawery-potrykus-branch",
-        "odona-potrykus-1949-07-25"
+        "P381"
       ],
-      "spouseIds": [
-        "monika-potrykus-1974"
-      ]
+      "birthDate": "1982-10-31"
     },
     {
-      "id": "monika-potrykus-1974",
-      "firstName": "Monika",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1974-11-10",
-      "parentIds": [],
-      "spouseIds": [
-        "ryszard-potrykus-1971-06-18"
-      ]
-    },
-    {
-      "id": "agnieszka-potrykus-2002",
-      "firstName": "Agnieszka",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "2002-09-28",
-      "parentIds": [
-        "ryszard-potrykus-1971-06-18",
-        "monika-potrykus-1974"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "leszek-potrykus-1972-06-05",
-      "firstName": "Leszek",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1972-06-05",
-      "parentIds": [
-        "xawery-potrykus-branch",
-        "odona-potrykus-1949-07-25"
-      ],
-      "spouseIds": [
-        "barbara-potrykus-1974-06-23"
-      ]
-    },
-    {
-      "maidenName": "Bielawa",
-      "id": "barbara-potrykus-1974-06-23",
-      "firstName": "Barbara",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1974-06-23",
-      "parentIds": [],
-      "spouseIds": [
-        "leszek-potrykus-1972-06-05"
-      ]
-    },
-    {
-      "id": "lukasz-potrykus-leszek-1995-11-06",
+      "id": "P381",
       "firstName": "Łukasz",
-      "lastName": "Potrykus",
+      "lastName": "Strzelewicz",
       "gender": "male",
-      "birthDate": "1995-11-06",
-      "parentIds": [
-        "leszek-potrykus-1972-06-05",
-        "barbara-potrykus-1974-06-23"
+      "parentIds": [],
+      "spouseIds": [
+        "P380"
       ],
-      "spouseIds": []
+      "birthDate": "1982-10-30"
     },
     {
-      "id": "katarzyna-potrykus-leszek-1997-05-12",
+      "id": "P382",
+      "firstName": "Grzegorz",
+      "lastName": "Dawidowski",
+      "gender": "male",
+      "parentIds": [
+        "P373",
+        "P374"
+      ],
+      "spouseIds": [],
+      "birthDate": "1986-03-12"
+    },
+    {
+      "id": "P383",
+      "firstName": "Artur",
+      "lastName": "Dawidowski",
+      "gender": "male",
+      "parentIds": [
+        "P373",
+        "P374"
+      ],
+      "spouseIds": [],
+      "birthDate": "1988-09-23"
+    },
+    {
+      "id": "P384",
+      "firstName": "Benedykt",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P365",
+        "P366"
+      ],
+      "spouseIds": [
+        "P385",
+        "P387"
+      ],
+      "birthDate": "1957-08-03"
+    },
+    {
+      "id": "P385",
+      "firstName": "Gabriela",
+      "lastName": "Grzegowska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P384"
+      ],
+      "birthDate": "1957-12-13",
+      "deathDate": "1998-03-07",
+      "notes": "ślub 1979-09-29"
+    },
+    {
+      "id": "P386",
+      "firstName": "Sylwia Maria",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P384",
+        "P385"
+      ],
+      "spouseIds": [],
+      "birthDate": "1981-08-09"
+    },
+    {
+      "id": "P387",
+      "firstName": "Gabriela",
+      "lastName": "Makurath",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P384"
+      ],
+      "birthDate": "1966-01-15",
+      "notes": "2. żona Benedykta, ślub 2001-07-28"
+    },
+    {
+      "id": "P388",
+      "firstName": "Antoni",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P320",
+        "P321"
+      ],
+      "spouseIds": [],
+      "birthDate": "1927-12-17",
+      "deathDate": "1945"
+    },
+    {
+      "id": "P389",
+      "firstName": "Gertruda",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P320",
+        "P321"
+      ],
+      "spouseIds": [],
+      "birthDate": "1932-10-28"
+    },
+    {
+      "id": "P390",
+      "firstName": "Gerard",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P320",
+        "P321"
+      ],
+      "spouseIds": [
+        "P391"
+      ],
+      "birthDate": "1940-11-04"
+    },
+    {
+      "id": "P391",
+      "firstName": "Maria",
+      "lastName": "Lieske",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P390"
+      ],
+      "birthDate": "1941-08-18"
+    },
+    {
+      "id": "P392",
       "firstName": "Katarzyna",
       "lastName": "Potrykus",
       "gender": "female",
-      "birthDate": "1997-05-12",
       "parentIds": [
-        "leszek-potrykus-1972-06-05",
-        "barbara-potrykus-1974-06-23"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "mariusz-potrykus-leszek-1999-01-22",
-      "firstName": "Mariusz",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1999-01-22",
-      "parentIds": [
-        "leszek-potrykus-1972-06-05",
-        "barbara-potrykus-1974-06-23"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "paulina-potrykus-leszek-2002-09-29",
-      "firstName": "Paulina",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "2002-09-29",
-      "parentIds": [
-        "leszek-potrykus-1972-06-05",
-        "barbara-potrykus-1974-06-23"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "aleksandra-kolmetz-1973-05-11",
-      "firstName": "Aleksandra",
-      "lastName": "Kolmetz",
-      "gender": "female",
-      "birthDate": "1973-05-11",
-      "parentIds": [
-        "xawery-potrykus-branch",
-        "odona-potrykus-1949-07-25"
+        "P390",
+        "P391"
       ],
       "spouseIds": [
-        "tadeusz-kolmetz-1963-12-03"
-      ]
+        "P393"
+      ],
+      "birthDate": "1964-04-08"
     },
     {
-      "id": "tadeusz-kolmetz-1963-12-03",
-      "firstName": "Tadeusz",
-      "lastName": "Kolmetz",
+      "id": "P393",
+      "firstName": "Dariusz",
+      "lastName": "Jurczyński",
       "gender": "male",
-      "birthDate": "1963-12-03",
       "parentIds": [],
       "spouseIds": [
-        "aleksandra-kolmetz-1973-05-11"
-      ]
+        "P392"
+      ],
+      "birthDate": "1964-03-01"
     },
     {
-      "id": "anna-kolmetz-1995-04-09",
+      "id": "P394",
+      "firstName": "Łukasz",
+      "lastName": "Jurczyński",
+      "gender": "male",
+      "parentIds": [
+        "P392",
+        "P393"
+      ],
+      "spouseIds": [],
+      "birthDate": "1987-08-13"
+    },
+    {
+      "id": "P395",
+      "firstName": "Agata",
+      "lastName": "Jurczyńska",
+      "gender": "female",
+      "parentIds": [
+        "P392",
+        "P393"
+      ],
+      "spouseIds": [],
+      "birthDate": "1993-02-12"
+    },
+    {
+      "id": "P396",
+      "firstName": "Michał",
+      "lastName": "Jurczyński",
+      "gender": "male",
+      "parentIds": [
+        "P392",
+        "P393"
+      ],
+      "spouseIds": [],
+      "birthDate": "1999-05-12"
+    },
+    {
+      "id": "P397",
+      "firstName": "Hanna",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P390",
+        "P391"
+      ],
+      "spouseIds": [
+        "P398"
+      ],
+      "birthDate": "1965-12-24"
+    },
+    {
+      "id": "P398",
+      "firstName": "Henryk",
+      "lastName": "Polaszek",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P397"
+      ],
+      "birthDate": "1963-09-14"
+    },
+    {
+      "id": "P399",
+      "firstName": "Mateusz",
+      "lastName": "Polaszek",
+      "gender": "male",
+      "parentIds": [
+        "P397",
+        "P398"
+      ],
+      "spouseIds": [],
+      "birthDate": "1988-06-27"
+    },
+    {
+      "id": "P400",
       "firstName": "Anna",
-      "lastName": "Kolmetz",
+      "lastName": "Polaszek",
       "gender": "female",
-      "birthDate": "1995-04-09",
       "parentIds": [
-        "aleksandra-kolmetz-1973-05-11",
-        "tadeusz-kolmetz-1963-12-03"
+        "P397",
+        "P398"
       ],
-      "spouseIds": []
+      "spouseIds": [],
+      "birthDate": "1991-08-15"
     },
     {
-      "id": "krzysztof-kolmetz-1996-10-27",
-      "firstName": "Krzysztof",
-      "lastName": "Kolmetz",
+      "id": "P401",
+      "firstName": "Marek",
+      "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1996-10-27",
       "parentIds": [
-        "aleksandra-kolmetz-1973-05-11",
-        "tadeusz-kolmetz-1963-12-03"
+        "P390",
+        "P391"
       ],
-      "spouseIds": []
+      "spouseIds": [
+        "P402"
+      ],
+      "birthDate": "1967-12-26"
     },
     {
-      "id": "adam-kolmetz-1999-11-04",
+      "id": "P402",
+      "firstName": "Joanna",
+      "lastName": "Bladowska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P401"
+      ],
+      "birthDate": "1972-05-01"
+    },
+    {
+      "id": "P403",
+      "firstName": "Dawid",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P401",
+        "P402"
+      ],
+      "spouseIds": [],
+      "birthDate": "1996-04-19"
+    },
+    {
+      "id": "P404",
+      "firstName": "Karolina",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P401",
+        "P402"
+      ],
+      "spouseIds": [],
+      "birthDate": "1999-04-02"
+    },
+    {
+      "id": "P405",
       "firstName": "Adam",
-      "lastName": "Kolmetz",
-      "gender": "male",
-      "birthDate": "1999-11-04",
-      "parentIds": [
-        "aleksandra-kolmetz-1973-05-11",
-        "tadeusz-kolmetz-1963-12-03"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "karol-potrykus-1977-11-01",
-      "firstName": "Karol",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1977-11-01",
       "parentIds": [
-        "xawery-potrykus-branch",
-        "odona-potrykus-1949-07-25"
+        "P390",
+        "P391"
       ],
       "spouseIds": [
-        "violetta-potrykus-1979-03-10"
-      ]
+        "P406"
+      ],
+      "birthDate": "1972-02-14"
     },
     {
-      "maidenName": "Lademann",
-      "id": "violetta-potrykus-1979-03-10",
-      "firstName": "Violetta",
-      "lastName": "Potrykus",
+      "id": "P406",
+      "firstName": "Żaneta",
+      "lastName": "Zaborowska",
       "gender": "female",
-      "birthDate": "1979-03-10",
       "parentIds": [],
       "spouseIds": [
-        "karol-potrykus-1977-11-01"
+        "P405"
+      ],
+      "birthDate": "1976-03-27"
+    },
+    {
+      "id": "P407",
+      "firstName": "Wiktor",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P405",
+        "P406"
+      ],
+      "spouseIds": [],
+      "birthDate": "2003-03-11"
+    },
+    {
+      "id": "P408",
+      "firstName": "Małgorzata",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P390",
+        "P391"
+      ],
+      "spouseIds": [
+        "P409",
+        "P411"
+      ],
+      "birthDate": "1976-04-29"
+    },
+    {
+      "id": "P409",
+      "firstName": "NN",
+      "lastName": "NN",
+      "gender": "unknown",
+      "parentIds": [],
+      "spouseIds": [
+        "P408"
+      ],
+      "notes": "\"(Nieznane)\" w oryginale -- 1. partner/mąż"
+    },
+    {
+      "id": "P410",
+      "firstName": "Błażej",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P408",
+        "P409"
+      ],
+      "spouseIds": [],
+      "birthDate": "1994-04-07"
+    },
+    {
+      "id": "P411",
+      "firstName": "Paweł",
+      "lastName": "Święcki",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P408"
+      ],
+      "birthDate": "1972-03-10",
+      "notes": "2. mąż Małgorzaty"
+    },
+    {
+      "id": "P412",
+      "firstName": "Bartosz",
+      "lastName": "Święcki",
+      "gender": "male",
+      "parentIds": [
+        "P408",
+        "P411"
+      ],
+      "spouseIds": [],
+      "birthDate": "1999-06-24"
+    },
+    {
+      "id": "P420",
+      "firstName": "Ksawery",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P018",
+        "P019"
+      ],
+      "spouseIds": [
+        "P421"
       ]
     },
     {
-      "id": "piotr-potrykus-2001",
-      "firstName": "Piotr",
+      "id": "P421",
+      "firstName": "Klara",
+      "lastName": "Miotke",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P420"
+      ]
+    },
+    {
+      "id": "P422",
+      "firstName": "Leon",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "2001-09-22",
       "parentIds": [
-        "karol-potrykus-1977-11-01",
-        "violetta-potrykus-1979-03-10"
+        "P420",
+        "P421"
       ],
       "spouseIds": []
     },
     {
-      "id": "nikola-potrykus-2004-10-26",
-      "firstName": "Nikola",
+      "id": "P423",
+      "firstName": "Antoni",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P420",
+        "P421"
+      ],
+      "spouseIds": [
+        "P424"
+      ]
+    },
+    {
+      "id": "P424",
+      "firstName": "Józefa",
       "lastName": "Potrykus",
       "gender": "female",
-      "birthDate": "2004-10-26",
+      "parentIds": [],
+      "spouseIds": [
+        "P423"
+      ],
+      "birthDate": "1924-06-21"
+    },
+    {
+      "id": "P425",
+      "firstName": "Agnieszka",
+      "lastName": "Potrykus",
+      "gender": "female",
       "parentIds": [
-        "karol-potrykus-1977-11-01",
-        "violetta-potrykus-1979-03-10"
+        "P420",
+        "P421"
       ],
       "spouseIds": []
     },
     {
-      "id": "jan-potrykus-1980-05-09",
+      "id": "P426",
+      "firstName": "Maria",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P420",
+        "P421"
+      ],
+      "spouseIds": [
+        "P427"
+      ],
+      "birthDate": "1919-09-30"
+    },
+    {
+      "id": "P427",
+      "firstName": "NN",
+      "lastName": "Macieszka",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P426"
+      ],
+      "notes": "nazwisko podane jako 'Macieszka', imię nieznane"
+    },
+    {
+      "id": "P428",
+      "firstName": "Edyta",
+      "lastName": "Macieszka",
+      "gender": "female",
+      "parentIds": [
+        "P426",
+        "P427"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P429",
+      "firstName": "Anna",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P420",
+        "P421"
+      ],
+      "spouseIds": [],
+      "birthDate": "1925-07-26"
+    },
+    {
+      "id": "P430",
+      "firstName": "Leokadia",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P420",
+        "P421"
+      ],
+      "spouseIds": [],
+      "birthDate": "1929-01-05"
+    },
+    {
+      "id": "P431",
+      "firstName": "Stefan",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P018",
+        "P019"
+      ],
+      "spouseIds": [
+        "P432"
+      ]
+    },
+    {
+      "id": "P432",
+      "firstName": "NN",
+      "lastName": "Szymańska",
+      "gender": "female",
+      "parentIds": [],
+      "spouseIds": [
+        "P431"
+      ],
+      "notes": "imię nieznane"
+    },
+    {
+      "id": "P433",
+      "firstName": "Brygida",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P431",
+        "P432"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P434",
+      "firstName": "Magdalena",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P431",
+        "P432"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P435",
+      "firstName": "Edmund",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P431",
+        "P432"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P436",
+      "firstName": "Maria",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P431",
+        "P432"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P437",
+      "firstName": "NN",
+      "lastName": "Potrykus",
+      "gender": "female",
+      "parentIds": [
+        "P018",
+        "P019"
+      ],
+      "spouseIds": [
+        "P438"
+      ],
+      "notes": "córka Franciszka Xawerego i Anny Elżbiety, imię nieznane w źródle"
+    },
+    {
+      "id": "P438",
+      "firstName": "Józef",
+      "lastName": "Szymański",
+      "gender": "male",
+      "parentIds": [],
+      "spouseIds": [
+        "P437"
+      ]
+    },
+    {
+      "id": "P439",
       "firstName": "Jan",
-      "lastName": "Potrykus",
+      "lastName": "Szymański",
       "gender": "male",
-      "birthDate": "1980-05-09",
       "parentIds": [
-        "xawery-potrykus-branch",
-        "odona-potrykus-1949-07-25"
+        "P437",
+        "P438"
       ],
-      "spouseIds": [
-        "justyna-potrykus-1974-01-22"
-      ]
+      "spouseIds": []
     },
     {
-      "maidenName": "Drawc",
-      "id": "justyna-potrykus-1974-01-22",
-      "firstName": "Justyna",
-      "lastName": "Potrykus",
+      "id": "P440",
+      "firstName": "Bronisława",
+      "lastName": "Szymańska",
       "gender": "female",
-      "birthDate": "1974-01-22",
+      "parentIds": [
+        "P437",
+        "P438"
+      ],
+      "spouseIds": []
+    },
+    {
+      "id": "P441",
+      "firstName": "Eligiusz",
+      "lastName": "Potrykus",
+      "gender": "male",
+      "parentIds": [
+        "P018",
+        "P019"
+      ],
+      "spouseIds": [
+        "P442"
+      ],
+      "notes": "zm. pomiędzy 1914 a 1918"
+    },
+    {
+      "id": "P442",
+      "firstName": "NN",
+      "lastName": "NN",
+      "gender": "unknown",
       "parentIds": [],
       "spouseIds": [
-        "jan-potrykus-1980-05-09"
-      ]
-    },
-    {
-      "id": "tomasz-potrykus-2008",
-      "firstName": "Tomasz",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "2008-01-20",
-      "parentIds": [
-        "jan-potrykus-1980-05-09",
-        "justyna-potrykus-1974-01-22"
+        "P441"
       ],
-      "spouseIds": []
+      "notes": "\"Nieznany\" -- małżonek/małżonka Eligiusza"
     },
     {
-      "id": "oliwia-potrykus-2011-09-03",
-      "firstName": "Oliwia",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "2011-09-03",
-      "parentIds": [
-        "jan-potrykus-1980-05-09",
-        "justyna-potrykus-1974-01-22"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "alfons-potrykus-1949-07-06",
+      "id": "P443",
       "firstName": "Alfons",
       "lastName": "Potrykus",
       "gender": "male",
-      "birthDate": "1949-07-06",
-      "deathDate": "2004-09-06",
       "parentIds": [
-        "linia-glowna-potrykus"
+        "P441",
+        "P442"
       ],
       "spouseIds": [
-        "wladyslawa-potrykus-1953-03-06"
-      ]
-    },
-    {
-      "maidenName": "Lademann",
-      "id": "wladyslawa-potrykus-1953-03-06",
-      "firstName": "Władysława",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1953-03-06",
-      "parentIds": [],
-      "spouseIds": [
-        "alfons-potrykus-1949-07-06"
-      ]
-    },
-    {
-      "id": "andrzej-potrykus-1972",
-      "firstName": "Andrzej",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1972-05-07",
-      "deathDate": "1992-05-09",
-      "parentIds": [
-        "alfons-potrykus-1949-07-06",
-        "wladyslawa-potrykus-1953-03-06"
+        "P444"
       ],
-      "spouseIds": []
+      "birthDate": "1914-03-31",
+      "deathDate": "1998-05-13"
     },
     {
-      "maidenName": "Potrykus",
-      "id": "marzena-ryszka-1974-01-14",
-      "firstName": "Marzena",
-      "lastName": "Ryszka",
-      "gender": "female",
-      "birthDate": "1974-01-14",
-      "parentIds": [
-        "alfons-potrykus-1949-07-06",
-        "wladyslawa-potrykus-1953-03-06"
-      ],
-      "spouseIds": [
-        "aleksander-ryszka-1966-01-20"
-      ]
-    },
-    {
-      "id": "aleksander-ryszka-1966-01-20",
-      "firstName": "Aleksander",
-      "lastName": "Ryszka",
-      "gender": "male",
-      "birthDate": "1966-01-20",
-      "parentIds": [],
-      "spouseIds": [
-        "marzena-ryszka-1974-01-14"
-      ]
-    },
-    {
-      "id": "andreas-ryszka-1995-10-11",
-      "firstName": "Andreas",
-      "lastName": "Ryszka",
-      "gender": "male",
-      "birthDate": "1995-10-11",
-      "parentIds": [
-        "marzena-ryszka-1974-01-14",
-        "aleksander-ryszka-1966-01-20"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "pawel-potrykus-1980-03-05",
-      "firstName": "Paweł",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1980-03-05",
-      "parentIds": [
-        "alfons-potrykus-1949-07-06",
-        "wladyslawa-potrykus-1953-03-06"
-      ],
-      "spouseIds": [
-        "adrianna-potrykus-1975-08-22"
-      ]
-    },
-    {
-      "maidenName": "Kuliś",
-      "id": "adrianna-potrykus-1975-08-22",
-      "firstName": "Adrianna",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1975-08-22",
-      "parentIds": [],
-      "spouseIds": [
-        "pawel-potrykus-1980-03-05"
-      ]
-    },
-    {
-      "id": "maciej-potrykus-2002",
-      "firstName": "Maciej",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "2002-03-17",
-      "parentIds": [
-        "pawel-potrykus-1980-03-05",
-        "adrianna-potrykus-1975-08-22"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "filip-potrykus-2008-02-16",
-      "firstName": "Filip",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "2008-02-16",
-      "parentIds": [
-        "pawel-potrykus-1980-03-05",
-        "adrianna-potrykus-1975-08-22"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "slawomir-potrykus-1981",
-      "firstName": "Sławomir",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "1981-12-12",
-      "parentIds": [
-        "alfons-potrykus-1949-07-06",
-        "wladyslawa-potrykus-1953-03-06"
-      ],
-      "spouseIds": [
-        "marta-potrykus-1983-12-07"
-      ]
-    },
-    {
-      "maidenName": "Mrożek",
-      "id": "marta-potrykus-1983-12-07",
-      "firstName": "Marta",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "1983-12-07",
-      "parentIds": [],
-      "spouseIds": [
-        "slawomir-potrykus-1981"
-      ]
-    },
-    {
-      "id": "kacper-potrykus-2004",
-      "firstName": "Kacper",
-      "lastName": "Potrykus",
-      "gender": "male",
-      "birthDate": "2004-02-08",
-      "parentIds": [
-        "slawomir-potrykus-1981",
-        "marta-potrykus-1983-12-07"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "zuzanna-potrykus-2010-12-14",
-      "firstName": "Zuzanna",
-      "lastName": "Potrykus",
-      "gender": "female",
-      "birthDate": "2010-12-14",
-      "parentIds": [
-        "slawomir-potrykus-1981",
-        "marta-potrykus-1983-12-07"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "jadwiga-lewandowski-1952-12-05",
-      "firstName": "Jadwiga",
-      "lastName": "Lewandowski",
-      "gender": "female",
-      "birthDate": "1952-12-05",
-      "parentIds": [
-        "linia-glowna-potrykus"
-      ],
-      "spouseIds": [
-        "jerzy-lewandowski-1953-04-01"
-      ]
-    },
-    {
-      "id": "jerzy-lewandowski-1953-04-01",
-      "firstName": "Jerzy",
-      "lastName": "Lewandowski",
-      "gender": "male",
-      "birthDate": "1953-04-01",
-      "parentIds": [],
-      "spouseIds": [
-        "jadwiga-lewandowski-1952-12-05"
-      ]
-    },
-    {
-      "id": "hanna-lewandowska-1979-04-10",
-      "firstName": "Hanna",
-      "lastName": "Lewandowska",
-      "gender": "female",
-      "birthDate": "1979-04-10",
-      "parentIds": [
-        "jadwiga-lewandowski-1952-12-05",
-        "jerzy-lewandowski-1953-04-01"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Lewandowska",
-      "id": "agnieszka-ciemny-1981-06-28",
-      "firstName": "Agnieszka",
-      "lastName": "Ciemny",
-      "gender": "female",
-      "birthDate": "1981-06-28",
-      "parentIds": [
-        "jadwiga-lewandowski-1952-12-05",
-        "jerzy-lewandowski-1953-04-01"
-      ],
-      "spouseIds": [
-        "marek-ciemny-1980-09-17"
-      ]
-    },
-    {
-      "id": "marek-ciemny-1980-09-17",
-      "firstName": "Marek",
-      "lastName": "Ciemny",
-      "gender": "male",
-      "birthDate": "1980-09-17",
-      "parentIds": [],
-      "spouseIds": [
-        "agnieszka-ciemny-1981-06-28"
-      ]
-    },
-    {
-      "id": "milosz-ciemny-2004-04-02",
-      "firstName": "Miłosz",
-      "lastName": "Ciemny",
-      "gender": "male",
-      "birthDate": "2004-04-02",
-      "parentIds": [
-        "agnieszka-ciemny-1981-06-28",
-        "marek-ciemny-1980-09-17"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "paulina-ciemny-2011-05-05",
-      "firstName": "Paulina",
-      "lastName": "Ciemny",
-      "gender": "female",
-      "birthDate": "2011-05-05",
-      "parentIds": [
-        "agnieszka-ciemny-1981-06-28",
-        "marek-ciemny-1980-09-17"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "marek-lewandowski-1984-05-17",
-      "firstName": "Marek",
-      "lastName": "Lewandowski",
-      "gender": "male",
-      "birthDate": "1984-05-17",
-      "parentIds": [
-        "jadwiga-lewandowski-1952-12-05",
-        "jerzy-lewandowski-1953-04-01"
-      ],
-      "spouseIds": [
-        "katarzyna-lewandowska-1982-05-15"
-      ]
-    },
-    {
-      "id": "katarzyna-lewandowska-1982-05-15",
-      "firstName": "Katarzyna",
-      "lastName": "Lewandowska",
-      "gender": "female",
-      "birthDate": "1982-05-15",
-      "parentIds": [],
-      "spouseIds": [
-        "marek-lewandowski-1984-05-17"
-      ]
-    },
-    {
-      "id": "martyna-lewandowska-2011-05-12",
-      "firstName": "Martyna",
-      "lastName": "Lewandowska",
-      "gender": "female",
-      "birthDate": "2011-05-12",
-      "parentIds": [
-        "marek-lewandowski-1984-05-17",
-        "katarzyna-lewandowska-1982-05-15"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Potrykus",
-      "id": "anna-semmerling-1956-09-14",
+      "id": "P444",
       "firstName": "Anna",
-      "lastName": "Semmerling",
+      "lastName": "Potrykus",
       "gender": "female",
-      "birthDate": "1956-09-14",
-      "parentIds": [
-        "linia-glowna-potrykus"
-      ],
-      "spouseIds": [
-        "wojciech-semmerling-1957-03-05"
-      ]
-    },
-    {
-      "id": "wojciech-semmerling-1957-03-05",
-      "firstName": "Wojciech",
-      "lastName": "Semmerling",
-      "gender": "male",
-      "birthDate": "1957-03-05",
       "parentIds": [],
       "spouseIds": [
-        "anna-semmerling-1956-09-14"
-      ]
-    },
-    {
-      "id": "witold-semmerling-1983-10-24",
-      "firstName": "Witold",
-      "lastName": "Semmerling",
-      "gender": "male",
-      "birthDate": "1983-10-24",
-      "parentIds": [
-        "anna-semmerling-1956-09-14",
-        "wojciech-semmerling-1957-03-05"
+        "P443"
       ],
-      "spouseIds": [
-        "marta-semmerling-1988-04-07"
-      ]
-    },
-    {
-      "maidenName": "Brzozowska",
-      "id": "marta-semmerling-1988-04-07",
-      "firstName": "Marta",
-      "lastName": "Semmerling",
-      "gender": "female",
-      "birthDate": "1988-04-07",
-      "parentIds": [],
-      "spouseIds": [
-        "witold-semmerling-1983-10-24"
-      ]
-    },
-    {
-      "id": "piotr-semmerling-1986-10-08",
-      "firstName": "Piotr",
-      "lastName": "Semmerling",
-      "gender": "male",
-      "birthDate": "1986-10-08",
-      "parentIds": [
-        "anna-semmerling-1956-09-14",
-        "wojciech-semmerling-1957-03-05"
-      ],
-      "spouseIds": [
-        "joanna-semmerling-1982-07-30"
-      ]
-    },
-    {
-      "maidenName": "Mrzygłocka",
-      "id": "joanna-semmerling-1982-07-30",
-      "firstName": "Joanna",
-      "lastName": "Semmerling",
-      "gender": "female",
-      "birthDate": "1982-07-30",
-      "parentIds": [],
-      "spouseIds": [
-        "piotr-semmerling-1986-10-08"
-      ]
-    },
-    {
-      "id": "wiktor-semmerling-2009-11-17",
-      "firstName": "Wiktor",
-      "lastName": "Semmerling",
-      "gender": "male",
-      "birthDate": "2009-11-17",
-      "parentIds": [
-        "piotr-semmerling-1986-10-08",
-        "joanna-semmerling-1982-07-30"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "aleksandra-semmerling-2011-10-12",
-      "firstName": "Aleksandra",
-      "lastName": "Semmerling",
-      "gender": "female",
-      "birthDate": "2011-10-12",
-      "parentIds": [
-        "piotr-semmerling-1986-10-08",
-        "joanna-semmerling-1982-07-30"
-      ],
-      "spouseIds": []
-    },
-    {
-      "id": "radoslaw-semmerling-2011-02-08",
-      "firstName": "Radosław",
-      "lastName": "Semmerling",
-      "gender": "male",
-      "birthDate": "2011-02-08",
-      "parentIds": [
-        "piotr-semmerling-1986-10-08",
-        "joanna-semmerling-1982-07-30"
-      ],
-      "spouseIds": []
-    },
-    {
-      "maidenName": "Semmerling",
-      "id": "magdalena-szczechura-1988-02-28",
-      "firstName": "Magdalena",
-      "lastName": "Szczechura",
-      "gender": "female",
-      "birthDate": "1988-02-28",
-      "parentIds": [
-        "anna-semmerling-1956-09-14",
-        "wojciech-semmerling-1957-03-05"
-      ],
-      "spouseIds": [
-        "piotr-szczechura-1981-07-30"
-      ]
-    },
-    {
-      "id": "piotr-szczechura-1981-07-30",
-      "firstName": "Piotr",
-      "lastName": "Szczechura",
-      "gender": "male",
-      "birthDate": "1981-07-30",
-      "parentIds": [],
-      "spouseIds": [
-        "magdalena-szczechura-1988-02-28"
-      ]
-    },
-    {
-      "id": "anita-szczechura-2010-04-02",
-      "firstName": "Anita",
-      "lastName": "Szczechura",
-      "gender": "female",
-      "birthDate": "2010-04-02",
-      "parentIds": [
-        "magdalena-szczechura-1988-02-28",
-        "piotr-szczechura-1981-07-30"
-      ],
-      "spouseIds": []
-    },
-    {
-      "parentIds": [],
-      "spouseIds": [
-        "adam-lieske"
-      ],
-      "id": "julia-lieske-1999-04-04",
-      "firstName": "Julia",
-      "lastName": "Lieske",
-      "maidenName": "Gogół",
-      "gender": "female",
-      "birthDate": "1999-04-04"
-    },
-    {
-      "parentIds": [
-        "adam-lieske",
-        "julia-lieske-1999-04-04"
-      ],
-      "spouseIds": [],
-      "id": "tola-lieske-2024-04-22",
-      "firstName": "Tola",
-      "lastName": "Lieske",
-      "gender": "female",
-      "birthDate": "2024-04-22"
-    },
-    {
-      "parentIds": [
-        "adam-lieske",
-        "julia-lieske-1999-04-04"
-      ],
-      "spouseIds": [],
-      "id": "milo-lieske-2026-01-16",
-      "firstName": "Milo",
-      "lastName": "Lieske",
-      "gender": "male",
-      "birthDate": "2026-01-16"
-    },
-    {
-      "parentIds": [],
-      "spouseIds": [
-        "barbara-lieske-1995-01-27"
-      ],
-      "id": "michal-kaluzinski-1986-07-22",
-      "firstName": "Michał",
-      "lastName": "Kałuziński",
-      "gender": "male",
-      "birthDate": "1986-07-22"
-    },
-    {
-      "parentIds": [
-        "barbara-lieske-1995-01-27",
-        "michal-kaluzinski-1986-07-22"
-      ],
-      "spouseIds": [],
-      "id": "jakub-kaluzinski-2019-11-19",
-      "firstName": "Jakub",
-      "lastName": "Kałuziński",
-      "gender": "male",
-      "birthDate": "2019-11-19"
+      "birthDate": "1921-11-18",
+      "deathDate": "1998-02-24"
     }
   ]
 }
