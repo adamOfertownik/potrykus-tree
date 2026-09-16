@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Person } from "@/types/family";
 import { displayName, formatPolishDate } from "@/lib/db-client";
+import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 
 type Props = {
   person: Person;
@@ -24,40 +25,31 @@ export function PersonCard({ person, compact, href, onClick }: Props) {
         ? "person-card--female"
         : "person-card--unknown";
 
-  const content = (
+  const body = (
     <>
-      <div className="person-card__avatar" aria-hidden>
-        {person.photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-            <img src={person.photoUrl} alt={displayName(person)} />
-        ) : (
-          <span className="person-card__silhouette" />
-        )}
-      </div>
-      <div className="person-card__body">
-        <p className="person-card__name">{displayName(person)}</p>
-        {dates && <p className="person-card__dates">{dates}</p>}
-        {!compact && person.maidenName && (
-          <p className="person-card__meta">z d. {person.maidenName}</p>
-        )}
-      </div>
-      <span className="person-card__gender-mark" aria-hidden />
+      <p className="person-card__name">{displayName(person)}</p>
+      {dates && <p className="person-card__dates">{dates}</p>}
+      {!compact && person.maidenName && (
+        <p className="person-card__meta">z d. {person.maidenName}</p>
+      )}
     </>
   );
 
   const className = `person-card ${genderClass}${compact ? " person-card--compact" : ""}`;
 
-  if (href) {
-    return (
-      <Link href={href} className={className} onClick={onClick}>
-        {content}
-      </Link>
-    );
-  }
-
   return (
-    <button type="button" className={className} onClick={onClick}>
-      {content}
-    </button>
+    <div className={className}>
+      <PersonPhotoControl person={person} size={compact ? "sm" : "md"} />
+      {href ? (
+        <Link href={href} className="person-card__body" onClick={onClick}>
+          {body}
+        </Link>
+      ) : (
+        <button type="button" className="person-card__body" onClick={onClick}>
+          {body}
+        </button>
+      )}
+      <span className="person-card__gender-mark" aria-hidden />
+    </div>
   );
 }

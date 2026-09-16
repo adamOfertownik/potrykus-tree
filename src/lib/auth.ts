@@ -83,49 +83,44 @@ export async function attachSessionCookie(
   token: string,
 ): Promise<void> {
   const config = await readConfig();
-  response.cookies.set(config.cookieName, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+  response.cookies.set(config.cookieName, token, sessionCookieOptions(false));
 }
 
 export async function attachAdminSessionCookie(
   response: NextResponse,
   token: string,
 ): Promise<void> {
-  response.cookies.set(ADMIN_COOKIE, token, {
+  response.cookies.set(ADMIN_COOKIE, token, sessionCookieOptions(false));
+}
+
+function sessionCookieOptions(expired: boolean) {
+  return {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 30,
-  });
+    ...(expired
+      ? { maxAge: 0, expires: new Date(0) }
+      : { maxAge: 60 * 60 * 24 * 30 }),
+  };
+}
+
+function expireCookie(response: NextResponse, name: string) {
+  const base = sessionCookieOptions(true);
+  response.cookies.set(name, "", base);
+  response.cookies.set(name, "", { ...base, secure: !base.secure });
+  response.cookies.delete(name);
 }
 
 export async function clearSessionOnResponse(
   response: NextResponse,
 ): Promise<void> {
   const config = await readConfig();
-  response.cookies.set(config.cookieName, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  });
+  expireCookie(response, config.cookieName);
 }
 
 export async function clearAdminSessionOnResponse(
   response: NextResponse,
 ): Promise<void> {
-  response.cookies.set(ADMIN_COOKIE, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  });
+  expireCookie(response, ADMIN_COOKIE);
 }

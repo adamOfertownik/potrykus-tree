@@ -9,6 +9,7 @@
     "lint": "eslint",
     "seed": "node scripts/generate-seed.mjs",
     "db:migrate": "node scripts/migrate.mjs",
+    "db:seed-family": "node scripts/seed-family-db.mjs",
     "db:create-admin": "node scripts/create-admin.mjs",
     "test:e2e": "playwright test"
   },

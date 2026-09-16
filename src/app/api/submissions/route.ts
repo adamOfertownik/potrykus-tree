@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { isSessionValid } from "@/lib/auth";
-import { appendSubmission, readSubmissions } from "@/lib/submissions";
+import { readFamilyDb } from "@/lib/db";
+import { snapshotPeople } from "@/lib/familyMutations";
+import { appendSubmission } from "@/lib/submissions";
 import { storageMode } from "@/lib/sql";
 import { submissionPayloadSchema } from "@/lib/validation";
+import {
+  sanitizeMultiline,
+  sanitizePlainText,
+} from "@/lib/sanitize";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 import type { ChangeSubmission } from "@/types/submissions";
 
 export async function GET() {
@@ -10,19 +17,27 @@ export async function GET() {
   if (!unlocked) {
     return NextResponse.json({ error: "Brak dostępu." }, { status: 401 });
   }
-  const submissions = await readSubmissions();
-  const mode = storageMode();
-  return NextResponse.json({
-    storage: mode,
-    count: submissions.length,
-    submissions,
-  });
+  return NextResponse.json(
+    { error: "Lista zgłoszeń jest dostępna tylko dla admina." },
+    { status: 403 },
+  );
 }
 
 export async function POST(request: Request) {
   const unlocked = await isSessionValid();
   if (!unlocked) {
     return NextResponse.json({ error: "Brak dostępu." }, { status: 401 });
+  }
+
+  const limited = rateLimit(`sub:${clientIp(request)}`, 15, 10 * 60 * 1000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: `Za dużo zgłoszeń. Spróbuj za ${limited.retryAfterSec} s.` },
+      {
+        status: 429,
+        headers: { "Retry-After": String(limited.retryAfterSec) },
+      },
+    );
   }
 
   try {
@@ -34,19 +49,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: msg }, { status: 400 });
     }
     const body = parsed.data;
+    const db = await readFamilyDb();
+    const targetIds = [
+      body.targetPersonId,
+      body.graphEdit?.anchorPersonId,
+      body.graphEdit?.relatedPersonId,
+    ].filter((id): id is string => Boolean(id));
 
     const draft: ChangeSubmission = {
       id: `sub-${Date.now()}`,
       createdAt: new Date().toISOString(),
       kind: body.kind,
-      reporterName: body.reporterName,
+      reporterName: sanitizePlainText(body.reporterName, 120),
       reporterPersonId: body.reporterPersonId,
       reporterPhone: body.reporterPhone || undefined,
       targetPersonId: body.targetPersonId,
-      targetPersonName: body.targetPersonName || undefined,
-      message: body.message || "",
+      targetPersonName: body.targetPersonName
+        ? sanitizePlainText(body.targetPersonName, 160)
+        : undefined,
+      message: sanitizeMultiline(body.message || "", 4000),
       self: body.self,
       relatives: body.relatives?.filter((r) => r.firstName?.trim()),
+      graphEdit: body.graphEdit,
+      correction: body.correction,
+      photoUrl: body.photoUrl,
+      photoAction: body.photoAction,
+      before: snapshotPeople(db.people, targetIds),
       status: "new",
     };
 

@@ -1,16 +1,31 @@
 import { NextResponse } from "next/server";
-import { isSessionValid } from "@/lib/auth";
-import { getChildrenIds, readFamilyDb, writeFamilyDb } from "@/lib/db";
-import { applyGraphMutation } from "@/lib/familyMutations";
+import { getAdminSession, isSessionValid } from "@/lib/auth";
+import { readFamilyDb, toFamilyPayload, writeFamilyDb } from "@/lib/db";
+import { applyGraphMutation, snapshotPeople } from "@/lib/familyMutations";
 import { appendSubmission } from "@/lib/submissions";
 import { graphMutationSchema } from "@/lib/validation";
-import type { FamilyPayload, PersonPublic } from "@/types/family";
+import { sanitizePlainText } from "@/lib/sanitize";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 import type { ChangeSubmission } from "@/types/submissions";
 
 export async function POST(request: Request) {
   const unlocked = await isSessionValid();
   if (!unlocked) {
     return NextResponse.json({ error: "Brak dostępu." }, { status: 401 });
+  }
+
+  const admin = await getAdminSession();
+  if (!admin) {
+    const limited = rateLimit(`mutate:${clientIp(request)}`, 20, 10 * 60 * 1000);
+    if (!limited.ok) {
+      return NextResponse.json(
+        { error: `Za dużo zgłoszeń. Spróbuj za ${limited.retryAfterSec} s.` },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limited.retryAfterSec) },
+        },
+      );
+    }
   }
 
   try {
@@ -32,18 +47,22 @@ export async function POST(request: Request) {
       replaceParentIds: body.replaceParentIds,
     });
 
-    let applied = false;
-    let applyWarning: string | undefined;
-    try {
-      await writeFamilyDb(result.db);
-      applied = true;
-    } catch {
-      applyWarning =
-        "Nie udało się zapisać drzewa na dysku (np. Vercel EROFS). Zmiana jest w zgłoszeniu i w tej sesji.";
+    const reporterName = sanitizePlainText(
+      body.reporterName?.trim() || "Edycja grafu (aplikacja)",
+      120,
+    );
+
+    if (admin) {
+      await writeFamilyDb(result.db, admin.adminId);
+      return NextResponse.json({
+        ok: true,
+        applied: true,
+        summary: result.summary,
+        family: toFamilyPayload(result.db),
+        createdPersonId: result.createdPerson?.id,
+      });
     }
 
-    const reporterName =
-      body.reporterName?.trim() || "Edycja grafu (aplikacja)";
     const submission: ChangeSubmission = {
       id: `sub-${Date.now()}`,
       createdAt: new Date().toISOString(),
@@ -62,28 +81,21 @@ export async function POST(request: Request) {
         newPerson: body.newPerson,
         summary: result.summary,
       },
+      before: snapshotPeople(db.people, [
+        body.anchorPersonId,
+        body.relatedPersonId ?? "",
+        body.secondParentId ?? "",
+      ]),
       status: "new",
     };
     const saved = await appendSubmission(submission);
 
-    const people: PersonPublic[] = result.db.people.map((p) => ({
-      ...p,
-      childrenIds: getChildrenIds(result.db.people, p.id),
-    }));
-    const family: FamilyPayload = {
-      meta: result.db.meta,
-      people,
-      unlocked: true,
-    };
-
     return NextResponse.json({
       ok: true,
-      applied,
-      applyWarning,
+      applied: false,
       summary: result.summary,
       submissionId: saved.id,
-      family,
-      createdPersonId: result.createdPerson?.id,
+      family: toFamilyPayload(db),
     });
   } catch (err) {
     const message =

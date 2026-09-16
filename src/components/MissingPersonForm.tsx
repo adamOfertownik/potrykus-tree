@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { RelativeDraft, SubmissionPayload } from "@/types/submissions";
 import { Modal } from "@/components/Modal";
 
@@ -42,6 +42,15 @@ export function MissingPersonForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setMessage(
+      searchedQuery
+        ? `Szukałem/am: „${searchedQuery}” — nie ma w drzewie.`
+        : "",
+    );
+  }, [open, searchedQuery]);
 
   if (!open) return null;
 

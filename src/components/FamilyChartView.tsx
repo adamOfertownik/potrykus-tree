@@ -1,17 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
-import {
-  GraphEditWizard,
-  type GraphEditOp,
-} from "@/components/GraphEditWizard";
-import { PersonTreeActionsModal } from "@/components/PersonTreeActionsModal";
+import { GraphEditHost } from "@/components/GraphEditHost";
 
 type Props = {
   people: Person[];
@@ -38,6 +34,26 @@ const SCALE_LAYOUT: Record<
 
 /** Minimum zoom when jumping to a searched person, so the card stays readable */
 const READABLE_ZOOM = 0.7;
+
+const PERSON_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="fill: currentColor" data-icon="person"><g data-icon="person"><path d="M256 288c79.5 0 144-64.5 144-144S335.5 0 256 0 112 64.5 112 144s64.5 144 144 144zm128 32h-55.1c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16H128C57.3 320 0 377.3 0 448v16c0 26.5 21.5 48 48 48h416c26.5 0 48-21.5 48-48v-16c0-70.7-57.3-128-128-128z" /></g></svg>`;
+
+function replaceBrokenChartPhoto(img: HTMLImageElement) {
+  const icon = document.createElement("div");
+  icon.className = "person-icon";
+  icon.innerHTML = PERSON_ICON_SVG;
+  img.replaceWith(icon);
+}
+
+function bindChartPhotoFallback(img: HTMLImageElement) {
+  if (img.dataset.photoFallback === "1") return;
+  img.dataset.photoFallback = "1";
+  const fallback = () => {
+    if (!img.isConnected) return;
+    replaceBrokenChartPhoto(img);
+  };
+  img.addEventListener("error", fallback);
+  if (img.complete && img.naturalWidth === 0) fallback();
+}
 
 type ZoomTransform = {
   k: number;
@@ -75,13 +91,11 @@ export function FamilyChartView({
 
   const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
-  const [editOp, setEditOp] = useState<GraphEditOp | null>(null);
-  const [editNotice, setEditNotice] = useState<string | null>(null);
   /** Rebuild when links change, not only when a person is added */
   const peopleSig = people
     .map(
       (p) =>
-        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}`,
+        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.photoUrl ?? ""}`,
     )
     .join("|");
 
@@ -233,10 +247,10 @@ export function FamilyChartView({
       h: layout.h,
       text_x: 75,
       text_y: 15,
-      img_w: 60,
-      img_h: 60,
-      img_x: 5,
-      img_y: 5,
+      img_w: 56,
+      img_h: 56,
+      img_x: 0,
+      img_y: 0,
     });
     card.setCardDisplay([
       ["first name", "last name"],
@@ -271,6 +285,9 @@ export function FamilyChartView({
         this.classList.add("card_cont--addable");
         this.appendChild(btn);
       }
+
+      const photo = this.querySelector("img");
+      if (photo) bindChartPhotoFallback(photo);
     });
 
     chart.updateMainId(safeMain);
@@ -301,10 +318,10 @@ export function FamilyChartView({
       h: layout.h,
       text_x: 75,
       text_y: 15,
-      img_w: 60,
-      img_h: 60,
-      img_x: 5,
-      img_y: 5,
+      img_w: 56,
+      img_h: 56,
+      img_x: 0,
+      img_y: 0,
     });
     chart.updateTree({ tree_position: "inherit" });
   }, [scale]);
@@ -359,46 +376,30 @@ export function FamilyChartView({
     );
   };
 
-  const goToPerson = () => {
-    if (!selected) return;
-    const id = selected.id;
-    setSelected(null);
-    router.push(`/osoba/${encodeURIComponent(id)}`);
-  };
+  const goToPerson = useCallback(
+    (person: Person) => {
+      setSelected(null);
+      router.push(`/osoba/${encodeURIComponent(person.id)}`);
+    },
+    [router],
+  );
 
-  const focusInTree = () => {
-    if (!selected) return;
-    const id = selected.id;
-    setSelected(null);
-    onFocusBranch?.(id);
-  };
+  const focusInTree = useCallback(
+    (person: Person) => {
+      setSelected(null);
+      onFocusBranch?.(person.id);
+    },
+    [onFocusBranch],
+  );
 
-  // Portal to <body> — the chart wrap has overflow:hidden + d3 zoom, which
-  // steals touch scrolls on mobile if the dialog stays inside it.
-  useEffect(() => {
-    if (!selected) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSelected(null);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [selected]);
+  const closeSelected = useCallback(() => setSelected(null), []);
 
-  const personModal =
-    selected && !editOp ? (
-      <PersonTreeActionsModal
-        person={selected}
-        onClose={() => setSelected(null)}
-        onEdit={(op) => setEditOp(op)}
-        onViewPerson={goToPerson}
-        onFocusBranch={focusInTree}
-      />
-    ) : null;
+  const handleApplied = useCallback(
+    ({ createdPersonId }: { createdPersonId?: string }) => {
+      if (createdPersonId) onHighlight?.(createdPersonId);
+    },
+    [onHighlight],
+  );
 
   return (
     <div className="family-chart-wrap" id="family-tree-canvas" ref={wrapRef}>
@@ -430,33 +431,17 @@ export function FamilyChartView({
       </div>
 
       <p className="family-chart-hint">
-        Przeciągnij, aby przesunąć · scroll = zoom · klik lub + = dodaj powiązanie
+        Przeciągnij, aby przesunąć · scroll = zoom · + na karcie = powiązanie
       </p>
 
-      {editNotice && (
-        <p className="family-chart-toast" role="status">
-          {editNotice}
-        </p>
-      )}
-
-      {personModal}
-
-      {selected && editOp && (
-        <GraphEditWizard
-          open
-          op={editOp}
-          anchor={selected}
-          people={people}
-          onClose={() => setEditOp(null)}
-          onApplied={({ summary, createdPersonId }) => {
-            setSelected(null);
-            setEditOp(null);
-            setEditNotice(summary);
-            if (createdPersonId) onHighlight?.(createdPersonId);
-            window.setTimeout(() => setEditNotice(null), 6000);
-          }}
-        />
-      )}
+      <GraphEditHost
+        people={people}
+        person={selected}
+        onClose={closeSelected}
+        onViewPerson={goToPerson}
+        onFocusBranch={focusInTree}
+        onApplied={handleApplied}
+      />
     </div>
   );
 }

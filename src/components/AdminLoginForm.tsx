@@ -18,6 +18,7 @@ export function AdminLoginForm({
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const login = useAdminLogin();
 
   return (
@@ -60,16 +61,27 @@ export function AdminLoginForm({
           </label>
           <label htmlFor="admin-password" className="field-block">
             Hasło
-            <input
-              id="admin-password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="Hasło"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="gate-input"
-              required
-            />
+            <span className="password-field">
+              <input
+                id="admin-password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="Hasło"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="gate-input"
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-pressed={showPassword}
+                aria-label={showPassword ? "Ukryj hasło" : "Pokaż hasło"}
+              >
+                {showPassword ? "Ukryj" : "Pokaż"}
+              </button>
+            </span>
           </label>
           <button type="submit" className="gate-cta" disabled={login.isPending}>
             {login.isPending ? "Loguję…" : "Zaloguj"}

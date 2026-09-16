@@ -10,6 +10,7 @@ type Props = {
 
 export function AccessGate({ afterUnlockHref = "/" }: Props) {
   const [code, setCode] = useState("");
+  const [showCode, setShowCode] = useState(false);
   const unlock = useUnlock();
 
   const onSubmit = (e: React.FormEvent) => {
@@ -33,19 +34,30 @@ export function AccessGate({ afterUnlockHref = "/" }: Props) {
           bez konta, ale też bez publicznego dostępu.
         </p>
         <form className="gate-form" onSubmit={onSubmit}>
-          <label htmlFor="family-code" className="sr-only">
+          <label htmlFor="family-code" className="field-block">
             Kod rodzinny
+            <span className="password-field">
+              <input
+                id="family-code"
+                type={showCode ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="Wpisz kod"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="gate-input"
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowCode((v) => !v)}
+                aria-pressed={showCode}
+                aria-label={showCode ? "Ukryj kod" : "Pokaż kod"}
+              >
+                {showCode ? "Ukryj" : "Pokaż"}
+              </button>
+            </span>
           </label>
-          <input
-            id="family-code"
-            type="password"
-            autoComplete="current-password"
-            placeholder="Kod rodzinny"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            className="gate-input"
-            required
-          />
           <button type="submit" className="gate-cta" disabled={unlock.isPending}>
             {unlock.isPending ? "Sprawdzam…" : "Wejdź do drzewa"}
           </button>

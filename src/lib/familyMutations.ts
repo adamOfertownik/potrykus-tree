@@ -53,8 +53,12 @@ function uniqueId(people: Person[], firstName: string, lastName: string): string
   return `${base}-${i}`;
 }
 
-function cloneDb(db: FamilyDatabase): FamilyDatabase {
+export function cloneFamilyDb(db: FamilyDatabase): FamilyDatabase {
   return JSON.parse(JSON.stringify(db)) as FamilyDatabase;
+}
+
+function cloneDb(db: FamilyDatabase): FamilyDatabase {
+  return cloneFamilyDb(db);
 }
 
 function requirePerson(people: Person[], id: string, label: string): Person {
@@ -249,4 +253,130 @@ export function summarizeMutationPreview(
     return `Połączyć ${anchorName} ↔ ${otherName} jako małżonków/partnerów?`;
   }
   return `Przenieść ${anchorName} pod ${otherName}?`;
+}
+
+export function snapshotPerson(person: Person) {
+  return {
+    id: person.id,
+    firstName: person.firstName,
+    lastName: person.lastName,
+    maidenName: person.maidenName,
+    gender: person.gender,
+    birthDate: person.birthDate,
+    deathDate: person.deathDate,
+    photoUrl: person.photoUrl,
+    phone: person.phone,
+    notes: person.notes,
+    parentIds: [...person.parentIds],
+    spouseIds: [...person.spouseIds],
+  };
+}
+
+export function snapshotPeople(people: Person[], ids: string[]) {
+  const wanted = new Set(ids.filter(Boolean));
+  return people.filter((p) => wanted.has(p.id)).map(snapshotPerson);
+}
+
+export function patchPerson(
+  source: FamilyDatabase,
+  id: string,
+  patch: Partial<
+    Pick<
+      Person,
+      | "firstName"
+      | "lastName"
+      | "maidenName"
+      | "gender"
+      | "birthDate"
+      | "deathDate"
+      | "phone"
+      | "notes"
+      | "photoUrl"
+      | "parentIds"
+      | "spouseIds"
+    >
+  >,
+): FamilyDatabase {
+  const db = cloneDb(source);
+  const person = requirePerson(db.people, id, "edytowana");
+  if (patch.firstName !== undefined) person.firstName = patch.firstName.trim();
+  if (patch.lastName !== undefined) person.lastName = patch.lastName.trim();
+  if (patch.maidenName !== undefined) {
+    person.maidenName = patch.maidenName.trim() || undefined;
+  }
+  if (patch.gender !== undefined) person.gender = patch.gender;
+  if (patch.birthDate !== undefined) {
+    person.birthDate = patch.birthDate.trim() || undefined;
+  }
+  if (patch.deathDate !== undefined) {
+    person.deathDate = patch.deathDate.trim() || undefined;
+  }
+  if (patch.phone !== undefined) person.phone = patch.phone.trim() || undefined;
+  if (patch.notes !== undefined) person.notes = patch.notes.trim() || undefined;
+  if (patch.photoUrl !== undefined) {
+    if (patch.photoUrl) person.photoUrl = patch.photoUrl;
+    else delete person.photoUrl;
+  }
+  if (patch.parentIds) person.parentIds = [...patch.parentIds];
+  if (patch.spouseIds) person.spouseIds = [...patch.spouseIds];
+  return db;
+}
+
+export function addStandalonePerson(
+  source: FamilyDatabase,
+  input: NewPersonInput & {
+    phone?: string;
+    notes?: string;
+    deathDate?: string;
+    parentIds?: string[];
+    spouseIds?: string[];
+  },
+): { db: FamilyDatabase; person: Person } {
+  const db = cloneDb(source);
+  const person = createPerson(
+    db.people,
+    {
+      firstName: input.firstName,
+      lastName: input.lastName,
+      gender: input.gender,
+      birthDate: input.birthDate,
+      maidenName: input.maidenName,
+    },
+    input.parentIds ?? [],
+    input.spouseIds ?? [],
+  );
+  if (input.phone) person.phone = input.phone;
+  if (input.notes) person.notes = input.notes;
+  if (input.deathDate) person.deathDate = input.deathDate;
+  db.people.push(person);
+  for (const spouseId of person.spouseIds) {
+    const spouse = db.people.find((p) => p.id === spouseId);
+    if (spouse && !spouse.spouseIds.includes(person.id)) {
+      spouse.spouseIds.push(person.id);
+    }
+  }
+  return { db, person };
+}
+
+export function deletePersonFromTree(
+  source: FamilyDatabase,
+  id: string,
+): { db: FamilyDatabase; affectedNames: string[] } {
+  const db = cloneDb(source);
+  const person = requirePerson(db.people, id, "usuwana");
+  const name = displayName(person);
+  const affected = new Set<string>();
+  db.people = db.people.filter((p) => p.id !== id);
+  for (const other of db.people) {
+    const hadParent = other.parentIds.includes(id);
+    const hadSpouse = other.spouseIds.includes(id);
+    if (hadParent || hadSpouse) affected.add(displayName(other));
+    other.parentIds = other.parentIds.filter((pid) => pid !== id);
+    other.spouseIds = other.spouseIds.filter((sid) => sid !== id);
+  }
+  if (db.meta.rootPersonId === id) {
+    db.meta.rootPersonId = db.people[0]?.id ?? "";
+  }
+  affected.add(name);
+  return { db, affectedNames: [...affected] };
 }

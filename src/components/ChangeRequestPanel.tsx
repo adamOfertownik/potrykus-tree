@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Person } from "@/types/family";
-import type { ChangeKind, SubmissionPayload } from "@/types/submissions";
+import type {
+  ChangeKind,
+  PersonFieldPatch,
+  SubmissionPayload,
+} from "@/types/submissions";
 import { displayName } from "@/lib/db-client";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
+import { uploadPersonPhoto } from "@/lib/upload-photo";
 
 type Props = {
   people: Person[];
@@ -20,6 +25,8 @@ const KINDS: { id: ChangeKind; label: string }[] = [
   { id: "other", label: "Inne" },
 ];
 
+const emptyPatch = (): PersonFieldPatch => ({});
+
 export function ChangeRequestPanel({ people }: Props) {
   const [kind, setKind] = useState<ChangeKind>("correction");
   const [reporterName, setReporterName] = useState("");
@@ -30,9 +37,11 @@ export function ChangeRequestPanel({ people }: Props) {
   const [targetPersonName, setTargetPersonName] = useState("");
   const [message, setMessage] = useState("");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [patch, setPatch] = useState<PersonFieldPatch>(emptyPatch);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const r = loadReporter();
@@ -42,10 +51,34 @@ export function ChangeRequestPanel({ people }: Props) {
     }
   }, []);
 
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
+
+  const target = useMemo(
+    () => people.find((p) => p.id === targetPersonId),
+    [people, targetPersonId],
+  );
+
   const targetMatches =
     targetQuery.trim().length >= 1
       ? searchPeople(people, targetQuery).slice(0, 6)
       : [];
+
+  const pickTarget = (p: Person) => {
+    setTargetPersonId(p.id);
+    setTargetPersonName(displayName(p));
+    setTargetQuery("");
+    setPatch({
+      firstName: p.firstName,
+      lastName: p.lastName,
+      maidenName: p.maidenName,
+      birthDate: p.birthDate,
+      deathDate: p.deathDate,
+      phone: p.phone,
+      notes: p.notes,
+    });
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +90,22 @@ export function ChangeRequestPanel({ people }: Props) {
         name: reporterName.trim(),
         personId: reporterPersonId,
       });
+      const correction =
+        (kind === "correction" || kind === "dates") && target
+          ? {
+              ...(kind === "correction"
+                ? {
+                    firstName: patch.firstName,
+                    lastName: patch.lastName,
+                    maidenName: patch.maidenName,
+                    phone: patch.phone,
+                    notes: patch.notes,
+                  }
+                : {}),
+              birthDate: patch.birthDate,
+              deathDate: patch.deathDate,
+            }
+          : undefined;
       const payload: SubmissionPayload = {
         kind,
         reporterName: reporterName.trim(),
@@ -64,12 +113,10 @@ export function ChangeRequestPanel({ people }: Props) {
         reporterPhone: reporterPhone.trim() || undefined,
         targetPersonId,
         targetPersonName: targetPersonName.trim() || undefined,
-        message: [
-          message.trim(),
-          photoUrl ? `Zdjęcie: ${photoUrl}` : "",
-        ]
-          .filter(Boolean)
-          .join("\n"),
+        message: message.trim(),
+        correction,
+        photoUrl: photoUrl || undefined,
+        photoAction: kind === "photo" && photoUrl ? "set" : undefined,
       };
       const res = await fetch("/api/submissions", {
         method: "POST",
@@ -80,9 +127,7 @@ export function ChangeRequestPanel({ people }: Props) {
       if (!res.ok) throw new Error(data.error || "Błąd zapisu");
       setSuccess(
         data.warning ||
-          (data.storage === "neon"
-            ? "Zapisano w bazie. Dziękujemy!"
-            : "Zapisano lokalnie (brak DATABASE_URL)."),
+          "Wysłano sugestię. Admin zobaczy podgląd i może ją zaakceptować albo odrzucić.",
       );
       setMessage("");
       setPhotoUrl(null);
@@ -98,12 +143,28 @@ export function ChangeRequestPanel({ people }: Props) {
       <header className="change-panel__head">
         <h1>Zgłoś zmianę</h1>
         <p>
-          Poprawka, brakująca osoba, zdjęcie, daty — napisz, co zmienić i kto
-          zgłasza.
+          To jest sugestia dla admina. Drzewo nie zmieni się, dopóki zgłoszenie
+          nie zostanie zaakceptowane.
         </p>
       </header>
 
-      <form className="change-form" onSubmit={submit}>
+      <form className="change-form" onSubmit={submit} noValidate>
+        {error && (
+          <div
+            ref={errorRef}
+            className="banner-error"
+            role="alert"
+            tabIndex={-1}
+          >
+            <strong>Nie udało się wysłać.</strong> {error}
+          </div>
+        )}
+        {success && (
+          <p className="banner-success" role="status">
+            {success}
+          </p>
+        )}
+
         <label className="field-block">
           Rodzaj zgłoszenia
           <select
@@ -156,14 +217,7 @@ export function ChangeRequestPanel({ people }: Props) {
           <ul className="who-matches">
             {targetMatches.map((p) => (
               <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTargetPersonId(p.id);
-                    setTargetPersonName(displayName(p));
-                    setTargetQuery("");
-                  }}
-                >
+                <button type="button" onClick={() => pickTarget(p)}>
                   {displayName(p)}
                 </button>
               </li>
@@ -176,10 +230,75 @@ export function ChangeRequestPanel({ people }: Props) {
           </p>
         )}
 
+        {(kind === "correction" || kind === "dates") && target && (
+          <div className="form-grid">
+            {kind === "correction" && (
+              <>
+                <label>
+                  Imię
+                  <input
+                    value={patch.firstName || ""}
+                    onChange={(e) =>
+                      setPatch((s) => ({ ...s, firstName: e.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Nazwisko
+                  <input
+                    value={patch.lastName || ""}
+                    onChange={(e) =>
+                      setPatch((s) => ({ ...s, lastName: e.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Nazwisko rodowe
+                  <input
+                    value={patch.maidenName || ""}
+                    onChange={(e) =>
+                      setPatch((s) => ({ ...s, maidenName: e.target.value }))
+                    }
+                  />
+                </label>
+                <label>
+                  Telefon
+                  <input
+                    value={patch.phone || ""}
+                    onChange={(e) =>
+                      setPatch((s) => ({ ...s, phone: e.target.value }))
+                    }
+                  />
+                </label>
+              </>
+            )}
+            <label>
+              Data urodzenia
+              <input
+                type="date"
+                value={patch.birthDate || ""}
+                onChange={(e) =>
+                  setPatch((s) => ({ ...s, birthDate: e.target.value }))
+                }
+              />
+            </label>
+            <label>
+              Data zgonu
+              <input
+                type="date"
+                value={patch.deathDate || ""}
+                onChange={(e) =>
+                  setPatch((s) => ({ ...s, deathDate: e.target.value }))
+                }
+              />
+            </label>
+          </div>
+        )}
+
         <label className="field-block">
-          Opis zmiany *
+          Opis zmiany {kind === "photo" && photoUrl ? "" : "*"}
           <textarea
-            required
+            required={!(kind === "photo" && photoUrl)}
             rows={5}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -192,21 +311,16 @@ export function ChangeRequestPanel({ people }: Props) {
             Zdjęcie (opcjonalnie)
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
                 setBusy(true);
                 setError(null);
                 try {
-                  const body = new FormData();
-                  body.append("file", file);
-                  const res = await fetch("/api/photos/upload", {
-                    method: "POST",
-                    body,
+                  const data = await uploadPersonPhoto(file, undefined, {
+                    skipSubmission: true,
                   });
-                  const data = await res.json();
-                  if (!res.ok) throw new Error(data.error || "Upload nieudany");
                   setPhotoUrl(data.url);
                 } catch (err) {
                   setError((err as Error).message);
@@ -216,26 +330,17 @@ export function ChangeRequestPanel({ people }: Props) {
               }}
             />
             {photoUrl && (
-              <span className="selected-chip">
-                Wgrano: <a href={photoUrl}>{photoUrl}</a>
+              <span className="photo-upload-preview">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={photoUrl} alt="Wgrane zdjęcie" />
+                <span>Zdjęcie w kolejce (jeszcze nie w drzewie)</span>
               </span>
             )}
           </label>
         )}
 
-        {error && (
-          <p className="banner-error" role="alert">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p className="banner-success" role="status">
-            {success}
-          </p>
-        )}
-
         <button type="submit" className="btn btn-primary" disabled={busy}>
-          {busy ? "Zapisuję…" : "Wyślij zgłoszenie"}
+          {busy ? "Zapisuję…" : "Wyślij sugestię"}
         </button>
       </form>
     </section>

@@ -46,7 +46,11 @@ async function ensureFonts(doc: jsPDF): Promise<void> {
   doc.addFont("DejaVuSans-Bold.ttf", "DejaVuSans", "bold");
 }
 
-function personLine(person: Person, isSpouse: boolean): string {
+function personLine(
+  person: Person,
+  isSpouse: boolean,
+  people: Person[],
+): string {
   const prefix = isSpouse ? "małż. " : "";
   const birth = person.birthDate
     ? `  u. ${formatPolishDate(person.birthDate)}`
@@ -54,7 +58,7 @@ function personLine(person: Person, isSpouse: boolean): string {
   const death = person.deathDate
     ? `  z. ${formatPolishDate(person.deathDate)}`
     : "";
-  return `${prefix}${displayName(person)}${birth}${death}`;
+  return `${prefix}${displayName(person, people)}${birth}${death}`;
 }
 
 function drawNestingRails(
@@ -157,7 +161,7 @@ async function exportHierarchicalPdf(
       Math.floor(entry.railDepth) * colW +
       (entry.isSpouse ? colW * 0.5 : 0);
     const gen = entry.isSpouse ? "" : `${entry.generation}. `;
-    const line = `${gen}${personLine(entry.person, entry.isSpouse)}`;
+    const line = `${gen}${personLine(entry.person, entry.isSpouse, people)}`;
 
     doc.setFont("DejaVuSans", entry.isSpouse ? "normal" : "bold");
     doc.setFontSize(entry.isSpouse ? fontSize - 0.5 : fontSize);

@@ -5,6 +5,9 @@
  */
 import { hash } from "bcryptjs";
 import { Pool } from "@neondatabase/serverless";
+import { loadEnvFiles } from "./load-env.mjs";
+
+loadEnvFiles();
 
 const [email, password] = process.argv.slice(2);
 const url = process.env.DATABASE_URL?.trim();

@@ -1,4 +1,30 @@
 import { z } from "zod";
+import { sanitizePhone } from "@/lib/sanitize";
+
+const optionalDate = z
+  .string()
+  .trim()
+  .max(32)
+  .optional()
+  .refine((v) => !v || /^\d{4}(-\d{2}(-\d{2})?)?$/.test(v), {
+    message: "Data w formacie RRRR, RRRR-MM lub RRRR-MM-DD.",
+  });
+
+export const personFieldPatchSchema = z.object({
+  firstName: z.string().trim().min(1).max(80).optional(),
+  lastName: z.string().trim().min(1).max(80).optional(),
+  maidenName: z.string().trim().max(80).optional(),
+  gender: z.enum(["male", "female", "unknown"]).optional(),
+  birthDate: optionalDate,
+  deathDate: optionalDate,
+  phone: z
+    .string()
+    .trim()
+    .max(40)
+    .optional()
+    .transform((v) => (v ? sanitizePhone(v) : undefined)),
+  notes: z.string().trim().max(2000).optional(),
+});
 
 export const changeKindSchema = z.enum([
   "correction",
@@ -24,7 +50,7 @@ export const newPersonSchema = z.object({
   firstName: z.string().trim().min(1).max(80),
   lastName: z.string().trim().min(1).max(80),
   gender: z.enum(["male", "female", "unknown"]),
-  birthDate: z.string().trim().max(32).optional(),
+  birthDate: optionalDate,
   maidenName: z.string().trim().max(80).optional(),
 });
 
@@ -61,7 +87,12 @@ export const submissionPayloadSchema = z
     kind: changeKindSchema.default("other"),
     reporterName: z.string().trim().min(1).max(120),
     reporterPersonId: z.string().trim().max(120).optional(),
-    reporterPhone: z.string().trim().max(40).optional(),
+    reporterPhone: z
+      .string()
+      .trim()
+      .max(40)
+      .optional()
+      .transform((v) => (v ? sanitizePhone(v) : undefined)),
     targetPersonId: z.string().trim().max(120).optional(),
     targetPersonName: z.string().trim().max(160).optional(),
     message: z.string().trim().max(4000).default(""),
@@ -70,9 +101,14 @@ export const submissionPayloadSchema = z
         firstName: z.string().trim().min(1).max(80),
         lastName: z.string().trim().min(1).max(80),
         maidenName: z.string().trim().max(80).optional(),
-        birthDate: z.string().trim().max(32).optional(),
+        birthDate: optionalDate,
         gender: z.enum(["male", "female", "unknown"]).optional(),
-        phone: z.string().trim().max(40).optional(),
+        phone: z
+          .string()
+          .trim()
+          .max(40)
+          .optional()
+          .transform((v) => (v ? sanitizePhone(v) : undefined)),
       })
       .optional(),
     relatives: z.array(relativeDraftSchema).max(20).optional(),
@@ -87,12 +123,18 @@ export const submissionPayloadSchema = z
         summary: z.string().trim().max(500).optional(),
       })
       .optional(),
+    correction: personFieldPatchSchema.optional(),
+    photoUrl: z.string().trim().url().max(2000).optional(),
+    photoAction: z.enum(["set", "remove"]).optional(),
   })
   .refine(
     (v) =>
       Boolean(v.message?.trim()) ||
       Boolean(v.self?.firstName) ||
-      Boolean(v.graphEdit),
+      Boolean(v.graphEdit) ||
+      Boolean(v.correction) ||
+      Boolean(v.photoUrl) ||
+      v.photoAction === "remove",
     {
       message: "Dodaj opis zmiany albo swoje dane.",
     },
@@ -156,3 +198,17 @@ export const rsvpPayloadSchema = z
       willTransfer: v.willTransfer,
     };
   });
+
+export const adminPersonWriteSchema = z.object({
+  action: z.enum(["update", "create", "delete", "graph"]),
+  personId: z.string().trim().min(1).max(120).optional(),
+  fields: personFieldPatchSchema.optional(),
+  newPerson: newPersonSchema.extend({
+    phone: z.string().trim().max(40).optional(),
+    notes: z.string().trim().max(2000).optional(),
+    deathDate: optionalDate,
+    parentIds: z.array(z.string().trim().min(1).max(120)).max(4).optional(),
+    spouseIds: z.array(z.string().trim().min(1).max(120)).max(8).optional(),
+  }).optional(),
+  graphEdit: graphMutationSchema.optional(),
+});

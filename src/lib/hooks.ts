@@ -18,6 +18,7 @@ export function useAuthStatus() {
     queryFn: () =>
       fetchJson<{ unlocked: boolean; storage?: "neon" | "file" }>(
         "/api/auth/status",
+        { cache: "no-store" },
       ),
   });
 }
@@ -51,10 +52,14 @@ export function useLogout() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      fetchJson<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
-    onSuccess: async () => {
+      fetchJson<{ ok: boolean }>("/api/auth/logout", {
+        method: "POST",
+        cache: "no-store",
+      }),
+    onSuccess: () => {
+      qc.setQueryData(["auth-status"], { unlocked: false });
       qc.removeQueries({ queryKey: ["family"] });
-      await qc.invalidateQueries({ queryKey: ["auth-status"] });
+      window.location.assign("/");
     },
   });
 }
@@ -65,6 +70,7 @@ export function useAdminAuthStatus() {
     queryFn: () =>
       fetchJson<{ loggedIn: boolean; email: string | null }>(
         "/api/auth/admin/status",
+        { cache: "no-store" },
       ),
   });
 }
@@ -90,9 +96,11 @@ export function useAdminLogout() {
     mutationFn: () =>
       fetchJson<{ ok: boolean }>("/api/auth/admin/logout", {
         method: "POST",
+        cache: "no-store",
       }),
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["admin-auth-status"] });
+    onSuccess: () => {
+      qc.setQueryData(["admin-auth-status"], { loggedIn: false, email: null });
+      window.location.assign("/login");
     },
   });
 }

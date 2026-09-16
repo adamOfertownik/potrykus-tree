@@ -8,6 +8,7 @@ import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { IdentityProvider, useIdentity } from "@/components/IdentityProvider";
+import { resetPageScrollLockIfIdle } from "@/lib/scroll-lock";
 import type { Person } from "@/types/family";
 
 function AppShellInner({
@@ -46,6 +47,11 @@ function AppShellInner({
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
+
+  useEffect(() => {
+    const id = window.setTimeout(() => resetPageScrollLockIfIdle(), 0);
+    return () => window.clearTimeout(id);
+  }, [pathname]);
 
   const downloadList = async () => {
     if (!people.length || !rootId) return;

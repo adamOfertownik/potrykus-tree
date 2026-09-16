@@ -11,7 +11,7 @@ Twórca: **Adam Lieske**
 
 - Next.js 16 (App Router)
 - TanStack Query
-- Lokalna baza w pliku `data/family.json`
+- Neon (Postgres) — drzewo, zgłoszenia, RSVP
 - Dostęp kodem rodzinnym (bez konta użytkownika)
 
 ## Uruchomienie
@@ -42,8 +42,14 @@ Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessC
 
 ## Dane
 
-Seed: `npm run seed` (skrypt `scripts/generate-seed.mjs`)  
-Edycja ręczna: `data/family.json`
+Źródło prawdy przy ustawionym `DATABASE_URL`: tabele Neon `people` + `family_meta`.
+
+```bash
+npm run db:migrate
+npm run db:seed-family
+```
+
+Lokalny plik `data/family.json` zostaje jako kopia / fallback, gdy baza nie jest skonfigurowana.
 
 ## Docelowo (sklep)
 

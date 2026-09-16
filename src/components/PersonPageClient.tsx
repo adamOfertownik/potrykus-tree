@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { AuthedPage } from "@/components/AuthedPage";
 import { PersonCard } from "@/components/PersonCard";
+import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { useIdentity } from "@/components/IdentityProvider";
+import { useAdminAuthStatus } from "@/lib/hooks";
 import { describeKinship } from "@/lib/kinship";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
 import type { Person } from "@/types/family";
 
 function PersonInner({ id, people }: { id: string; people: Person[] }) {
   const { identity } = useIdentity();
+  const admin = useAdminAuthStatus();
   const person = people.find((p) => p.id === id);
 
   if (!person) {
@@ -42,16 +45,9 @@ function PersonInner({ id, people }: { id: string; people: Person[] }) {
       </Link>
 
       <header className="person-detail__header">
-        <div className="person-detail__avatar">
-          {person.photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={person.photoUrl} alt={displayName(person)} />
-          ) : (
-            <span className="person-card__silhouette large" />
-          )}
-        </div>
+        <PersonPhotoControl person={person} size="lg" mode={admin.data?.loggedIn ? "admin" : "suggest"} />
         <div>
-          <h1>{displayName(person)}</h1>
+          <h1>{displayName(person, people)}</h1>
           {person.maidenName && (
             <p className="person-detail__maiden">
               Nazwisko rodowe: {person.maidenName}

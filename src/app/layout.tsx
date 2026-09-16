@@ -56,8 +56,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl" className={`${display.variable} ${body.variable} h-full`}>
-      <body className="min-h-full antialiased">
+    <html lang="pl" className={`${display.variable} ${body.variable}`}>
+      <body className="antialiased">
         <Providers>{children}</Providers>
         <ServiceWorkerRegister />
         <Analytics />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
@@ -50,6 +50,8 @@ export function PersonSearch({
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  const closeMissing = useCallback(() => setMissingOpen(false), []);
+
   const pick = (person: Person) => {
     onSelect(person);
     setQuery("");
@@ -93,11 +95,25 @@ export function PersonSearch({
         <div className="person-search__row">
           <div className="person-search__field">
             <span className="person-search__icon" aria-hidden>
-              ⌕
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3.2-3.2" />
+              </svg>
             </span>
             <input
               id={`${listId}-input`}
-              type="search"
+              type="text"
+              inputMode="search"
+              enterKeyHint="search"
               role="combobox"
               aria-expanded={open && matches.length > 0}
               aria-controls={listId}
@@ -157,7 +173,7 @@ export function PersonSearch({
                     onClick={() => pick(p)}
                   >
                     <span className="person-search__name">
-                      {displayName(p)}
+                      {displayName(p, people)}
                     </span>
                     {dates && (
                       <span className="person-search__meta">{dates}</span>
@@ -190,7 +206,7 @@ export function PersonSearch({
         searchedQuery={query}
         reporterName={identity?.name || "Anonim"}
         reporterPersonId={identity?.personId}
-        onClose={() => setMissingOpen(false)}
+        onClose={closeMissing}
         onSubmitted={() => {}}
       />
     </>

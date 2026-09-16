@@ -8,6 +8,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from "react";
 import { createPortal } from "react-dom";
+import { lockPageScroll } from "@/lib/scroll-lock";
 
 type Props = {
   open: boolean;
@@ -21,6 +22,9 @@ type Props = {
   compulsory?: boolean;
 };
 
+const FOCUSABLE =
+  'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
 export function Modal({
   open,
   titleId,
@@ -33,36 +37,50 @@ export function Modal({
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  const compulsoryRef = useRef(compulsory);
   const fallbackTitleId = useId();
   const label = labelledBy || titleId || fallbackTitleId;
+
+  onCloseRef.current = onClose;
+  compulsoryRef.current = compulsory;
+
+  const listFocusables = () => {
+    const card = cardRef.current;
+    if (!card) return [];
+    return Array.from(card.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+      (el) => !el.hasAttribute("disabled"),
+    );
+  };
 
   useEffect(() => {
     if (!open) return;
     previouslyFocused.current = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const unlock = lockPageScroll();
 
-    const card = cardRef.current;
-    const focusables = () =>
-      card
-        ? Array.from(
-            card.querySelectorAll<HTMLElement>(
-              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-            ),
-          ).filter((el) => !el.hasAttribute("disabled"))
-        : [];
-
-    const first = focusables()[0];
+    const preferred = cardRef.current?.querySelector<HTMLElement>(
+      "input, select, textarea",
+    );
+    const first = preferred ?? listFocusables()[0];
     first?.focus();
 
+    return () => {
+      unlock();
+      previouslyFocused.current?.focus?.();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !compulsory) {
+      if (e.key === "Escape" && !compulsoryRef.current) {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
-      if (e.key !== "Tab" || !card) return;
-      const items = focusables();
+      if (e.key !== "Tab") return;
+      const items = listFocusables();
       if (!items.length) return;
       const firstEl = items[0];
       const lastEl = items[items.length - 1];
@@ -76,12 +94,8 @@ export function Modal({
     };
 
     window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prevOverflow;
-      window.removeEventListener("keydown", onKey);
-      previouslyFocused.current?.focus?.();
-    };
-  }, [open, compulsory, onClose]);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
 
   if (!open || typeof document === "undefined") return null;
 

@@ -85,7 +85,7 @@ export function WhoAreYouDialog({
         placeholder="Np. Adam Lieske…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        autoFocus
+        autoComplete="off"
       />
 
       {matches.length > 0 && (
@@ -110,9 +110,14 @@ export function WhoAreYouDialog({
 
       <div className="field-divider">albo wpisz imię i nazwisko</div>
 
+      <label className="field-label" htmlFor="who-manual">
+        Twoje imię i nazwisko
+      </label>
       <input
+        id="who-manual"
         className="field-input"
         placeholder="Imię i nazwisko"
+        autoComplete="name"
         value={manual}
         onChange={(e) => setManual(e.target.value)}
         onKeyDown={(e) => {

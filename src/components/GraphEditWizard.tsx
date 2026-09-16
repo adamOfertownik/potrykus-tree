@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Modal } from "@/components/Modal";
 import { displayName } from "@/lib/db-client";
@@ -11,6 +11,7 @@ import {
 } from "@/lib/familyMutations";
 import { loadReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
+import { useAdminAuthStatus } from "@/lib/hooks";
 import type { FamilyPayload, Gender, Person } from "@/types/family";
 
 export type GraphEditOp = GraphOp;
@@ -22,7 +23,7 @@ type Props = {
   people: Person[];
   onClose: () => void;
   onApplied?: (payload: {
-    family: FamilyPayload;
+    family?: FamilyPayload;
     summary: string;
     createdPersonId?: string;
   }) => void;
@@ -51,6 +52,7 @@ export function GraphEditWizard({
   onApplied,
 }: Props) {
   const qc = useQueryClient();
+  const admin = useAdminAuthStatus();
   const [step, setStep] = useState<"pick" | "confirm">("pick");
   const [mode, setMode] = useState<Mode>("existing");
   const [query, setQuery] = useState("");
@@ -63,6 +65,12 @@ export function GraphEditWizard({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const onCloseRef = useRef(onClose);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
+
+  onCloseRef.current = onClose;
 
   const matches = useMemo(() => {
     if (query.trim().length < 1) return [];
@@ -97,7 +105,7 @@ export function GraphEditWizard({
     [people, previewInput],
   );
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setStep("pick");
     setMode("existing");
     setQuery("");
@@ -106,12 +114,23 @@ export function GraphEditWizard({
     setNewPerson({ firstName: "", lastName: "", gender: "unknown" });
     setBusy(false);
     setError(null);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     reset();
-    onClose();
-  };
+    onCloseRef.current();
+  }, [reset]);
+
+  useEffect(() => {
+    if (!open || step !== "pick") return;
+    const target =
+      mode === "existing" ? searchInputRef.current : firstNameRef.current;
+    target?.focus();
+  }, [open, mode, step]);
+
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+  }, [error]);
 
   const canContinue =
     mode === "existing"
@@ -135,18 +154,16 @@ export function GraphEditWizard({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd zapisu");
 
-      if (data.family) {
+      if (data.applied && data.family) {
         qc.setQueryData(["family"], data.family);
-      } else {
-        await qc.invalidateQueries({ queryKey: ["family"] });
       }
 
       onApplied?.({
         family: data.family,
-        summary: data.applyWarning
-          ? `${data.summary} ${data.applyWarning}`
-          : data.summary,
-        createdPersonId: data.createdPersonId,
+        summary: data.applied
+          ? data.summary
+          : `${data.summary} Wysłano jako sugestię — zmiana pojawi się po akceptacji admina.`,
+        createdPersonId: data.applied ? data.createdPersonId : undefined,
       });
       handleClose();
     } catch (err) {
@@ -165,7 +182,7 @@ export function GraphEditWizard({
       onClose={handleClose}
       cardClassName="graph-edit-modal"
     >
-      <div className="graph-edit">
+      <div className="graph-edit change-form">
         <header className="graph-edit__head">
           <p className="graph-edit__eyebrow">Zarządzanie grafem</p>
           <h2 id={titleId}>{OP_TITLE[op]}</h2>
@@ -212,64 +229,76 @@ export function GraphEditWizard({
                 <label className="field-block">
                   Szukaj osoby
                   <input
+                    ref={searchInputRef}
+                    className="field-input"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Imię lub nazwisko…"
-                    autoFocus
+                    autoComplete="off"
                   />
                 </label>
-                {related && (
-                  <p className="graph-edit__chosen" role="status">
-                    Wybrano: <strong>{displayName(related)}</strong>
-                    <button
-                      type="button"
-                      className="btn btn-secondary btn-mini"
-                      onClick={() => setRelated(null)}
-                    >
-                      Zmień
-                    </button>
-                  </p>
-                )}
-                {!related && matches.length > 0 && (
-                  <ul className="who-matches">
-                    {matches.map((p) => (
-                      <li key={p.id}>
-                        <button type="button" onClick={() => setRelated(p)}>
-                          {displayName(p)}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {!related && query.trim() && matches.length === 0 && (
-                  <p className="empty-hint">Brak wyników — spróbuj „Nowa osoba”.</p>
-                )}
+                <div className="graph-edit__results">
+                  {related && (
+                    <p className="graph-edit__chosen" role="status">
+                      Wybrano: <strong>{displayName(related)}</strong>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-mini"
+                        onClick={() => setRelated(null)}
+                      >
+                        Zmień
+                      </button>
+                    </p>
+                  )}
+                  {!related && matches.length > 0 && (
+                    <ul className="who-matches">
+                      {matches.map((p) => (
+                        <li key={p.id}>
+                          <button type="button" onClick={() => setRelated(p)}>
+                            {displayName(p)}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {!related && query.trim() && matches.length === 0 && (
+                    <p className="empty-hint">
+                      Brak wyników — spróbuj „Nowa osoba”.
+                    </p>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="form-grid graph-edit__new">
-                <label>
+                <label className="field-block">
                   Imię *
                   <input
+                    ref={firstNameRef}
+                    className="field-input"
                     required
+                    autoComplete="given-name"
                     value={newPerson.firstName}
                     onChange={(e) =>
                       setNewPerson((s) => ({ ...s, firstName: e.target.value }))
                     }
                   />
                 </label>
-                <label>
+                <label className="field-block">
                   Nazwisko *
                   <input
+                    className="field-input"
                     required
+                    autoComplete="family-name"
                     value={newPerson.lastName}
                     onChange={(e) =>
                       setNewPerson((s) => ({ ...s, lastName: e.target.value }))
                     }
                   />
                 </label>
-                <label>
+                <label className="field-block">
                   Płeć
                   <select
+                    className="field-input"
                     value={newPerson.gender}
                     onChange={(e) =>
                       setNewPerson((s) => ({
@@ -283,9 +312,10 @@ export function GraphEditWizard({
                     <option value="male">mężczyzna</option>
                   </select>
                 </label>
-                <label>
+                <label className="field-block">
                   Data ur. (opcjonalnie)
                   <input
+                    className="field-input"
                     type="date"
                     value={newPerson.birthDate || ""}
                     onChange={(e) =>
@@ -299,6 +329,7 @@ export function GraphEditWizard({
                 <label className="field-block">
                   Nazwisko rodowe
                   <input
+                    className="field-input"
                     value={newPerson.maidenName || ""}
                     onChange={(e) =>
                       setNewPerson((s) => ({
@@ -315,6 +346,7 @@ export function GraphEditWizard({
               <label className="field-block">
                 Drugi rodzic (opcjonalnie)
                 <select
+                  className="field-input"
                   value={secondParentId}
                   onChange={(e) => setSecondParentId(e.target.value)}
                 >
@@ -386,14 +418,20 @@ export function GraphEditWizard({
               )}
             </ul>
             <p className="graph-edit__note">
-              Po potwierdzeniu graf zaktualizuje się od razu. Zapis trafi też do
-              zgłoszeń (audyt).
+              {admin.data?.loggedIn
+                ? "Jesteś adminem — zmiana zapisze się od razu w drzewie."
+                : "To jest sugestia dla admina. Drzewo zmieni się dopiero po akceptacji."}
             </p>
           </div>
         )}
 
         {error && (
-          <p className="banner-error" role="alert">
+          <p
+            ref={errorRef}
+            className="banner-error"
+            role="alert"
+            tabIndex={-1}
+          >
             {error}
           </p>
         )}
@@ -425,7 +463,11 @@ export function GraphEditWizard({
                 disabled={busy}
                 onClick={submit}
               >
-                {busy ? "Zapisuję…" : "Potwierdź i zapisz"}
+                {busy
+                  ? "Zapisuję…"
+                  : admin.data?.loggedIn
+                    ? "Potwierdź i zapisz"
+                    : "Wyślij sugestię"}
               </button>
               <button
                 type="button"

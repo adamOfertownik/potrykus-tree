@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { isSessionValid } from "@/lib/auth";
-import { getChildrenIds, readFamilyDb } from "@/lib/db";
-import type { FamilyPayload, PersonPublic } from "@/types/family";
+import { readFamilyDb, toFamilyPayload } from "@/lib/db";
 
 export async function GET() {
   const unlocked = await isSessionValid();
@@ -13,16 +12,5 @@ export async function GET() {
   }
 
   const db = await readFamilyDb();
-  const people: PersonPublic[] = db.people.map((p) => ({
-    ...p,
-    childrenIds: getChildrenIds(db.people, p.id),
-  }));
-
-  const payload: FamilyPayload = {
-    meta: db.meta,
-    people,
-    unlocked: true,
-  };
-
-  return NextResponse.json(payload);
+  return NextResponse.json(toFamilyPayload(db));
 }

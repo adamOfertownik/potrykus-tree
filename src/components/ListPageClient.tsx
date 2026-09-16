@@ -1,13 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
+import { GraphEditHost } from "@/components/GraphEditHost";
 import { PersonSearch } from "@/components/PersonSearch";
 import { buildDescendantList } from "@/lib/list";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import type { Person } from "@/types/family";
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function scrollToListPerson(id: string) {
+  const el = document.querySelector(`[data-person-id="${CSS.escape(id)}"]`);
+  el?.scrollIntoView({
+    behavior: prefersReducedMotion() ? "auto" : "smooth",
+    block: "center",
+  });
+}
 
 function ListInner({
   people,
@@ -17,12 +30,44 @@ function ListInner({
   rootId: string;
 }) {
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Person | null>(null);
   const router = useRouter();
   const entries = useMemo(
     () =>
       people.length && rootId ? buildDescendantList(people, rootId) : [],
     [people, rootId],
   );
+
+  const closeSelected = useCallback(() => setSelected(null), []);
+
+  const goToPerson = useCallback(
+    (person: Person) => {
+      setSelected(null);
+      router.push(`/osoba/${encodeURIComponent(person.id)}`);
+    },
+    [router],
+  );
+
+  const focusBranch = useCallback(
+    (person: Person) => {
+      setSelected(null);
+      router.push(`/drzewo?root=${encodeURIComponent(person.id)}`);
+    },
+    [router],
+  );
+
+  const handleApplied = useCallback(
+    ({ createdPersonId }: { createdPersonId?: string }) => {
+      const id = createdPersonId || selected?.id;
+      if (id) setHighlightId(id);
+    },
+    [selected],
+  );
+
+  useEffect(() => {
+    if (!highlightId) return;
+    scrollToListPerson(highlightId);
+  }, [highlightId, entries]);
 
   return (
     <>
@@ -32,9 +77,7 @@ function ListInner({
           placeholder="Szukaj na liście…"
           onSelect={(p) => {
             setHighlightId(p.id);
-            document
-              .getElementById(`list-person-${p.id}`)
-              ?.scrollIntoView({ behavior: "smooth", block: "center" });
+            scrollToListPerson(p.id);
           }}
         />
       </section>
@@ -44,7 +87,8 @@ function ListInner({
           <h1>Lista potomków</h1>
           <p>
             Hierarchia z widocznymi powiązaniami — jak w dokumencie rodzinnym.
-            PDF pobierzesz z menu u góry.
+            PDF pobierzesz z menu u góry. Plus przy osobie dodaje dziecko,
+            partnera albo przenosi gałąź — tak jak na grafie.
           </p>
         </header>
 
@@ -58,8 +102,11 @@ function ListInner({
             return (
               <li
                 key={`${entry.person.id}-${entry.isSpouse ? "s" : "p"}-${entry.depth}`}
+                data-person-id={entry.person.id}
                 id={
-                  entry.isSpouse ? undefined : `list-person-${entry.person.id}`
+                  entry.isSpouse
+                    ? `list-person-${entry.person.id}-spouse-${entry.depth}`
+                    : `list-person-${entry.person.id}`
                 }
                 className={[
                   "genealogy-item",
@@ -91,21 +138,42 @@ function ListInner({
                 </span>
 
                 <div className="genealogy-content">
-                  {!entry.isSpouse && (
-                    <span className="genealogy-gen">{entry.generation}.</span>
-                  )}
-                  {entry.isSpouse && (
-                    <span className="genealogy-spouse">małż.</span>
-                  )}
-                  <Link
-                    href={`/osoba/${entry.person.id}`}
-                    className="genealogy-name"
-                  >
-                    {displayName(entry.person)}
-                  </Link>
-                  {birth && <span className="genealogy-date"> u. {birth}</span>}
-                  {death && <span className="genealogy-date"> z. {death}</span>}
-                  {!entry.isSpouse && (
+                  <div className="genealogy-main">
+                    {!entry.isSpouse && (
+                      <span className="genealogy-gen">{entry.generation}.</span>
+                    )}
+                    {entry.isSpouse && (
+                      <span className="genealogy-spouse">małż.</span>
+                    )}
+                    <Link
+                      href={`/osoba/${entry.person.id}`}
+                      className="genealogy-name"
+                    >
+                      {displayName(entry.person, people)}
+                    </Link>
+                    {birth && (
+                      <span className="genealogy-date"> u. {birth}</span>
+                    )}
+                    {death && (
+                      <span className="genealogy-date"> z. {death}</span>
+                    )}
+                    {!birth &&
+                      !death &&
+                      !entry.isSpouse &&
+                      entry.person.firstName.trim().toUpperCase() === "NN" && (
+                        <span className="genealogy-date"> imię nieznane</span>
+                      )}
+                  </div>
+                  <span className="genealogy-actions">
+                    <button
+                      type="button"
+                      className="genealogy-add"
+                      aria-label={`Dodaj powiązanie: ${displayName(entry.person, people)}`}
+                      title="Dodaj powiązanie"
+                      onClick={() => setSelected(entry.person)}
+                    >
+                      +
+                    </button>
                     <button
                       type="button"
                       className="genealogy-focus"
@@ -118,13 +186,23 @@ function ListInner({
                     >
                       drzewo
                     </button>
-                  )}
+                  </span>
                 </div>
               </li>
             );
           })}
         </ol>
       </div>
+
+      <GraphEditHost
+        people={people}
+        person={selected}
+        onClose={closeSelected}
+        onViewPerson={goToPerson}
+        onFocusBranch={focusBranch}
+        onApplied={handleApplied}
+        toastClassName="list-edit-toast"
+      />
     </>
   );
 }

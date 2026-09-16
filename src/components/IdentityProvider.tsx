@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -56,24 +57,38 @@ export function IdentityProvider({
     setPromptOpen(true);
   }, [enabled, ready, people.length, identity?.name]);
 
-  const applyIdentity = (next: ReporterIdentity) => {
-    saveReporter(next);
-    setIdentityState(next);
-    setPromptOpen(false);
+  const applyIdentity = useCallback(
+    (next: ReporterIdentity) => {
+      saveReporter(next);
+      setIdentityState(next);
+      setPromptOpen(false);
 
-    const onTree = pathname === "/" || pathname.startsWith("/drzewo");
-    if (onTree && next.personId) {
-      router.replace(`/drzewo?root=${encodeURIComponent(next.personId)}`);
-    }
-  };
+      const onTree = pathname === "/" || pathname.startsWith("/drzewo");
+      if (onTree && next.personId) {
+        router.replace(`/drzewo?root=${encodeURIComponent(next.personId)}`);
+      }
+    },
+    [pathname, router],
+  );
 
-  const clearIdentity = () => {
+  const clearIdentity = useCallback(() => {
     clearReporter();
     setIdentityState(null);
     setPromptOpen(true);
-  };
+  }, []);
 
-  const promptIdentity = () => setPromptOpen(true);
+  const promptIdentity = useCallback(() => setPromptOpen(true), []);
+
+  const handleWhoClose = useCallback(() => {
+    if (identity?.name) setPromptOpen(false);
+  }, [identity?.name]);
+
+  const handleIdentified = useCallback(
+    (name: string, personId?: string) => {
+      applyIdentity({ name, personId });
+    },
+    [applyIdentity],
+  );
 
   return (
     <IdentityContext.Provider
@@ -90,12 +105,8 @@ export function IdentityProvider({
           people={people}
           open
           compulsory={!identity?.name}
-          onClose={() => {
-            if (identity?.name) setPromptOpen(false);
-          }}
-          onIdentified={(name, personId) => {
-            applyIdentity({ name, personId });
-          }}
+          onClose={handleWhoClose}
+          onIdentified={handleIdentified}
         />
       ) : null}
     </IdentityContext.Provider>

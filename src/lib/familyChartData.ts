@@ -1,6 +1,7 @@
 import type { Person } from "@/types/family";
 import type { Data } from "family-chart";
 import { getChildrenIds } from "@/lib/tree";
+import { unnamedSiblingOrdinal } from "@/lib/db-client";
 
 export function peopleToFamilyChartData(people: Person[]): Data {
   const ids = new Set(people.map((p) => p.id));
@@ -14,7 +15,10 @@ export function peopleToFamilyChartData(people: Person[]): Data {
       id: p.id,
       data: {
         gender: (p.gender === "female" ? "F" : "M") as "M" | "F",
-        "first name": p.firstName,
+        "first name": (() => {
+          const ordinal = unnamedSiblingOrdinal(p, people);
+          return ordinal ? `NN ${ordinal.index}/${ordinal.total}` : p.firstName;
+        })(),
         "last name": p.lastName,
         ...(p.birthDate ? { birthday: p.birthDate } : {}),
         ...(p.deathDate ? { death: p.deathDate } : {}),
