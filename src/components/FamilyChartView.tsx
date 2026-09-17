@@ -112,6 +112,9 @@ export function FamilyChartView({
   const mainIdRef = useRef(mainId);
   const highlightRef = useRef<string | null>(highlightId);
   const attendingRef = useRef(new Set(attendingPersonIds));
+  const pendingRef = useRef(
+    new Set(people.filter((p) => p.pending).map((p) => p.id)),
+  );
   /** Set when the highlight came from a tap — no need to slide the view then */
   const skipPanRef = useRef<string | null>(null);
 
@@ -121,7 +124,7 @@ export function FamilyChartView({
   const peopleSig = people
     .map(
       (p) =>
-        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.birthDate ?? ""}:${p.deathDate ?? ""}:${p.photoUrl ?? ""}`,
+        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.birthDate ?? ""}:${p.deathDate ?? ""}:${p.photoUrl ?? ""}:${p.pending ? "1" : "0"}`,
     )
     .join("|");
 
@@ -130,6 +133,9 @@ export function FamilyChartView({
     mainIdRef.current = mainId;
     highlightRef.current = highlightId;
     attendingRef.current = new Set(attendingPersonIds);
+    pendingRef.current = new Set(
+      people.filter((p) => p.pending).map((p) => p.id),
+    );
   });
 
   /** Bars above the canvas come and go — keep it inside the window */
@@ -188,6 +194,10 @@ export function FamilyChartView({
       node.classList.toggle(
         "is-attending",
         Boolean(id && attendingRef.current.has(id)),
+      );
+      node.classList.toggle(
+        "is-pending",
+        Boolean(id && pendingRef.current.has(id)),
       );
     });
   };
@@ -344,6 +354,7 @@ export function FamilyChartView({
       const photo = this.querySelector("img");
       if (photo) bindChartPhotoFallback(photo);
       this.classList.toggle("is-attending", attendingRef.current.has(id));
+      this.classList.toggle("is-pending", pendingRef.current.has(id));
     });
 
     chart.updateMainId(safeMain);
@@ -528,6 +539,11 @@ export function FamilyChartView({
         {attendingPersonIds.length > 0 && (
           <span className="attending-legend" title="Osoby zapisane na spotkanie rodzinne">
             Pomarańczowa ramka — idą na spotkanie
+          </span>
+        )}
+        {people.some((p) => p.pending) && (
+          <span className="pending-legend" title="Osoby dodane roboczo, czekają na akceptację">
+            Szara karta — roboczo, jeszcze niezaakceptowane
           </span>
         )}
       </div>

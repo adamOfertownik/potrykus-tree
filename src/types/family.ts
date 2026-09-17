@@ -15,6 +15,8 @@ export interface Person {
   parentIds: string[];
   /** Spouse / partner person IDs */
   spouseIds: string[];
+  /** Client-only: staged locally, not yet accepted into the tree */
+  pending?: boolean;
 }
 
 export interface FamilyDatabase {

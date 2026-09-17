@@ -1,10 +1,12 @@
 import { displayName } from "@/lib/db-client";
 import {
   addStandalonePerson,
-  applyGraphMutation,
+  applyGraphMutations,
   patchPerson,
   summarizeMutationPreview,
+  type GraphMutationInput,
 } from "@/lib/familyMutations";
+import type { GraphEditPayload } from "@/types/submissions";
 import { genderLabel, PERSON_FIELD_LABELS } from "@/lib/submissionLabels";
 import type { FamilyDatabase, Person } from "@/types/family";
 import type {
@@ -68,8 +70,26 @@ function patchDiffs(
   return diffs;
 }
 
+export function submissionGraphEdits(
+  submission: Pick<ChangeSubmission, "graphEdit" | "graphEdits">,
+): GraphEditPayload[] {
+  if (submission.graphEdits?.length) return submission.graphEdits;
+  return submission.graphEdit ? [submission.graphEdit] : [];
+}
+
+function toMutationInput(edit: GraphEditPayload): GraphMutationInput {
+  return {
+    op: edit.op,
+    anchorPersonId: edit.anchorPersonId,
+    relatedPersonId: edit.relatedPersonId,
+    newPerson: edit.newPerson,
+    secondParentId: edit.secondParentId,
+    replaceParentIds: edit.replaceParentIds,
+  };
+}
+
 export function canAutoApply(submission: ChangeSubmission): boolean {
-  if (submission.graphEdit) return true;
+  if (submissionGraphEdits(submission).length) return true;
   if (submission.kind === "photo") return Boolean(submission.targetPersonId);
   if (submission.correction && submission.targetPersonId) return true;
   if (submission.kind === "dates" && submission.correction && submission.targetPersonId) {
@@ -90,22 +110,30 @@ export function previewSubmission(
   let photoBefore: string | undefined;
   let photoAfter: string | undefined;
 
-  if (submission.graphEdit) {
+  const graphEdits = submissionGraphEdits(submission);
+  if (graphEdits.length) {
     try {
-      summary = summarizeMutationPreview(db.people, submission.graphEdit);
-      applyGraphMutation(db, {
-        op: submission.graphEdit.op,
-        anchorPersonId: submission.graphEdit.anchorPersonId,
-        relatedPersonId: submission.graphEdit.relatedPersonId,
-        newPerson: submission.graphEdit.newPerson,
-        secondParentId: submission.graphEdit.secondParentId,
-        replaceParentIds: submission.graphEdit.replaceParentIds,
-      });
+      const result = applyGraphMutations(
+        db,
+        graphEdits.map(toMutationInput),
+      );
+      summary = result.summaries.join(" ");
+      for (const person of result.createdPeople) {
+        diffs.push({
+          field: "firstName",
+          label: "Nowa osoba",
+          before: "—",
+          after: displayName(person),
+        });
+      }
     } catch (err) {
       autoApply = false;
       warnings.push(
         err instanceof Error ? err.message : "Nie można zastosować zmiany grafu.",
       );
+      if (graphEdits.length === 1) {
+        summary = summarizeMutationPreview(db.people, graphEdits[0]);
+      }
     }
   }
 
@@ -150,7 +178,7 @@ export function previewSubmission(
     });
   }
 
-  if (!autoApply && diffs.length === 0 && !submission.graphEdit && !photoAfter && submission.photoAction !== "remove") {
+  if (!autoApply && diffs.length === 0 && !graphEdits.length && !photoAfter && submission.photoAction !== "remove") {
     warnings.push(
       "Brak automatycznego zapisu — zaakceptowanie tylko oznaczy zgłoszenie. Użyj zakładki Osoby, żeby wprowadzić zmianę ręcznie.",
     );
@@ -174,18 +202,15 @@ export function applySubmission(
   let summary = submission.message || "Zastosowano zmianę.";
   let createdPersonId: string | undefined;
 
-  if (submission.graphEdit) {
-    const result = applyGraphMutation(db, {
-      op: submission.graphEdit.op,
-      anchorPersonId: submission.graphEdit.anchorPersonId,
-      relatedPersonId: submission.graphEdit.relatedPersonId,
-      newPerson: submission.graphEdit.newPerson,
-      secondParentId: submission.graphEdit.secondParentId,
-      replaceParentIds: submission.graphEdit.replaceParentIds,
-    });
+  const graphEdits = submissionGraphEdits(submission);
+  if (graphEdits.length) {
+    const result = applyGraphMutations(
+      db,
+      graphEdits.map(toMutationInput),
+    );
     db = result.db;
     summary = result.summary;
-    createdPersonId = result.createdPerson?.id;
+    createdPersonId = result.createdPeople.at(-1)?.id;
   }
 
   if (submission.correction && submission.targetPersonId) {

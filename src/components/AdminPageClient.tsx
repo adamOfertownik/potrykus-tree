@@ -298,13 +298,22 @@ function AdminPanel({ email }: { email: string }) {
                     </figure>
                   </div>
                 )}
-                {selected.graphEdit && (
-                  <p className="empty-hint">
-                    Operacja: {selected.graphEdit.op}
-                    {selected.graphEdit.summary
-                      ? ` — ${selected.graphEdit.summary}`
-                      : ""}
-                  </p>
+                {(selected.graphEdits?.length || selected.graphEdit) && (
+                  <ul className="admin-graph-edits">
+                    {(selected.graphEdits?.length
+                      ? selected.graphEdits
+                      : selected.graphEdit
+                        ? [selected.graphEdit]
+                        : []
+                    ).map((edit, i) => (
+                      <li key={`${edit.op}-${edit.anchorPersonId}-${i}`}>
+                        {i + 1}. {edit.summary || edit.op}
+                        {edit.newPerson?.clientPersonId
+                          ? ` (roboczo: ${edit.newPerson.firstName} ${edit.newPerson.lastName})`
+                          : ""}
+                      </li>
+                    ))}
+                  </ul>
                 )}
                 {selected.status === "new" || selected.status === "reviewed" ? (
                   <div className="admin-card__actions">

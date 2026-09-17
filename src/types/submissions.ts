@@ -32,6 +32,7 @@ export interface GraphEditPayload {
     birthDate?: string;
     deathDate?: string;
     maidenName?: string;
+    clientPersonId?: string;
   };
   summary?: string;
 }
@@ -98,6 +99,7 @@ export interface ChangeSubmission {
   };
   relatives?: RelativeDraft[];
   graphEdit?: GraphEditPayload;
+  graphEdits?: GraphEditPayload[];
   correction?: PersonFieldPatch;
   photoUrl?: string;
   photoAction?: "set" | "remove";
@@ -118,6 +120,7 @@ export interface SubmissionPayload {
   self?: ChangeSubmission["self"];
   relatives?: RelativeDraft[];
   graphEdit?: GraphEditPayload;
+  graphEdits?: GraphEditPayload[];
   correction?: PersonFieldPatch;
   photoUrl?: string;
   photoAction?: "set" | "remove";

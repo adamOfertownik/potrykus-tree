@@ -1,4 +1,11 @@
-import type { Person } from "@/types/family";
+import type { Person, PersonPublic } from "@/types/family";
+
+export function withChildrenIds(people: Person[]): PersonPublic[] {
+  return people.map((p) => ({
+    ...p,
+    childrenIds: getChildrenIds(people, p.id),
+  }));
+}
 
 export function getChildrenIds(people: Person[], personId: string): string[] {
   return people

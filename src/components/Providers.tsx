@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { DraftGraphProvider } from "@/components/DraftGraphProvider";
 import { TextScaleProvider } from "@/components/TextScaleProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -19,7 +20,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={client}>
-      <TextScaleProvider>{children}</TextScaleProvider>
+      <TextScaleProvider>
+        <DraftGraphProvider>{children}</DraftGraphProvider>
+      </TextScaleProvider>
     </QueryClientProvider>
   );
 }

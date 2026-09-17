@@ -98,6 +98,8 @@ function ListInner({
             „1.”), nie kolejny numer z bazy. PDF pobierzesz z menu u góry.
             Plus przy osobie dodaje dziecko, partnera albo przenosi gałąź.
             Pomarańczowa ramka oznacza zapis na spotkanie rodzinne.
+            Szare pozycje z dopiskiem „roboczo” czekają na akceptację —
+            możesz od razu dodać im dzieci i wysłać wszystko razem.
             Administrator może zaznaczyć zapis przyciskiem „zapisz”.
           </p>
         </header>
@@ -109,6 +111,7 @@ function ListInner({
             const depth = Math.floor(entry.railDepth);
             const isHighlight = highlightId === entry.person.id;
             const isAttending = attending.has(entry.person.id);
+            const isPending = Boolean(entry.person.pending);
             const showDetachedHead =
               Boolean(entry.detached) && !entries[index - 1]?.detached;
 
@@ -138,6 +141,7 @@ function ListInner({
                   entry.isLast ? "is-last" : "",
                   isHighlight ? "is-highlight" : "",
                   isAttending ? "is-attending" : "",
+                  isPending ? "is-pending" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -170,12 +174,19 @@ function ListInner({
                     {entry.isSpouse && (
                       <span className="genealogy-spouse">małż.</span>
                     )}
-                    <Link
-                      href={`/osoba/${entry.person.id}`}
-                      className="genealogy-name"
-                    >
-                      {displayName(entry.person, people)}
-                    </Link>
+                    {isPending ? (
+                      <span className="genealogy-name">{displayName(entry.person, people)}</span>
+                    ) : (
+                      <Link
+                        href={`/osoba/${entry.person.id}`}
+                        className="genealogy-name"
+                      >
+                        {displayName(entry.person, people)}
+                      </Link>
+                    )}
+                    {isPending && (
+                      <span className="pending-pill">roboczo</span>
+                    )}
                     {isAttending && (
                       <span className="attending-pill">spotkanie</span>
                     )}
@@ -202,12 +213,14 @@ function ListInner({
                     >
                       +
                     </button>
-                    <AttendToggle
-                      personId={entry.person.id}
-                      fullName={displayName(entry.person, people)}
-                      attending={isAttending}
-                      compact
-                    />
+                    {!isPending && (
+                      <AttendToggle
+                        personId={entry.person.id}
+                        fullName={displayName(entry.person, people)}
+                        attending={isAttending}
+                        compact
+                      />
+                    )}
                     <button
                       type="button"
                       className="genealogy-focus"

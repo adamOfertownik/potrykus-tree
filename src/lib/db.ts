@@ -310,6 +310,9 @@ export async function writeFamilyDb(
   db: FamilyDatabase,
   adminId?: string,
 ): Promise<void> {
+  for (const person of db.people) {
+    delete person.pending;
+  }
   db.meta.updatedAt = new Date().toISOString();
   if (hasDb()) {
     try {

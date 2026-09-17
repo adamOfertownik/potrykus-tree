@@ -250,6 +250,58 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
   await ctx.close();
 });
 
+test("draft child and grandchild stay gray until a batch is sent", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const stamp = Date.now();
+  const childName = `RoboczeDziecko${stamp}`;
+  const grandName = `RoboczyWnuk${stamp}`;
+
+  await page.goto("/lista");
+  await page.waitForSelector(".genealogy-add", { timeout: 45000 });
+  await page.locator(".genealogy-add").first().click();
+  await page.getByRole("button", { name: "Dziecko" }).click();
+  await page.getByRole("tab", { name: "Nowa osoba" }).click();
+  await page.getByLabel("Imię *").fill(childName);
+  await page.getByLabel("Nazwisko *").fill("Testowy");
+  await page.getByRole("button", { name: "Dalej — potwierdzenie" }).click();
+  await page.getByRole("button", { name: "Dodaj roboczo" }).click();
+
+  await expect(page.getByTestId("draft-graph-bar")).toBeVisible();
+  const childRow = page.locator(".genealogy-item.is-pending", {
+    hasText: childName,
+  });
+  await expect(childRow).toBeVisible();
+  await expect(childRow.locator(".pending-pill")).toHaveText("roboczo");
+
+  await childRow.locator(".genealogy-add").click();
+  await page.getByRole("button", { name: "Dziecko" }).click();
+  await page.getByRole("tab", { name: "Nowa osoba" }).click();
+  await page.getByLabel("Imię *").fill(grandName);
+  await page.getByLabel("Nazwisko *").fill("Testowy");
+  await page.getByRole("button", { name: "Dalej — potwierdzenie" }).click();
+  await page.getByRole("button", { name: "Dodaj roboczo" }).click();
+
+  await expect(
+    page.locator(".genealogy-item.is-pending", { hasText: grandName }),
+  ).toBeVisible();
+  await expect(page.getByTestId("draft-graph-bar")).toContainText("2 robocze");
+
+  await page.getByRole("button", { name: "Wyślij całość" }).click();
+  await expect(page.getByTestId("draft-graph-bar")).toHaveCount(0);
+  await expect(page.locator(".genealogy-item.is-pending")).toHaveCount(0);
+  await ctx.close();
+});
+
 test("attendees get orange border on list when family API marks them", async ({
   browser,
 }) => {
