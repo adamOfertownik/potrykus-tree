@@ -2292,6 +2292,8 @@ button.person-card {
 .genealogy-name {
   font-weight: 650;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .genealogy-item.is-person .genealogy-name {
@@ -2352,6 +2354,47 @@ button.person-card {
 .genealogy-focus:focus-visible {
   color: var(--accent-strong);
   border-color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .genealogy-item {
+    --guide: 0.58rem;
+  }
+
+  .genealogy-guides {
+    width: calc(min(var(--depth), 6) * var(--guide));
+    overflow: hidden;
+  }
+
+  .genealogy-list {
+    padding: 0.5rem 0.15rem 1.25rem;
+  }
+
+  .genealogy-content {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.2rem 0.4rem;
+    padding: 0.4rem 0.2rem 0.45rem 0.35rem;
+  }
+
+  .genealogy-main {
+    flex: 1 1 100%;
+  }
+
+  .genealogy-item.is-person .genealogy-name {
+    font-size: 1rem;
+  }
+
+  .genealogy-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .genealogy-focus {
+    padding: 0.2rem 0.55rem;
+    font-size: 0.72rem;
+  }
 }
 
 /* ——— Person detail ——— */
@@ -4430,6 +4473,11 @@ button.person-card {
   .app-header__brand,
   .app-header__login {
     display: none;
+  }
+
+  .app-nav a {
+    padding: 0.32rem 0.42rem;
+    font-size: 0.78rem;
   }
 
   .family-chart-wrap {

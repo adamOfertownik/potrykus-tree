@@ -123,6 +123,34 @@ test("lista shows every person from the family API", async ({ browser }) => {
   await ctx.close();
 });
 
+test("lista on a phone keeps full names readable", async ({ browser }) => {
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+  });
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.goto("/lista");
+  await page.waitForSelector(".genealogy-item.is-person .genealogy-name", {
+    timeout: 45_000,
+  });
+  const clipped = await page
+    .locator(".genealogy-item.is-person .genealogy-name")
+    .evaluateAll((els) =>
+      els
+        .filter((el) => el.scrollWidth > el.clientWidth + 2)
+        .slice(0, 8)
+        .map((el) => el.textContent?.trim()),
+    );
+  expect(clipped, "list names must wrap instead of clipping").toEqual([]);
+  await ctx.close();
+});
+
 test("tree is fullscreen with navbar links and wind overlay", async ({
   browser,
 }) => {
