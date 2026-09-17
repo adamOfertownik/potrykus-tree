@@ -154,6 +154,16 @@ export function pickBranchLabels(
   }
   if (bestHeads.length < 2) return [];
 
+  const chosen = new Set(bestHeads.map((n) => n.id));
+  const extraDepth = bestHeads[0] ? bestHeads[0].depth + 1 : -1;
+  for (const node of candidates) {
+    if (node.depth !== extraDepth || chosen.has(node.id)) continue;
+    const ext = extents.get(node.id);
+    if (!ext || ext.count < 8 || ext.maxX - ext.minX < 360) continue;
+    chosen.add(node.id);
+    bestHeads.push(node);
+  }
+
   const labels: BranchLabel[] = [];
   for (const node of bestHeads) {
     const person = byId.get(node.id);

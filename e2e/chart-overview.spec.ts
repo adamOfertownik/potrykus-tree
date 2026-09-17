@@ -38,17 +38,19 @@ test("zoomed-out tree shows branch headers and zooming into one", async ({
   await page.goto("/drzewo");
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
   await page.getByRole("button", { name: /Całe drzewo/ }).click();
+  await page.waitForTimeout(700);
   const labels = page.getByTestId("chart-branch-label");
   await expect(labels.first()).toBeVisible({ timeout: 10_000 });
-  const count = await labels.count();
-  expect(count).toBeGreaterThan(1);
+  await expect.poll(async () => labels.count()).toBeGreaterThan(1);
+  await expect(page.locator(".chart-gen-label").first()).toBeVisible();
 
-  const helena = labels.filter({ hasText: /Helena/i });
-  const target = (await helena.count()) ? helena.first() : labels.first();
-  const before = await target.innerText();
-  await target.click();
+  const visible = labels.filter({ visible: true });
+  const helena = visible.filter({ hasText: /Helena/i });
+  const target = (await helena.count()) ? helena.first() : visible.first();
+  const before = ((await target.innerText()) ?? "").split("\n")[0]!.trim();
+  await target.click({ force: true });
   await expect(page.locator(".tree-focus-bar")).toContainText(
-    before.split("\n")[0]!.trim().split(" ")[0]!,
+    before.split(" ")[0]!,
     { timeout: 8_000 },
   );
   await ctx.close();

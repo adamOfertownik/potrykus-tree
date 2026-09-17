@@ -1457,7 +1457,6 @@ textarea:focus-visible {
   backdrop-filter: blur(6px);
   transform-origin: center bottom;
   transition:
-    transform 0.18s ease,
     background 0.18s ease,
     border-color 0.18s ease;
 }

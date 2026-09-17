@@ -259,13 +259,29 @@ export function FamilyChartView({
     overlay.style.opacity = String(opacity);
     overlay.style.pointerEvents = "none";
     overlay.hidden = opacity <= 0.02;
+    const placed: { x: number; y: number }[] = [];
+    const sorted = [...labelsRef.current].sort((a, b) => b.count - a.count);
     overlay.querySelectorAll<HTMLElement>("[data-branch-id]").forEach((el) => {
       const id = el.dataset.branchId;
-      const label = labelsRef.current.find((item) => item.id === id);
-      if (!label) return;
-      const screenW = Math.max(86, label.width * k);
-      el.style.width = `${Math.min(screenW, 220)}px`;
-      el.style.transform = `translate(${label.x * k + x}px, ${label.y * k + y - 28}px) translate(-50%, -100%)`;
+      const label = sorted.find((item) => item.id === id);
+      if (!label) {
+        el.style.visibility = "hidden";
+        return;
+      }
+      const screenX = label.x * k + x;
+      const screenY = label.y * k + y - 28;
+      const screenW = Math.min(Math.max(96, label.width * k * 0.45), 210);
+      const overlaps = placed.some(
+        (p) => Math.abs(p.x - screenX) < screenW * 0.72 && Math.abs(p.y - screenY) < 36,
+      );
+      if (overlaps && k < 0.4) {
+        el.style.visibility = "hidden";
+        return;
+      }
+      placed.push({ x: screenX, y: screenY });
+      el.style.visibility = "visible";
+      el.style.width = `${screenW}px`;
+      el.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
     });
     overlay.querySelectorAll<HTMLElement>("[data-gen-key]").forEach((el) => {
       const key = el.dataset.genKey;
@@ -711,7 +727,7 @@ export function FamilyChartView({
       (rect.height - pad * 2) / 900,
       0.82,
     );
-    const nextK = Math.max(k, 0.38);
+    const nextK = Math.max(k, 0.56);
     animateView(
       nextK,
       rect.width / 2 - label.x * nextK,
