@@ -616,6 +616,27 @@ textarea:focus-visible {
   display: none;
 }
 
+.person-search--overlay .person-search__top:has(.person-search__who) {
+  display: flex;
+  margin: 0 0 0.28rem;
+  padding: 0.2rem 0.45rem;
+  width: 100%;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+}
+
+.person-search--overlay .person-search__label {
+  display: none;
+}
+
+.person-search--overlay .person-search__who {
+  max-width: 100%;
+  text-align: left;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.15rem;
+}
+
 .person-search--overlay .person-search__field,
 .person-search--overlay .person-search__input {
   background: color-mix(in srgb, var(--panel) 92%, transparent);
@@ -754,6 +775,23 @@ textarea:focus-visible {
   line-height: 1;
   cursor: pointer;
   padding: 0.25rem 0.45rem;
+}
+
+.person-search__float {
+  position: fixed;
+  z-index: 2100;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.person-search__float .person-search__results,
+.person-search__float .person-search__empty {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  max-height: none;
 }
 
 .person-search__results {
@@ -1979,6 +2017,12 @@ textarea:focus-visible {
   -webkit-overflow-scrolling: touch;
 }
 
+.modal-backdrop--who {
+  place-items: start center;
+  align-content: start;
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
 .modal-card {
   position: relative;
   z-index: 2001;
@@ -2569,9 +2613,42 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: white;
-  max-height: 220px;
+  max-height: min(38dvh, 220px);
   overflow: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.who-matches__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.who-matches__dates {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.who-confirm {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 6%, white);
+}
+
+.who-confirm__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+
+.who-confirm__meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
 }
 
 .who-matches button,
@@ -3113,8 +3190,50 @@ textarea:focus-visible {
   }
 
   .tree-page__chrome {
-    right: 0.65rem;
-    max-width: calc(100% - 1.3rem);
+    top: 0.4rem;
+    left: 0.45rem;
+    right: 0.45rem;
+    max-width: none;
+    gap: 0.3rem;
+  }
+
+  .tree-focus-bar {
+    width: 100%;
+    padding: 0.28rem 0.5rem;
+    gap: 0.3rem;
+  }
+
+  .tree-focus-bar p {
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tree-focus-bar .btn {
+    min-height: 1.9rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .modal-backdrop--who {
+    padding: max(0.35rem, env(safe-area-inset-top)) 0.55rem 0.55rem;
+  }
+
+  .modal-card--who {
+    width: 100%;
+    max-height: min(72dvh, 520px);
+    padding: 0.8rem 0.8rem 0.75rem;
+    border-radius: 14px;
+  }
+
+  .modal-card--who .modal-card__head h2 {
+    font-size: 1.12rem;
+  }
+
+  .modal-card--who .modal-card__head p {
+    margin: 0.2rem 0 0.55rem;
+    font-size: 0.82rem;
   }
 
   .family-chart-tools {

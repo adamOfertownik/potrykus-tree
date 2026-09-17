@@ -12,16 +12,20 @@ export function TreePageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const urlRoot = searchParams.get("root");
+  const urlHighlight = searchParams.get("hl");
   const [viewRoot, setViewRoot] = useState<string | null>(urlRoot);
-  const [highlightId, setHighlightId] = useState<string | null>(urlRoot);
+  const [highlightId, setHighlightId] = useState<string | null>(
+    urlRoot || urlHighlight,
+  );
 
   useEffect(() => {
     setViewRoot(urlRoot);
   }, [urlRoot]);
 
   useEffect(() => {
-    if (viewRoot) setHighlightId(viewRoot);
-  }, [viewRoot]);
+    if (urlRoot) setHighlightId(urlRoot);
+    else if (urlHighlight) setHighlightId(urlHighlight);
+  }, [urlRoot, urlHighlight]);
 
   return (
     <AuthedPage
@@ -73,7 +77,8 @@ export function TreePageClient() {
               {focusedAway && (
                 <div className="tree-focus-bar" role="status">
                   <p>
-                    Widok wokół:{" "}
+                    <span className="only-narrow">Wokół: </span>
+                    <span className="only-wide">Widok wokół: </span>
                     <strong>
                       {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
                     </strong>
@@ -95,7 +100,8 @@ export function TreePageClient() {
                   role="status"
                 >
                   <p>
-                    Podświetlone: <strong>{displayName(highlightPerson)}</strong>
+                    <span className="only-wide">Podświetlone: </span>
+                    <strong>{displayName(highlightPerson)}</strong>
                   </p>
                   <div className="tree-focus-bar__actions">
                     <button
