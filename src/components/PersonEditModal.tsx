@@ -68,18 +68,20 @@ function correctionFromForm(
   return Object.keys(patch).length ? patch : null;
 }
 
-export function PersonEditModal({
+export function PersonEditForm({
   person,
   isAdmin,
+  adminReady,
   reporterName,
   reporterPersonId,
-  onClose,
+  onNeedIdentity,
 }: {
   person: Person;
   isAdmin: boolean;
+  adminReady: boolean;
   reporterName: string;
   reporterPersonId?: string;
-  onClose: () => void;
+  onNeedIdentity?: () => void;
 }) {
   const qc = useQueryClient();
   const [form, setForm] = useState(() => fromPerson(person));
@@ -105,6 +107,15 @@ export function PersonEditModal({
     const correction = correctionFromForm(person, form);
     if (!correction && !message.trim()) {
       setError("Nic nie zmieniono.");
+      return;
+    }
+    if (!adminReady) {
+      setError("Chwilę — sprawdzam, czy jesteś adminem.");
+      return;
+    }
+    if (!isAdmin && !reporterName.trim()) {
+      onNeedIdentity?.();
+      setError("Najpierw podaj, kim jesteś — kto zgłasza poprawkę.");
       return;
     }
 
@@ -138,13 +149,9 @@ export function PersonEditModal({
         return;
       }
 
-      const who = reporterName.trim();
-      if (!who) {
-        throw new Error("Najpierw podaj, kim jesteś — kto zgłasza poprawkę.");
-      }
       const payload: SubmissionPayload = {
         kind: correction ? "correction" : "other",
-        reporterName: who,
+        reporterName: reporterName.trim(),
         reporterPersonId,
         targetPersonId: person.id,
         targetPersonName: displayName(person),
@@ -172,6 +179,139 @@ export function PersonEditModal({
   };
 
   return (
+    <form
+      id="person-edit"
+      className="change-form person-edit-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void save();
+      }}
+    >
+      <p className="empty-hint">
+        {isAdmin
+          ? "Jesteś adminem — zapis trafi od razu na drzewo."
+          : "Zmiana imienia, nazwiska i reszty pól idzie do zatwierdzenia."}
+      </p>
+      {error && (
+        <p className="banner-error" role="alert">
+          {error}
+        </p>
+      )}
+      {success && (
+        <p className="banner-success" role="status">
+          {success}
+        </p>
+      )}
+      <div className="form-grid">
+        <label>
+          Imię
+          <input
+            required
+            autoComplete="given-name"
+            value={form.firstName}
+            onChange={set("firstName")}
+          />
+        </label>
+        <label>
+          Nazwisko
+          <input
+            required
+            autoComplete="family-name"
+            value={form.lastName}
+            onChange={set("lastName")}
+          />
+        </label>
+        <label>
+          Nazwisko rodowe
+          <input value={form.maidenName} onChange={set("maidenName")} />
+        </label>
+        <label>
+          Płeć
+          <select
+            value={form.gender}
+            onChange={(e) =>
+              setForm((s) => ({
+                ...s,
+                gender: e.target.value as Person["gender"],
+              }))
+            }
+          >
+            <option value="unknown">{genderLabel("unknown")}</option>
+            <option value="female">{genderLabel("female")}</option>
+            <option value="male">{genderLabel("male")}</option>
+          </select>
+        </label>
+        <label>
+          Data urodzenia
+          <input
+            value={form.birthDate}
+            onChange={set("birthDate")}
+            placeholder="RRRR-MM-DD"
+          />
+        </label>
+        <label>
+          Data zgonu
+          <input
+            value={form.deathDate}
+            onChange={set("deathDate")}
+            placeholder="RRRR-MM-DD"
+          />
+        </label>
+        <label>
+          Telefon
+          <input type="tel" value={form.phone} onChange={set("phone")} />
+        </label>
+      </div>
+      <label className="field-block">
+        Notatki
+        <textarea rows={3} value={form.notes} onChange={set("notes")} />
+      </label>
+      {isAdmin ? null : (
+        <label className="field-block">
+          Co poprawić? (opcjonalnie)
+          <textarea
+            rows={3}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Np. data urodzenia to 12 maj 1964, a nie 1965…"
+          />
+        </label>
+      )}
+      <div className="modal-actions">
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={busy || !adminReady}
+        >
+          {busy
+            ? "Zapisuję…"
+            : isAdmin
+              ? "Zapisz na drzewie"
+              : "Wyślij do zatwierdzenia"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export function PersonEditModal({
+  person,
+  isAdmin,
+  adminReady,
+  reporterName,
+  reporterPersonId,
+  onNeedIdentity,
+  onClose,
+}: {
+  person: Person;
+  isAdmin: boolean;
+  adminReady: boolean;
+  reporterName: string;
+  reporterPersonId?: string;
+  onNeedIdentity?: () => void;
+  onClose: () => void;
+}) {
+  return (
     <Modal
       open
       labelledBy="person-edit-title"
@@ -179,114 +319,19 @@ export function PersonEditModal({
       cardClassName="person-edit-modal"
     >
       <h2 id="person-edit-title">Popraw dane: {displayName(person)}</h2>
-      <p className="empty-hint">
-        {isAdmin
-          ? "Zapiszesz od razu na drzewie."
-          : "To sugestia. Drzewo nie zmieni się, dopóki admin nie zatwierdzi."}
-      </p>
-      <form
-        className="change-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void save();
-        }}
-      >
-        {error && (
-          <p className="banner-error" role="alert">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p className="banner-success" role="status">
-            {success}
-          </p>
-        )}
-        <div className="form-grid">
-          <label>
-            Imię
-            <input
-              required
-              value={form.firstName}
-              onChange={set("firstName")}
-            />
-          </label>
-          <label>
-            Nazwisko
-            <input required value={form.lastName} onChange={set("lastName")} />
-          </label>
-          <label>
-            Nazwisko rodowe
-            <input value={form.maidenName} onChange={set("maidenName")} />
-          </label>
-          <label>
-            Płeć
-            <select
-              value={form.gender}
-              onChange={(e) =>
-                setForm((s) => ({
-                  ...s,
-                  gender: e.target.value as Person["gender"],
-                }))
-              }
-            >
-              <option value="unknown">{genderLabel("unknown")}</option>
-              <option value="female">{genderLabel("female")}</option>
-              <option value="male">{genderLabel("male")}</option>
-            </select>
-          </label>
-          <label>
-            Data urodzenia
-            <input
-              value={form.birthDate}
-              onChange={set("birthDate")}
-              placeholder="RRRR-MM-DD"
-            />
-          </label>
-          <label>
-            Data zgonu
-            <input
-              value={form.deathDate}
-              onChange={set("deathDate")}
-              placeholder="RRRR-MM-DD"
-            />
-          </label>
-          <label>
-            Telefon
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={set("phone")}
-            />
-          </label>
-        </div>
-        <label className="field-block">
-          Notatki
-          <textarea rows={3} value={form.notes} onChange={set("notes")} />
-        </label>
-        {isAdmin ? null : (
-          <label className="field-block">
-            Co poprawić? (opcjonalnie)
-            <textarea
-              rows={3}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Np. data urodzenia to 12 maj 1964, a nie 1965…"
-            />
-          </label>
-        )}
-        <div className="modal-actions">
-          <button type="submit" className="btn btn-primary" disabled={busy}>
-            {busy
-              ? "Zapisuję…"
-              : isAdmin
-                ? "Zapisz"
-                : "Wyślij do zatwierdzenia"}
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={onClose}>
-            Zamknij
-          </button>
-        </div>
-      </form>
+      <PersonEditForm
+        person={person}
+        isAdmin={isAdmin}
+        adminReady={adminReady}
+        reporterName={reporterName}
+        reporterPersonId={reporterPersonId}
+        onNeedIdentity={onNeedIdentity}
+      />
+      <div className="modal-actions">
+        <button type="button" className="btn btn-secondary" onClick={onClose}>
+          Zamknij
+        </button>
+      </div>
     </Modal>
   );
 }

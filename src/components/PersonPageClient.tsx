@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -9,12 +9,12 @@ import { AuthedPage } from "@/components/AuthedPage";
 import { AdminPersonRelsModal } from "@/components/AdminPersonRelsModal";
 import { Modal } from "@/components/Modal";
 import { PersonCard } from "@/components/PersonCard";
-import { PersonEditModal } from "@/components/PersonEditModal";
+import { PersonEditForm } from "@/components/PersonEditModal";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { useIdentity } from "@/components/IdentityProvider";
 import { useAdminAuthStatus } from "@/lib/hooks";
 import { describeKinship } from "@/lib/kinship";
-import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
+import { displayName, lifespan } from "@/lib/db-client";
 import { findRelationConflicts } from "@/lib/relationConflicts";
 import { comparePeopleByBirth, getChildrenIds } from "@/lib/tree";
 import type { Person } from "@/types/family";
@@ -30,6 +30,7 @@ function PersonInner({
 }) {
   const { identity, promptIdentity } = useIdentity();
   const admin = useAdminAuthStatus();
+  const adminReady = !admin.isPending;
   const isAdmin = Boolean(admin.data?.loggedIn);
   const router = useRouter();
   const qc = useQueryClient();
@@ -37,23 +38,14 @@ function PersonInner({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
-  const pendingEdit = useRef(false);
   const person = people.find((p) => p.id === id);
 
-  useEffect(() => {
-    if (!pendingEdit.current || !identity?.name) return;
-    pendingEdit.current = false;
-    setEditOpen(true);
-  }, [identity?.name]);
-
-  const openEdit = () => {
-    if (!isAdmin && !identity?.name) {
-      pendingEdit.current = true;
-      promptIdentity();
-      return;
-    }
-    setEditOpen(true);
+  const scrollToEdit = () => {
+    if (!isAdmin && !identity?.name) promptIdentity();
+    document.getElementById("person-edit")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
 
   if (!person) {
@@ -163,7 +155,7 @@ function PersonInner({
             <button
               type="button"
               className="btn btn-secondary"
-              onClick={openEdit}
+              onClick={scrollToEdit}
             >
               {meId && meId === person.id ? "Popraw moje dane" : "Popraw dane"}
             </button>
@@ -336,41 +328,19 @@ function PersonInner({
         </Modal>
       )}
 
-      {editOpen && (
-        <PersonEditModal
+      <section className="person-relations person-detail__edit" aria-labelledby="person-edit-heading">
+        <h2 id="person-edit-heading" className="person-relations__title">
+          Imię, nazwisko i dane
+        </h2>
+        <PersonEditForm
+          key={person.id}
           person={person}
           isAdmin={isAdmin}
+          adminReady={adminReady}
           reporterName={identity?.name || ""}
           reporterPersonId={identity?.personId}
-          onClose={() => setEditOpen(false)}
+          onNeedIdentity={promptIdentity}
         />
-      )}
-
-      <section className="person-relations">
-        <h2 className="person-relations__title">
-          <span>Dane</span>
-          <PencilButton label="Popraw dane" onClick={openEdit} />
-        </h2>
-        <dl className="person-facts">
-          <div>
-            <dt>Data urodzenia</dt>
-            <dd>{formatPolishDate(person.birthDate) || "—"}</dd>
-          </div>
-          <div>
-            <dt>Data zgonu</dt>
-            <dd>{formatPolishDate(person.deathDate) || "—"}</dd>
-          </div>
-          <div>
-            <dt>Płeć</dt>
-            <dd>
-              {person.gender === "male"
-                ? "mężczyzna"
-                : person.gender === "female"
-                  ? "kobieta"
-                  : "—"}
-            </dd>
-          </div>
-        </dl>
       </section>
     </article>
   );
