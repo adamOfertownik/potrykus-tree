@@ -103,7 +103,7 @@ export function TreePageClient() {
               {viewRoot !== MEETING_ROOT_ID && (
                 <Link
                   href={MEETING_TREE_HREF}
-                  className="btn btn-primary meeting-franciszek-btn meeting-franciszek-btn--tree"
+                  className="btn btn-primary meeting-franciszek-btn meeting-franciszek-btn--compact"
                   data-testid="spotkanie-od-franciszka"
                 >
                   Spotkanie od Franciszka

@@ -30,7 +30,7 @@ function FamilyStatsBody({ people }: { people: Person[] }) {
         </p>
         <Link
           href={MEETING_TREE_HREF}
-          className="btn btn-primary meeting-franciszek-btn"
+          className="btn btn-primary meeting-franciszek-btn meeting-franciszek-btn--compact"
           data-testid="spotkanie-od-franciszka"
         >
           Drzewo od Franciszka

@@ -59,9 +59,12 @@ export function MeetingBranchPanel({
         </p>
         <ul className="meeting-branch-chips">
           {going
-            .filter((branch) => branch.featured || branch.personIds.length > 0)
+            .filter((branch) => branch.kind === "branch")
             .map((branch) => (
-              <li key={branch.key}>
+              <li
+                key={branch.key}
+                className={branch.featured ? "is-featured" : undefined}
+              >
                 <span>{branch.short}</span>
                 <strong>{branch.personIds.length}</strong>
               </li>

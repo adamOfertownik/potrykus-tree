@@ -53,6 +53,22 @@ test("statystyki show Franciszek branches and insights", async ({ browser }) => 
   await button.click();
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
   await expect(page.locator(".tree-focus-bar")).toContainText(/Franciszek/i);
+  const bar = page.getByTestId("meeting-branch-bar");
+  await expect(bar).toBeVisible();
+  for (const name of [
+    "Helena",
+    "Władek",
+    "Rozalia",
+    "Jan",
+    "Franciszek",
+    "Bronisław",
+    "Antoni",
+    "Stanisław",
+    "Józef",
+    "Walerian",
+  ]) {
+    await expect(bar.locator(".meeting-branch-chips li").filter({ hasText: name })).toHaveCount(1);
+  }
   await ctx.close();
 });
 
