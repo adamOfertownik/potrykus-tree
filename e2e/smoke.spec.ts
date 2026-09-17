@@ -456,8 +456,10 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
   await expect(
     page.getByRole("radio", { name: /Gotówką do Marii Lieske/ }),
   ).toBeVisible();
-  await expect(page.getByText("Dorośli")).toBeVisible();
-  await expect(page.getByText("Dzieci do 7 roku życia")).toBeVisible();
+  await expect(page.getByText("Dorośli", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Dzieci do 7 roku życia", { exact: true }),
+  ).toBeVisible();
   await ctx.close();
 });
 
