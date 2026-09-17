@@ -46,7 +46,7 @@ test("statystyki show Franciszek branches and insights", async ({ browser }) => 
   ).toBeVisible();
   await expect(
     page.getByTestId("meeting-branch-count").filter({ hasText: /Władka/ }),
-  ).toBeVisible();
+  ).toContainText("/");
   await expect(page.getByText(/Imiona, które wracają/)).toBeVisible();
   const button = page.getByTestId("spotkanie-od-franciszka");
   await expect(button).toHaveAttribute("href", "/drzewo?root=P060");

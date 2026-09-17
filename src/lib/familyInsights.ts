@@ -2,6 +2,7 @@ import type { Person } from "@/types/family";
 import { displayName, isUnnamedPerson } from "@/lib/db-client";
 import {
   attributeMeetingBranch,
+  groupAttendingByMeetingBranch,
   groupFamilyByMeetingBranch,
   type MeetingBranch,
 } from "@/lib/meetingBranches";
@@ -37,6 +38,7 @@ export type FamilyInsights = {
     featured: boolean;
     living: number;
     total: number;
+    going: number;
   }[];
   topFirstNames: NameCount[];
   topLastNames: NameCount[];
@@ -81,8 +83,17 @@ function bySortThenName(a: RankedPerson, b: RankedPerson) {
   return a.name.localeCompare(b.name, "pl");
 }
 
-export function buildFamilyInsights(people: Person[]): FamilyInsights {
+export function buildFamilyInsights(
+  people: Person[],
+  attendingPersonIds: string[] = [],
+): FamilyInsights {
   const branches = groupFamilyByMeetingBranch(people);
+  const goingByKey = new Map(
+    groupAttendingByMeetingBranch(people, attendingPersonIds).map((row) => [
+      row.key,
+      row.personIds.length,
+    ]),
+  );
   const byId = new Map(people.map((p) => [p.id, p]));
   const inLine = people.filter(
     (p) => attributeMeetingBranch(p.id, people).kind !== "outside",
@@ -165,6 +176,7 @@ export function buildFamilyInsights(people: Person[]): FamilyInsights {
     label: branch.label,
     featured: branch.featured,
     total: branch.personIds.length,
+    going: goingByKey.get(branch.key) ?? 0,
     living: branch.personIds.filter((id) => {
       const p = byId.get(id);
       return p ? isLiving(p) : false;

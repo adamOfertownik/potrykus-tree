@@ -10,13 +10,27 @@ import type { Person } from "@/types/family";
 export function FamilyStatsPageClient() {
   return (
     <AuthedPage loadingLabel="Wczytywanie statystyk…">
-      {({ people }) => <FamilyStatsBody people={people} />}
+      {({ people, family }) => (
+        <FamilyStatsBody
+          people={people}
+          attendingPersonIds={family.attendingPersonIds ?? []}
+        />
+      )}
     </AuthedPage>
   );
 }
 
-function FamilyStatsBody({ people }: { people: Person[] }) {
-  const stats = useMemo(() => buildFamilyInsights(people), [people]);
+function FamilyStatsBody({
+  people,
+  attendingPersonIds,
+}: {
+  people: Person[];
+  attendingPersonIds: string[];
+}) {
+  const stats = useMemo(
+    () => buildFamilyInsights(people, attendingPersonIds),
+    [people, attendingPersonIds],
+  );
 
   return (
     <article className="event-page stats-page" data-testid="family-stats">
@@ -70,9 +84,8 @@ function FamilyStatsBody({ people }: { people: Person[] }) {
       <section className="event-section">
         <h2>Gałęzie od dzieci Franciszka</h2>
         <p className="event-section__lead">
-          Ile osób w drzewie siedzi pod babcią albo dziadkiem — razem i ile
-          bez daty śmierci. Helena i Władek są wyróżnieni, bo od nich idzie
-          spotkanie.
+          Ile osób z drzewa zapisało się na spotkanie, na ile osób jest w
+          tej gałęzi. Helena i Władek są wyróżnieni.
         </p>
         <ul className="meeting-branch-counts" data-testid="meeting-family-groups">
           {stats.livingByBranch.map((branch) => (
@@ -82,12 +95,10 @@ function FamilyStatsBody({ people }: { people: Person[] }) {
               data-testid="meeting-branch-count"
             >
               <span>{branch.label}</span>
-              <strong>{plPeople(branch.total)}</strong>
-              <em>
-                {branch.living === branch.total
-                  ? "bez daty śmierci"
-                  : `${branch.living} bez daty śmierci`}
-              </em>
+              <strong>
+                {branch.going} / {branch.total}
+              </strong>
+              <em>zapisani / w drzewie</em>
             </li>
           ))}
         </ul>
