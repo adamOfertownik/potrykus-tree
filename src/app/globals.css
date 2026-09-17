@@ -708,6 +708,12 @@ textarea:focus-visible {
   max-width: 440px;
 }
 
+.person-search.person-search--overlay {
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: none;
+}
+
 .person-search__row {
   display: flex;
   align-items: stretch;
@@ -3648,6 +3654,11 @@ textarea:focus-visible {
 
 @media (min-width: 721px) {
   .nav-menu__login-fallback {
+    display: none;
+  }
+
+  /* Desktop tree: keep the field at the old spot — identity is in Menu. */
+  .person-search--overlay .person-search__top:has(.person-search__who) {
     display: none;
   }
 }
