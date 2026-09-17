@@ -18,6 +18,22 @@ import {
   submissionGraphEdits,
 } from "@/lib/applySubmission";
 import { deleteBlobUrl, isPendingPhotoUrl } from "@/lib/blobPhotos";
+import { findAdminById, listAdminUsers } from "@/lib/adminUsers";
+import type { FamilyDatabase } from "@/types/family";
+
+async function decorateSubmission(
+  submission: ChangeSubmission,
+  db: FamilyDatabase,
+) {
+  const reviewer = submission.reviewedByAdminId
+    ? await findAdminById(submission.reviewedByAdminId)
+    : null;
+  return {
+    ...submission,
+    preview: previewSubmission(db, submission),
+    reviewedByEmail: reviewer?.email,
+  };
+}
 
 export async function GET() {
   if (!(await isAdminSessionValid())) {
@@ -25,11 +41,16 @@ export async function GET() {
   }
   const db = await readFamilyDb();
   const submissions = await readSubmissions();
+  const admins = await listAdminUsers();
+  const emailById = new Map(admins.map((admin) => [admin.id, admin.email]));
   return NextResponse.json({
     storage: storageMode(),
     submissions: submissions.map((s) => ({
       ...s,
       preview: previewSubmission(db, s),
+      reviewedByEmail: s.reviewedByAdminId
+        ? emailById.get(s.reviewedByAdminId)
+        : undefined,
     })),
   });
 }
@@ -74,7 +95,7 @@ export async function PATCH(request: Request) {
     const db = await readFamilyDb();
     return NextResponse.json({
       ok: true,
-      submission: { ...current, preview: previewSubmission(db, current) },
+      submission: await decorateSubmission(current, db),
     });
   }
 
@@ -128,7 +149,7 @@ export async function PATCH(request: Request) {
         return NextResponse.json({
           ok: true,
           partial: true,
-          submission: { ...saved, preview: previewSubmission(db, saved) },
+          submission: await decorateSubmission(saved, db),
           family,
         });
       }
@@ -194,7 +215,7 @@ export async function PATCH(request: Request) {
   const db = await readFamilyDb();
   return NextResponse.json({
     ok: true,
-    submission: { ...updated, preview: previewSubmission(db, updated) },
+    submission: await decorateSubmission(updated, db),
     family,
   });
 }

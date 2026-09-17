@@ -8,7 +8,11 @@ import { FamilyChartView } from "@/components/FamilyChartView";
 import { MeetingBranchPanel } from "@/components/MeetingBranchPanel";
 import { PersonSearch } from "@/components/PersonSearch";
 import { displayName } from "@/lib/db-client";
-import { isOnMainFamilyTree } from "@/lib/list";
+import {
+  getFamilyTreeChoices,
+  isOnMainFamilyTree,
+  treeChoiceForPerson,
+} from "@/lib/list";
 import { MEETING_ROOT_ID, MEETING_TREE_HREF } from "@/lib/meetingBranches";
 import { findApexPersonId } from "@/lib/tree";
 
@@ -48,6 +52,11 @@ export function TreePageClient() {
           ? findApexPersonId(people, familyRoot)
           : "";
         const defaultMain = apexId || familyRoot;
+        const treeChoices = getFamilyTreeChoices(people, familyRoot);
+        const currentChoice = viewRoot
+          ? treeChoiceForPerson(people, viewRoot, familyRoot)
+          : treeChoices.find((choice) => !choice.detached) ?? treeChoices[0] ?? null;
+        const viewingDetachedTree = Boolean(currentChoice?.detached);
         const effectiveRoot = viewRoot || defaultMain;
         const focusedAway =
           Boolean(viewRoot) &&
@@ -67,6 +76,13 @@ export function TreePageClient() {
         const showOffTrunk = Boolean(
           highlightPerson && (offTrunk || chartMissing),
         );
+
+        const goFullTreeHref = (() => {
+          const stayOn = highlightId || viewRoot;
+          return stayOn
+            ? `/drzewo?hl=${encodeURIComponent(stayOn)}`
+            : "/drzewo";
+        })();
 
         const focusBranch = (id: string) => {
           setHighlightId(id);
@@ -90,6 +106,36 @@ export function TreePageClient() {
                 className="person-search--overlay"
                 onSelect={(p) => setHighlightId(p.id)}
               />
+
+              {treeChoices.length > 0 && (
+                <label className="tree-switcher" data-testid="tree-switcher">
+                  <span>Które drzewo</span>
+                  <select
+                    value={currentChoice?.id || defaultMain}
+                    aria-label="Które drzewo"
+                    onChange={(event) => {
+                      const nextId = event.target.value;
+                      const next = treeChoices.find((choice) => choice.id === nextId);
+                      if (!next || !next.detached) {
+                        setHighlightId(null);
+                        setViewRoot(null);
+                        setChartMissing(false);
+                        router.replace("/drzewo");
+                        return;
+                      }
+                      focusBranch(next.id);
+                    }}
+                  >
+                    {treeChoices.map((choice) => (
+                      <option key={choice.id} value={choice.id}>
+                        {choice.detached
+                          ? `${choice.label} — brak w głównym pniu`
+                          : choice.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
 
               {viewRoot !== MEETING_ROOT_ID && (
                 <Link
@@ -119,19 +165,36 @@ export function TreePageClient() {
                     </strong>
                   </p>
                   <Link
-                    href={`/drzewo?hl=${encodeURIComponent(viewRoot ?? "")}`}
+                    href={goFullTreeHref}
                     className="btn btn-primary"
                     data-testid="full-tree-back"
                   >
                     ← Pełne drzewo
                   </Link>
-                  {showOffTrunk && (
+                  {showOffTrunk && !viewingDetachedTree && (
                     <p className="tree-focus-bar__note">
                       Nie ma rodziców w głównym pniu Potrykusów. Na liście ta
                       osoba jest w „Pozostałe osoby” (numeracja od 1.), a pełny
                       graf tej karty nie pokazuje.
                     </p>
                   )}
+                </div>
+              )}
+
+              {viewingDetachedTree && currentChoice && (
+                <div
+                  className="tree-focus-bar tree-focus-bar--detached"
+                  role="status"
+                  data-testid="tree-detached-caption"
+                >
+                  <p>
+                    <strong>
+                      {currentChoice.label.replace(/ · \d+ os\.$/, "")}
+                    </strong>{" "}
+                    — brak przypisania do głównej gałęzi. W bazie nie ma
+                    rodziców, którzy łączą tę gałąź z pniem. Na liście jest w
+                    „Pozostałe osoby”.
+                  </p>
                 </div>
               )}
 

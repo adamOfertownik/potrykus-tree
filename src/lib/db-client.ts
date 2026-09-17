@@ -26,6 +26,17 @@ export function formatPolishDate(iso?: string): string {
   return year;
 }
 
+export function formatPolishDateTime(iso?: string | null): string {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleString("pl-PL", {
+    timeZone: "Europe/Warsaw",
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
 export function isUnnamedPerson(person: { firstName: string }): boolean {
   const first = person.firstName
     .trim()

@@ -10,6 +10,7 @@ import { AdminPersonRelsModal } from "@/components/AdminPersonRelsModal";
 import { Modal } from "@/components/Modal";
 import { PersonCard } from "@/components/PersonCard";
 import { PersonEditForm } from "@/components/PersonEditModal";
+import { PersonHistory } from "@/components/PersonHistory";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { useIdentity } from "@/components/IdentityProvider";
 import { useAdminAuthStatus } from "@/lib/hooks";
@@ -396,6 +397,8 @@ function PersonInner({
           </div>
         </Modal>
       )}
+
+      <PersonHistory personId={person.id} />
 
       <section className="person-relations person-detail__edit" aria-labelledby="person-edit-heading">
         <h2 id="person-edit-heading" className="person-relations__title">
