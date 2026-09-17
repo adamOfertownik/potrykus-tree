@@ -12,6 +12,7 @@ function normalize(text: string): string {
 export function searchPeople(people: Person[], query: string): Person[] {
   const q = normalize(query.trim());
   if (!q) return [];
+  const tokens = q.split(/\s+/).filter(Boolean);
   return people
     .filter((p) => {
       const hay = normalize(
@@ -23,13 +24,21 @@ export function searchPeople(people: Person[], query: string): Person[] {
           p.birthDate ?? "",
         ].join(" "),
       );
-      return hay.includes(q);
+      return tokens.every((token) => hay.includes(token));
     })
     .sort((a, b) => {
       const an = normalize(`${a.lastName} ${a.firstName}`);
       const bn = normalize(`${b.lastName} ${b.firstName}`);
-      const aStarts = an.startsWith(q) || normalize(a.firstName).startsWith(q);
-      const bStarts = bn.startsWith(q) || normalize(b.firstName).startsWith(q);
+      const aForward = normalize(`${a.firstName} ${a.lastName}`);
+      const bForward = normalize(`${b.firstName} ${b.lastName}`);
+      const aStarts =
+        an.startsWith(q) ||
+        aForward.startsWith(q) ||
+        normalize(a.firstName).startsWith(q);
+      const bStarts =
+        bn.startsWith(q) ||
+        bForward.startsWith(q) ||
+        normalize(b.firstName).startsWith(q);
       if (aStarts !== bStarts) return aStarts ? -1 : 1;
       return an.localeCompare(bn, "pl");
     });
