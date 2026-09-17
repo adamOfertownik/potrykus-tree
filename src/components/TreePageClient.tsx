@@ -53,6 +53,8 @@ export function TreePageClient() {
           Boolean(viewRoot) &&
           Boolean(defaultMain) &&
           viewRoot !== defaultMain;
+        const chartOverview =
+          !highlightId || highlightId === effectiveRoot;
         const focusPerson = focusedAway
           ? people.find((p) => p.id === viewRoot) ?? null
           : null;
@@ -219,7 +221,8 @@ export function TreePageClient() {
                   mainId={effectiveRoot}
                   highlightId={highlightId}
                   attendingPersonIds={family.attendingPersonIds}
-                  overview={!viewRoot && !highlightId}
+                  overview={chartOverview}
+                  overviewNextGeneration={focusedAway}
                   onHighlight={setHighlightId}
                   onFocusBranch={focusBranch}
                   onHighlightMissing={(id) => {

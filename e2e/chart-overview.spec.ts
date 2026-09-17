@@ -22,7 +22,7 @@ async function sessionCookie() {
   };
 }
 
-test("zoomed-out tree shows branch headers and zooming into one", async ({
+test("zoomed-out tree shows branch headers and drilling into one", async ({
   browser,
 }) => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -58,18 +58,60 @@ test("zoomed-out tree shows branch headers and zooming into one", async ({
   expect(clipped, "branch headers must not ellipsize names").toEqual([]);
 
   const visible = labels.filter({ visible: true });
+  const franciszek = visible.filter({ hasText: /Franciszek Potrykus/i });
   const helena = visible.filter({ hasText: /Helena/i });
-  const target = (await helena.count()) ? helena.first() : visible.first();
+  const target = (await franciszek.count())
+    ? franciszek.first()
+    : (await helena.count())
+      ? helena.first()
+      : visible.first();
   const before = ((await target.innerText()) ?? "").split("\n")[0]!.trim();
   await target.click({ force: true });
   await expect(page.locator(".tree-focus-bar")).toContainText(
     before.split(" ")[0]!,
     { timeout: 8_000 },
   );
+  await expect(page).toHaveURL(/[?&]root=/);
   await expect(page.locator("#family-tree-canvas")).toHaveAttribute(
     "data-tree-pan",
     "drag",
   );
+  await expect
+    .poll(async () => labels.filter({ visible: true }).count(), {
+      timeout: 10_000,
+    })
+    .toBeGreaterThan(1);
+  await expect(
+    labels.filter({ visible: true }).filter({ hasText: before }),
+  ).toHaveCount(0);
+  await ctx.close();
+});
+
+test("Franciszek branch view shows next-generation headers", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo?root=P060");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
+  await page.getByRole("button", { name: /Całe drzewo/ }).click();
+  await page.waitForTimeout(700);
+  const labels = page.getByTestId("chart-branch-label");
+  await expect.poll(async () => labels.filter({ visible: true }).count()).toBeGreaterThan(1);
+  await expect(labels.filter({ hasText: /Helena/i }).first()).toBeVisible({
+    timeout: 10_000,
+  });
+  await expect(
+    labels.filter({ visible: true }).filter({ hasText: /Franciszek Potrykus/i }),
+  ).toHaveCount(0);
   await ctx.close();
 });
 
