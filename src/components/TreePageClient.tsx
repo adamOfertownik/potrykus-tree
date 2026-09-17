@@ -10,38 +10,46 @@ import { displayName } from "@/lib/db-client";
 export function TreePageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const rootId = searchParams.get("root");
-  const [highlightId, setHighlightId] = useState<string | null>(rootId);
+  const urlRoot = searchParams.get("root");
+  const [viewRoot, setViewRoot] = useState<string | null>(urlRoot);
+  const [highlightId, setHighlightId] = useState<string | null>(urlRoot);
 
   useEffect(() => {
-    if (rootId) setHighlightId(rootId);
-  }, [rootId]);
+    setViewRoot(urlRoot);
+  }, [urlRoot]);
+
+  useEffect(() => {
+    if (viewRoot) setHighlightId(viewRoot);
+  }, [viewRoot]);
 
   return (
     <AuthedPage
-      exportRootId={rootId || undefined}
+      exportRootId={viewRoot || undefined}
       loadingLabel="Wczytywanie drzewa…"
       immersive
     >
       {({ people, family }) => {
         const familyRoot = family.meta.rootPersonId || "";
-        const effectiveRoot = rootId || familyRoot;
+        const effectiveRoot = viewRoot || familyRoot;
         const focusedAway =
-          Boolean(rootId) && Boolean(familyRoot) && rootId !== familyRoot;
+          Boolean(viewRoot) && Boolean(familyRoot) && viewRoot !== familyRoot;
         const focusPerson = focusedAway
-          ? people.find((p) => p.id === rootId) ?? null
+          ? people.find((p) => p.id === viewRoot) ?? null
           : null;
         const highlightPerson = highlightId
           ? people.find((p) => p.id === highlightId) ?? null
           : null;
 
         const goFullTree = () => {
-          setHighlightId(null);
+          const stayOn = highlightId || viewRoot;
+          if (stayOn) setHighlightId(stayOn);
+          setViewRoot(null);
           router.replace("/drzewo");
         };
 
         const focusBranch = (id: string) => {
           setHighlightId(id);
+          setViewRoot(id);
           router.replace(`/drzewo?root=${encodeURIComponent(id)}`);
         };
 
@@ -66,6 +74,7 @@ export function TreePageClient() {
                   <button
                     type="button"
                     className="btn btn-primary"
+                    data-testid="full-tree-back"
                     onClick={goFullTree}
                   >
                     ← Pełne drzewo

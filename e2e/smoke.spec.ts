@@ -98,6 +98,30 @@ test("tree is fullscreen with navbar links and wind overlay", async ({
   await ctx.close();
 });
 
+test("returning to full tree keeps the highlighted person", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo?root=P016");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.getByTestId("full-tree-back")).toBeVisible();
+  await page.getByTestId("full-tree-back").click();
+  await expect(page.locator(".tree-focus-bar")).toContainText("Anna");
+  await expect(page.locator(".tree-focus-bar")).not.toContainText("Widok wokół");
+  await expect(page.locator(".is-chart-highlight").first()).toBeVisible({
+    timeout: 10_000,
+  });
+  await ctx.close();
+});
+
 test("kinship and birthdays pages load", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);

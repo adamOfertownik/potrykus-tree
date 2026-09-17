@@ -327,11 +327,21 @@ export function FamilyChartView({
     chart.updateTree({ tree_position: "inherit" });
   }, [scale]);
 
-  // Explicit branch focus (deep link ?root=) — recenter the tree around a person
+  // Explicit branch focus (deep link ?root=) — recenter the tree around a person.
+  // Returning to the family root keeps the current highlight and pans to that person.
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart || !mainId) return;
     chart.updateMainId(mainId);
+    const keep = highlightRef.current;
+    if (keep && keep !== mainId) {
+      chart.updateTree({ tree_position: "fit" });
+      const timer = window.setTimeout(() => {
+        applyHighlight();
+        panToCard(keep);
+      }, 280);
+      return () => window.clearTimeout(timer);
+    }
     chart.updateTree({ tree_position: "main_to_middle" });
   }, [mainId]);
 
