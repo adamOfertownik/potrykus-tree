@@ -1272,9 +1272,17 @@ textarea:focus-visible {
   }
 }
 
+.only-narrow {
+  display: none;
+}
+
 @media (max-width: 720px) {
   .only-wide {
     display: none;
+  }
+
+  .only-narrow {
+    display: inline;
   }
 }
 

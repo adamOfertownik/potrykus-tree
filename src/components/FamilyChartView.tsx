@@ -438,7 +438,8 @@ export function FamilyChartView({
           className="btn btn-secondary btn-mini"
           onClick={fitWholeTree}
         >
-          ⤢ Całe drzewo<span className="only-wide"> w kadrze</span>
+          <span className="only-narrow">⤢ Całe drzewo</span>
+          <span className="only-wide">⤢ Całe drzewo w kadrze</span>
         </button>
         {highlightId && (
           <button
@@ -446,8 +447,8 @@ export function FamilyChartView({
             className="btn btn-secondary btn-mini"
             onClick={() => panToCard(highlightId)}
           >
-            ◎ <span className="only-wide">Wróć do </span>podświetlonej
-            <span className="only-wide"> osoby</span>
+            <span className="only-narrow">◎ Podświetlona</span>
+            <span className="only-wide">◎ Wróć do podświetlonej osoby</span>
           </button>
         )}
       </div>
