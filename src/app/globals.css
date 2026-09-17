@@ -1222,7 +1222,7 @@ textarea:focus-visible {
 .family-chart-host .card-image-rect .card-label {
   flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   position: static;
   transform: none;
   max-width: none;
@@ -1233,8 +1233,22 @@ textarea:focus-visible {
 
 .family-chart-host .card-image-rect .card-label > div {
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
   white-space: nowrap;
+}
+
+/* Imię i nazwisko: pełny tekst, zawijanie do 2 linii zamiast „…” */
+.family-chart-host .card-image-rect .card-label > div:first-child {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: unset;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.2;
+  max-height: 2.4em;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .chart-photo-slot {

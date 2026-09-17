@@ -33,9 +33,9 @@ const SCALE_LAYOUT: Record<
   TextScaleId,
   { w: number; h: number; xSpace: number; ySpace: number; font: number }
 > = {
-  normal: { w: 220, h: 78, xSpace: 270, ySpace: 300, font: 13 },
-  large: { w: 260, h: 96, xSpace: 320, ySpace: 340, font: 16 },
-  xlarge: { w: 300, h: 112, xSpace: 370, ySpace: 380, font: 18 },
+  normal: { w: 236, h: 100, xSpace: 286, ySpace: 330, font: 13 },
+  large: { w: 276, h: 120, xSpace: 336, ySpace: 370, font: 16 },
+  xlarge: { w: 316, h: 138, xSpace: 386, ySpace: 410, font: 18 },
 };
 
 /** Minimum zoom when jumping to a searched person, so the card stays readable */
