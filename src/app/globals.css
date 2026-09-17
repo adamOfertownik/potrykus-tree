@@ -4118,6 +4118,14 @@ textarea:focus-visible {
   margin-top: 0.85rem;
 }
 
+.person-detail__edit {
+  scroll-margin-top: 5rem;
+}
+
+.person-edit-form {
+  margin-top: 0.35rem;
+}
+
 .person-kinship {
   margin: 1rem 0;
   padding: 0.9rem 1rem;
