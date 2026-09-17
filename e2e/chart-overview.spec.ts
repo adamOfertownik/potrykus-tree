@@ -109,9 +109,7 @@ test("Franciszek branch view shows next-generation headers", async ({
   await expect(labels.filter({ hasText: /Helena/i }).first()).toBeVisible({
     timeout: 10_000,
   });
-  await expect(
-    labels.filter({ visible: true }).filter({ hasText: /Franciszek Potrykus/i }),
-  ).toHaveCount(0);
+  await expect(page.locator('[data-branch-id="P060"]')).toHaveCount(0);
   await ctx.close();
 });
 

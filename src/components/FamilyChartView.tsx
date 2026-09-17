@@ -528,7 +528,7 @@ export function FamilyChartView({
           nodes,
           peopleRef.current,
           overviewNextRef.current ? "next" : "overview",
-        );
+        ).filter((label) => label.id !== mainIdRef.current);
         const nextGens = pickGenerationBands(nodes);
         labelsRef.current = nextLabels;
         gensRef.current = nextGens;
