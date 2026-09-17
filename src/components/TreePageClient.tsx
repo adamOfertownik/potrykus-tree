@@ -53,6 +53,8 @@ export function TreePageClient() {
           Boolean(viewRoot) &&
           Boolean(defaultMain) &&
           viewRoot !== defaultMain;
+        const chartOverview =
+          !highlightId || highlightId === effectiveRoot;
         const focusPerson = focusedAway
           ? people.find((p) => p.id === viewRoot) ?? null
           : null;
@@ -65,17 +67,6 @@ export function TreePageClient() {
         const showOffTrunk = Boolean(
           highlightPerson && (offTrunk || chartMissing),
         );
-
-        const goFullTree = () => {
-          const stayOn = highlightId || viewRoot;
-          setViewRoot(null);
-          if (stayOn) {
-            setHighlightId(stayOn);
-            router.replace(`/drzewo?hl=${encodeURIComponent(stayOn)}`);
-            return;
-          }
-          router.replace("/drzewo");
-        };
 
         const focusBranch = (id: string) => {
           setHighlightId(id);
@@ -127,14 +118,13 @@ export function TreePageClient() {
                       {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
                     </strong>
                   </p>
-                  <button
-                    type="button"
+                  <Link
+                    href={`/drzewo?hl=${encodeURIComponent(viewRoot ?? "")}`}
                     className="btn btn-primary"
                     data-testid="full-tree-back"
-                    onClick={goFullTree}
                   >
                     ← Pełne drzewo
-                  </button>
+                  </Link>
                   {showOffTrunk && (
                     <p className="tree-focus-bar__note">
                       Nie ma rodziców w głównym pniu Potrykusów. Na liście ta
@@ -219,7 +209,8 @@ export function TreePageClient() {
                   mainId={effectiveRoot}
                   highlightId={highlightId}
                   attendingPersonIds={family.attendingPersonIds}
-                  overview={!viewRoot && !highlightId}
+                  overview={chartOverview}
+                  overviewNextGeneration={focusedAway}
                   onHighlight={setHighlightId}
                   onFocusBranch={focusBranch}
                   onHighlightMissing={(id) => {

@@ -35,6 +35,8 @@ type Props = {
   attendingPersonIds?: string[];
   /** Full-tree view: fit every generation instead of centering on main */
   overview?: boolean;
+  /** After drilling into a branch, label the next generation instead of a denser row */
+  overviewNextGeneration?: boolean;
   /** Called when a card is tapped — the tree itself stays untouched */
   onHighlight?: (id: string) => void;
   /** Called only when user explicitly focuses a branch (modal action) */
@@ -136,6 +138,7 @@ export function FamilyChartView({
   highlightId = null,
   attendingPersonIds = [],
   overview = false,
+  overviewNextGeneration = false,
   onHighlight,
   onFocusBranch,
   onHighlightMissing,
@@ -155,6 +158,7 @@ export function FamilyChartView({
     new Set(people.filter((p) => p.pending).map((p) => p.id)),
   );
   const overviewRef = useRef(overview);
+  const overviewNextRef = useRef(overviewNextGeneration);
   /** Set when the highlight came from a tap — no need to slide the view then */
   const skipPanRef = useRef<string | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -183,6 +187,7 @@ export function FamilyChartView({
       people.filter((p) => p.pending).map((p) => p.id),
     );
     overviewRef.current = overview;
+    overviewNextRef.current = overviewNextGeneration;
   });
 
   /** Bars above the canvas come and go — keep it inside the window */
@@ -266,6 +271,12 @@ export function FamilyChartView({
   const paintOverviewOverlay = (k: number, x: number, y: number) => {
     const overlay = overlayRef.current;
     if (!overlay) return;
+    if (!overviewRef.current) {
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+      overlay.hidden = true;
+      return;
+    }
     const opacity = overviewOpacity(k);
     overlay.style.opacity = String(opacity);
     overlay.style.pointerEvents = "none";
@@ -307,11 +318,13 @@ export function FamilyChartView({
         return;
       }
       const screenY = band.y * k + y;
-      if (genPlaced.some((prev) => Math.abs(prev - screenY) < 22)) {
+      const tight = genPlaced.some((prev) => Math.abs(prev - screenY) < 18);
+      if (tight && k < 0.34) {
         el.style.visibility = "hidden";
         return;
       }
       genPlaced.push(screenY);
+      el.textContent = k < 0.4 || tight ? band.digit : band.label;
       el.style.visibility = "visible";
       el.style.transform = `translateY(${screenY}px) translateY(-50%)`;
     });
@@ -376,10 +389,14 @@ export function FamilyChartView({
     );
     const labels = labelsRef.current.length
       ? labelsRef.current
-      : pickBranchLabels(nodes, peopleRef.current);
+      : pickBranchLabels(
+          nodes,
+          peopleRef.current,
+          overviewNextRef.current ? "next" : "overview",
+        );
     const gens = gensRef.current.length
       ? gensRef.current
-      : pickGenerationBands(nodes);
+      : pickGenerationBands(nodes, peopleRef.current);
     const next = fitTreeView(
       { width: rect.width, height: rect.height },
       dim,
@@ -509,8 +526,12 @@ export function FamilyChartView({
         const nodes = nodesFromChartTree(
           chart.store.getTree?.() as { data?: unknown[] } | undefined,
         );
-        const nextLabels = pickBranchLabels(nodes, peopleRef.current);
-        const nextGens = pickGenerationBands(nodes);
+        const nextLabels = pickBranchLabels(
+          nodes,
+          peopleRef.current,
+          overviewNextRef.current ? "next" : "overview",
+        ).filter((label) => label.id !== mainIdRef.current);
+        const nextGens = pickGenerationBands(nodes, peopleRef.current);
         labelsRef.current = nextLabels;
         gensRef.current = nextGens;
         setBranchLabels(nextLabels);
@@ -590,7 +611,11 @@ export function FamilyChartView({
     // Wincenty has ~400 cards and a 50k-px layout — fit shrinks cards to a
     // few pixels and the canvas looks empty. Focused "widok wokół" and a
     // kept highlight on the full tree must stay at a readable zoom.
-    const fitWhole = overviewRef.current && !keepHighlight;
+    // Highlighting the current root (after clicking a branch header) should
+    // still fit the subtree so the next-generation hints stay visible.
+    const distinctHighlight =
+      keepHighlight && keepHighlight !== safeMain ? keepHighlight : null;
+    const fitWhole = overviewRef.current && !distinctHighlight;
     try {
       chart.updateTree({
         initial: false,
@@ -621,8 +646,8 @@ export function FamilyChartView({
     });
     const view = currentView();
     if (view) paintOverviewOverlay(view.k, view.x, view.y);
-    const cancelInitialFocus = keepHighlight
-      ? scheduleFocus(keepHighlight, keepHighlight !== safeMain)
+    const cancelInitialFocus = distinctHighlight
+      ? scheduleFocus(distinctHighlight, true)
       : undefined;
 
     /** Neighbor cards sit in later stacking contexts and steal taps from the plus. */
@@ -728,15 +753,16 @@ export function FamilyChartView({
       chart.setTransitionTime(250);
       return scheduleFocus(keep, true);
     }
+    const fitWhole = Boolean(overview);
     try {
       chart.updateTree({
-        tree_position: overview && !keep ? "inherit" : "main_to_middle",
+        tree_position: fitWhole ? "inherit" : "main_to_middle",
       });
     } catch (err) {
       console.error("family-chart updateTree failed", err);
       chart.updateTree({ tree_position: "main_to_middle" });
     }
-    if (overview && !keep) applyWholeTreeFit(false);
+    if (fitWhole) applyWholeTreeFit(false);
     // applyHighlight / panToCard close over DOM nodes rebuilt with the chart
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainId, overview]);
@@ -751,6 +777,12 @@ export function FamilyChartView({
     if (skipPanRef.current === highlightId) {
       // Tapped card is already on screen
       skipPanRef.current = null;
+      return;
+    }
+    if (
+      overviewRef.current &&
+      highlightId === mainIdRef.current
+    ) {
       return;
     }
     return scheduleFocus(highlightId, true);
@@ -769,11 +801,15 @@ export function FamilyChartView({
   }, [branchLabels, generationBands]);
 
   const zoomToBranch = (label: BranchLabel) => {
-    const rect = viewportRect();
-    if (!rect) return;
     skipPanRef.current = label.id;
     highlightRef.current = label.id;
     applyHighlight();
+    if (onFocusBranch) {
+      onFocusBranch(label.id);
+      return;
+    }
+    const rect = viewportRect();
+    if (!rect) return;
     onHighlight?.(label.id);
     const pad = 56;
     const k = Math.min(
@@ -843,6 +879,7 @@ export function FamilyChartView({
               key={band.key}
               className="chart-gen-label"
               data-gen-key={band.key}
+              title={band.label}
             >
               {band.label}
             </span>
@@ -855,7 +892,7 @@ export function FamilyChartView({
             className="chart-branch-label"
             data-branch-id={label.id}
             data-testid="chart-branch-label"
-            title={`Przybliż gałąź: ${label.title}`}
+            title={`Wejdź głębiej: ${label.title}`}
             onClick={() => zoomToBranch(label)}
           >
             <span className="chart-branch-label__name">{label.title}</span>

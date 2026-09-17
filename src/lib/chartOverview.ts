@@ -1,6 +1,6 @@
 import type { Person } from "@/types/family";
 import { displayName } from "@/lib/db-client";
-import { getChildrenIds } from "@/lib/tree";
+import { getChildrenIds, getPersonMap } from "@/lib/tree";
 
 export type ChartTreeNode = {
   id: string;
@@ -25,10 +25,63 @@ export type GenerationBand = {
   key: string;
   y: number;
   label: string;
+  digit: string;
 };
 
 const MIN_BRANCH_WIDTH = 200;
 const MIN_DESCENDANTS = 2;
+
+/** Franciszek Xawery Potrykus — stały pień numeracji pokoleń. */
+export const GENERATION_TRUNK_ID = "P018";
+
+export function generationIndexByPersonId(
+  people: Person[],
+  trunkId = GENERATION_TRUNK_ID,
+): Map<string, number> {
+  const map = getPersonMap(people);
+  const gen = new Map<string, number>();
+  if (!map.has(trunkId)) return gen;
+  gen.set(trunkId, 0);
+
+  const down = [trunkId];
+  for (let i = 0; i < down.length; i++) {
+    const id = down[i]!;
+    const g = gen.get(id) ?? 0;
+    for (const childId of getChildrenIds(people, id)) {
+      if (gen.has(childId)) continue;
+      gen.set(childId, g + 1);
+      down.push(childId);
+    }
+  }
+
+  const up = [trunkId];
+  for (let i = 0; i < up.length; i++) {
+    const id = up[i]!;
+    const g = gen.get(id) ?? 0;
+    const person = map.get(id);
+    if (!person) continue;
+    for (const parentId of person.parentIds) {
+      if (!map.has(parentId) || gen.has(parentId)) continue;
+      gen.set(parentId, g - 1);
+      up.push(parentId);
+    }
+  }
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const person of people) {
+      const g = gen.get(person.id);
+      if (g == null) continue;
+      for (const spouseId of person.spouseIds) {
+        if (!map.has(spouseId) || gen.has(spouseId)) continue;
+        gen.set(spouseId, g);
+        changed = true;
+      }
+    }
+  }
+  return gen;
+}
 
 export function nodesFromChartTree(
   tree: { data?: unknown[] } | null | undefined,
@@ -98,11 +151,14 @@ function branchTitle(person: Person, count: number): {
   return { title, subtitle };
 }
 
+export type BranchLabelMode = "overview" | "next";
+
 export function pickBranchLabels(
   nodes: ChartTreeNode[],
   people: Person[],
+  mode: BranchLabelMode = "overview",
 ): BranchLabel[] {
-  if (nodes.length < 6) return [];
+  if (nodes.length < (mode === "next" ? 3 : 6)) return [];
   const byId = new Map(people.map((p) => [p.id, p]));
   const nodeById = new Map(nodes.map((n) => [n.id, n]));
   const candidates = nodes.filter(
@@ -141,27 +197,41 @@ export function pickBranchLabels(
   }
 
   let bestHeads: ChartTreeNode[] = [];
-  let bestScore = -1;
-  for (const [depth, list] of byDepth) {
-    if (list.length < 2) continue;
-    const n = list.length;
-    const sizeScore = n <= 8 ? n * 3 : Math.max(4, 24 - (n - 8));
-    const score = sizeScore + depth * 0.25;
-    if (score > bestScore) {
-      bestScore = score;
-      bestHeads = list;
+  if (mode === "next") {
+    let bestDepth = Infinity;
+    for (const [depth, list] of byDepth) {
+      if (list.length < 1) continue;
+      if (depth < bestDepth) {
+        bestDepth = depth;
+        bestHeads = list;
+      }
+    }
+  } else {
+    let bestScore = -1;
+    for (const [depth, list] of byDepth) {
+      if (list.length < 2) continue;
+      const n = list.length;
+      const sizeScore = n <= 8 ? n * 3 : Math.max(4, 24 - (n - 8));
+      const score = sizeScore + depth * 0.25;
+      if (score > bestScore) {
+        bestScore = score;
+        bestHeads = list;
+      }
     }
   }
-  if (bestHeads.length < 2) return [];
+  if (bestHeads.length < 1) return [];
+  if (mode === "overview" && bestHeads.length < 2) return [];
 
   const chosen = new Set(bestHeads.map((n) => n.id));
-  const extraDepth = bestHeads[0] ? bestHeads[0].depth + 1 : -1;
-  for (const node of candidates) {
-    if (node.depth !== extraDepth || chosen.has(node.id)) continue;
-    const ext = extents.get(node.id);
-    if (!ext || ext.count < 8 || ext.maxX - ext.minX < 360) continue;
-    chosen.add(node.id);
-    bestHeads.push(node);
+  if (mode === "overview") {
+    const extraDepth = bestHeads[0] ? bestHeads[0].depth + 1 : -1;
+    for (const node of candidates) {
+      if (node.depth !== extraDepth || chosen.has(node.id)) continue;
+      const ext = extents.get(node.id);
+      if (!ext || ext.count < 8 || ext.maxX - ext.minX < 360) continue;
+      chosen.add(node.id);
+      bestHeads.push(node);
+    }
   }
 
   const labels: BranchLabel[] = [];
@@ -183,15 +253,27 @@ export function pickBranchLabels(
   return labels.sort((a, b) => a.x - b.x);
 }
 
-export function pickGenerationBands(nodes: ChartTreeNode[]): GenerationBand[] {
-  const rows = new Map<number, { y: number; ancestry: boolean; depth: number }>();
+export function pickGenerationBands(
+  nodes: ChartTreeNode[],
+  people: Person[] = [],
+): GenerationBand[] {
+  const fromTrunk = people.length
+    ? generationIndexByPersonId(people)
+    : new Map<string, number>();
+  const rows = new Map<
+    number,
+    { y: number; gen: number; ancestry: boolean; depth: number }
+  >();
   for (const node of nodes) {
     if (node.isSpouse) continue;
-    const key = node.isAncestry ? -node.depth : node.depth;
+    const trunkGen = fromTrunk.get(node.id);
+    const key =
+      trunkGen != null ? trunkGen : node.isAncestry ? -node.depth : node.depth;
     const prev = rows.get(key);
     if (!prev || node.y < prev.y) {
       rows.set(key, {
         y: node.y,
+        gen: trunkGen ?? (node.isAncestry ? -node.depth : node.depth),
         ancestry: node.isAncestry,
         depth: node.depth,
       });
@@ -199,25 +281,29 @@ export function pickGenerationBands(nodes: ChartTreeNode[]): GenerationBand[] {
   }
   return [...rows.entries()]
     .sort((a, b) => a[1].y - b[1].y)
-    .map(([, row]) => ({
-      key: `${row.ancestry ? "up" : "down"}-${row.depth}`,
-      y: row.y,
-      label: row.ancestry
-        ? row.depth === 0
+    .map(([, row]) => {
+      const n = row.gen;
+      const label =
+        n === 0
           ? "Pień"
-          : `Przodkowie ${row.depth}`
-        : row.depth === 0
-          ? "Pień"
-          : `Pokolenie ${row.depth}`,
-    }));
+          : n > 0
+            ? `Pokolenie ${n}`
+            : `Przodkowie ${-n}`;
+      return {
+        key: `gen-${n}`,
+        y: row.y,
+        label,
+        digit: n === 0 ? "Pień" : String(Math.abs(n)),
+      };
+    });
 }
 
 export function overviewVisible(zoom: number): boolean {
-  return zoom < 0.48;
+  return zoom < 0.92;
 }
 
 export function overviewOpacity(zoom: number): number {
-  if (zoom >= 0.5) return 0;
-  if (zoom <= 0.32) return 1;
-  return (0.5 - zoom) / 0.18;
+  if (zoom >= 0.95) return 0;
+  if (zoom <= 0.62) return 1;
+  return (0.95 - zoom) / 0.33;
 }
