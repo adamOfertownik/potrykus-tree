@@ -9,6 +9,7 @@ import { GraphEditHost } from "@/components/GraphEditHost";
 import { PersonSearch } from "@/components/PersonSearch";
 import { buildCompleteFamilyList } from "@/lib/list";
 import { displayName, formatPolishDate } from "@/lib/db-client";
+import { meetingBranchLabel } from "@/lib/meetingBranches";
 import type { Person } from "@/types/family";
 
 function prefersReducedMotion() {
@@ -188,7 +189,9 @@ function ListInner({
                       <span className="pending-pill">roboczo</span>
                     )}
                     {isAttending && (
-                      <span className="attending-pill">spotkanie</span>
+                      <span className="attending-pill">
+                        {meetingBranchLabel(entry.person.id, people)}
+                      </span>
                     )}
                     {birth && (
                       <span className="genealogy-date"> u. {birth}</span>

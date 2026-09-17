@@ -15,6 +15,7 @@ import { useIdentity } from "@/components/IdentityProvider";
 import { useAdminAuthStatus } from "@/lib/hooks";
 import { describeKinship } from "@/lib/kinship";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
+import { meetingBranchLabel } from "@/lib/meetingBranches";
 import { resolveWeddingDate } from "@/lib/weddingDate";
 import { findRelationConflicts } from "@/lib/relationConflicts";
 import { comparePeopleByBirth, getChildrenIds } from "@/lib/tree";
@@ -157,7 +158,9 @@ function PersonInner({
             {displayName(person, people)}
           </h1>
           {attendingPersonIds.includes(person.id) && (
-            <p className="attending-banner">Na spotkaniu rodzinnym</p>
+            <p className="attending-banner">
+              Na spotkaniu rodzinnym · {meetingBranchLabel(person.id, people)}
+            </p>
           )}
           <AttendToggle
             personId={person.id}

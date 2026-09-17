@@ -4073,6 +4073,125 @@ button.person-card {
   line-height: 1.4;
 }
 
+.meeting-franciszek-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 3.2rem;
+  margin: 0 0 1rem;
+  padding: 0.7rem 1rem;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  border-radius: 14px;
+}
+
+.meeting-franciszek-btn--tree {
+  margin: 0.35rem 0 0;
+}
+
+.meeting-branch-counts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+
+.meeting-branch-counts li {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.7rem 0.8rem;
+  background: color-mix(in srgb, var(--accent) 7%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+  border-radius: 12px;
+}
+
+.meeting-branch-counts li.is-featured {
+  background: color-mix(in srgb, var(--attending) 14%, white);
+  border-color: color-mix(in srgb, var(--attending) 40%, var(--line));
+}
+
+.meeting-branch-counts span {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.meeting-branch-counts strong {
+  font-size: 1.15rem;
+}
+
+.meeting-branch-people {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.meeting-branch-group h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.meeting-branch-group h3 span {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.meeting-branch-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+}
+
+.meeting-branch-group a {
+  color: var(--accent-strong);
+  font-weight: 650;
+}
+
+.meeting-branch-bar {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0;
+  padding: 0.5rem 0.7rem;
+  background: color-mix(in srgb, var(--attending) 12%, white);
+  border: 1px solid color-mix(in srgb, var(--attending) 36%, var(--line));
+  border-radius: 12px;
+}
+
+.meeting-branch-bar__lead {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.meeting-branch-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.meeting-branch-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  background: white;
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+
+.meeting-branch-chips strong {
+  font-size: 0.95rem;
+}
+
 @media (min-width: 900px) {
   .app-header {
     padding: 0.45rem 1.1rem;

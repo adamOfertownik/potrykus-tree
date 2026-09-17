@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
 import { FamilyChartView } from "@/components/FamilyChartView";
+import { MeetingBranchPanel } from "@/components/MeetingBranchPanel";
 import { PersonSearch } from "@/components/PersonSearch";
 import { displayName } from "@/lib/db-client";
 import { isOnMainFamilyTree } from "@/lib/list";
+import { MEETING_ROOT_ID, MEETING_TREE_HREF } from "@/lib/meetingBranches";
 import { findApexPersonId } from "@/lib/tree";
 
 export function TreePageClient() {
@@ -97,6 +99,24 @@ export function TreePageClient() {
                 className="person-search--overlay"
                 onSelect={(p) => setHighlightId(p.id)}
               />
+
+              {viewRoot !== MEETING_ROOT_ID && (
+                <Link
+                  href={MEETING_TREE_HREF}
+                  className="btn btn-primary meeting-franciszek-btn meeting-franciszek-btn--tree"
+                  data-testid="spotkanie-od-franciszka"
+                >
+                  Spotkanie od Franciszka
+                </Link>
+              )}
+
+              {viewRoot === MEETING_ROOT_ID && (
+                <MeetingBranchPanel
+                  people={people}
+                  attendingPersonIds={family.attendingPersonIds ?? []}
+                  variant="bar"
+                />
+              )}
 
               {focusedAway && (
                 <div className="tree-focus-bar" role="status">

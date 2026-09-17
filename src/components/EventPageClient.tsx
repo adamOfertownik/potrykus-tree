@@ -5,11 +5,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AccessGate } from "@/components/AccessGate";
 import { AppShell } from "@/components/AppShell";
 import { GuestTicketSteppers } from "@/components/GuestTicketSteppers";
+import { MeetingBranchPanel } from "@/components/MeetingBranchPanel";
 import { useAdminAuthStatus, useAuthStatus, useFamily } from "@/lib/hooks";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import { householdSuggestions } from "@/lib/eventAttending";
+import { attributeMeetingBranch } from "@/lib/meetingBranches";
 import {
   ageGroupFromBirth,
   amountDuePln,
@@ -543,6 +545,12 @@ export function EventPageClient() {
           </p>
         </header>
 
+        <MeetingBranchPanel
+          people={people}
+          attendingPersonIds={family.data.attendingPersonIds ?? []}
+          showButton
+        />
+
         {event.amenities?.length > 0 && (
           <section className="event-section">
             <h2>Na miejscu</h2>
@@ -1023,6 +1031,11 @@ export function EventPageClient() {
                       {covered.length > 0 && (
                         <span>Za: {covered.join(", ")}</span>
                       )}
+                      {r.personId && byId.has(r.personId) ? (
+                        <span>
+                          {attributeMeetingBranch(r.personId, people).label}
+                        </span>
+                      ) : null}
                     </div>
                     {isAdmin && (
                       <div className="rsvp-list__admin">
