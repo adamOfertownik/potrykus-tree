@@ -15,6 +15,12 @@ import {
   type BranchLabel,
   type GenerationBand,
 } from "@/lib/chartOverview";
+import {
+  chartZoomFilter,
+  fitTreeView,
+  overviewFocusY,
+  prefersTwoFingerPan,
+} from "@/lib/chartGestures";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { GraphEditHost } from "@/components/GraphEditHost";
 import { TreeWind } from "@/components/TreeWind";
@@ -119,6 +125,7 @@ type ZoomHost = Element & {
       (type: string): ((e: unknown) => void) | undefined;
       (type: string, handler: (e: unknown) => void): unknown;
     };
+    filter: (fn: (event: Event) => boolean) => unknown;
   };
   __zoom?: ZoomTransform;
 };
@@ -189,6 +196,10 @@ export function FamilyChartView({
 
   useEffect(() => {
     syncCanvasHeight();
+    wrapRef.current?.setAttribute(
+      "data-tree-pan",
+      prefersTwoFingerPan() ? "two-finger" : "drag",
+    );
     window.addEventListener("resize", syncCanvasHeight);
     return () => window.removeEventListener("resize", syncCanvasHeight);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -344,6 +355,45 @@ export function FamilyChartView({
     const rect = containerRef.current?.getBoundingClientRect();
     return rect && rect.width && rect.height ? rect : null;
   };
+
+  /** Zoom out until the tree fills the canvas — width-first on a tall phone. */
+  const applyWholeTreeFit = (animate: boolean) => {
+    const chart = chartRef.current;
+    const dim = chart?.store.getTree?.()?.dim as
+      | { width: number; height: number; x_off: number; y_off: number }
+      | undefined;
+    const rect = viewportRect();
+    if (!chart || !dim || !rect || !dim.width || !dim.height) {
+      chart?.updateTree({ tree_position: "fit" });
+      return;
+    }
+    const nodes = nodesFromChartTree(
+      chart.store.getTree?.() as { data?: unknown[] } | undefined,
+    );
+    const labels = labelsRef.current.length
+      ? labelsRef.current
+      : pickBranchLabels(nodes, peopleRef.current);
+    const gens = gensRef.current.length
+      ? gensRef.current
+      : pickGenerationBands(nodes);
+    const next = fitTreeView(
+      { width: rect.width, height: rect.height },
+      dim,
+      overviewFocusY(
+        labels.map((label) => label.y),
+        gens.filter((band) => !band.key.startsWith("up-")).map((band) => band.y),
+      ),
+    );
+    wrapRef.current?.setAttribute("data-tree-fit", next.mode);
+    wrapRef.current?.setAttribute(
+      "data-tree-pan",
+      prefersTwoFingerPan() ? "two-finger" : "drag",
+    );
+    if (animate) animateView(next.k, next.x, next.y);
+    else setViewTransform(next.k, next.x, next.y);
+  };
+
+  const fitWholeTree = () => applyWholeTreeFit(true);
 
   /**
    * Pan (and gently zoom in) to a card without re-rooting the tree.
@@ -540,7 +590,7 @@ export function FamilyChartView({
     try {
       chart.updateTree({
         initial: false,
-        tree_position: fitWhole ? "fit" : "main_to_middle",
+        tree_position: fitWhole ? "inherit" : "main_to_middle",
       });
     } catch (err) {
       console.error("family-chart updateTree failed", err);
@@ -549,9 +599,13 @@ export function FamilyChartView({
         tree_position: "main_to_middle",
       });
     }
+    if (fitWhole) applyWholeTreeFit(false);
     chart.setTransitionTime(250);
     const host = zoomHost();
     const zoomObj = host?.__zoomObj;
+    zoomObj?.filter((event: Event) =>
+      chartZoomFilter(event, prefersTwoFingerPan()),
+    );
     const prevZoom = zoomObj?.on("zoom");
     zoomObj?.on("zoom", (event: unknown) => {
       prevZoom?.(event);
@@ -672,12 +726,13 @@ export function FamilyChartView({
     }
     try {
       chart.updateTree({
-        tree_position: overview && !keep ? "fit" : "main_to_middle",
+        tree_position: overview && !keep ? "inherit" : "main_to_middle",
       });
     } catch (err) {
       console.error("family-chart updateTree failed", err);
       chart.updateTree({ tree_position: "main_to_middle" });
     }
+    if (overview && !keep) applyWholeTreeFit(false);
     // applyHighlight / panToCard close over DOM nodes rebuilt with the chart
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainId, overview]);
@@ -708,27 +763,6 @@ export function FamilyChartView({
     if (view) paintOverviewOverlay(view.k, view.x, view.y);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchLabels, generationBands]);
-
-  /** Zoom out until every generation fits inside the visible canvas */
-  const fitWholeTree = () => {
-    const dim = chartRef.current?.store.getTree?.()?.dim;
-    const rect = viewportRect();
-    if (!dim || !rect || !dim.width || !dim.height) {
-      chartRef.current?.updateTree({ tree_position: "fit" });
-      return;
-    }
-    const pad = 24;
-    const k = Math.min(
-      (rect.width - pad * 2) / dim.width,
-      (rect.height - pad * 2) / dim.height,
-      1,
-    );
-    animateView(
-      k,
-      k * dim.x_off + (rect.width - dim.width * k) / 2,
-      k * dim.y_off + (rect.height - dim.height * k) / 2,
-    );
-  };
 
   const zoomToBranch = (label: BranchLabel) => {
     const rect = viewportRect();
@@ -779,6 +813,13 @@ export function FamilyChartView({
   return (
     <div className="family-chart-wrap" id="family-tree-canvas" ref={wrapRef}>
       <TreeWind />
+      <div className="chart-gesture-gutters" aria-hidden>
+        <span
+          className="chart-gesture-gutter chart-gesture-gutter--left"
+          data-testid="chart-gesture-gutter"
+        />
+        <span className="chart-gesture-gutter chart-gesture-gutter--right" />
+      </div>
       <div
         ref={containerRef}
         id="FamilyChart"
@@ -853,7 +894,12 @@ export function FamilyChartView({
       </div>
 
       <p className="family-chart-hint">
-        Przeciągnij, aby przesunąć · scroll = zoom · z góry widać nagłówki gałęzi — kliknij, żeby przybliżyć
+        <span className="family-chart-hint__mouse">
+          Przeciągnij, aby przesunąć · scroll = zoom · z góry widać nagłówki gałęzi — kliknij, żeby przybliżyć
+        </span>
+        <span className="family-chart-hint__touch">
+          1 palec: osoba · 2 palce: przesuń i powiększ · nagłówek przybliża gałąź
+        </span>
       </p>
 
       <GraphEditHost

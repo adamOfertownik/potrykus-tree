@@ -1016,7 +1016,8 @@ textarea:focus-visible {
   position: relative;
   z-index: 0;
   overscroll-behavior: none;
-  touch-action: none;
+  /* manipulation here (not none) so 18px edge gutters can yield to Android back */
+  touch-action: manipulation;
 }
 
 .family-chart-wrap {
@@ -1025,7 +1026,7 @@ textarea:focus-visible {
   min-height: 0;
   overflow: hidden;
   z-index: 0;
-  touch-action: none;
+  touch-action: manipulation;
   overscroll-behavior: none;
 }
 
@@ -1497,6 +1498,54 @@ textarea:focus-visible {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.55);
   pointer-events: none;
+}
+
+.family-chart-hint__touch {
+  display: none;
+}
+
+.chart-gesture-gutters {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .family-chart-hint {
+    font-size: 0.7rem;
+    line-height: 1.3;
+    padding: 0 2.5rem;
+    bottom: 0.35rem;
+  }
+
+  .family-chart-hint__mouse {
+    display: none;
+  }
+
+  .family-chart-hint__touch {
+    display: inline;
+  }
+
+  /* Leave the screen edges to the system (Android back / iOS swipe). */
+  .chart-gesture-gutters {
+    display: block;
+  }
+
+  .chart-gesture-gutter {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 18px;
+    z-index: 4;
+    touch-action: pan-x;
+    pointer-events: auto;
+  }
+
+  .chart-gesture-gutter--left {
+    left: 0;
+  }
+
+  .chart-gesture-gutter--right {
+    right: 0;
+  }
 }
 
 .family-chart-tools {
