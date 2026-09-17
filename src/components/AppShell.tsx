@@ -73,6 +73,13 @@ function AppShellInner({
     return () => window.clearTimeout(id);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!immersive) return;
+    const html = document.documentElement;
+    html.classList.add("is-tree-pan");
+    return () => html.classList.remove("is-tree-pan");
+  }, [immersive]);
+
   const downloadList = async () => {
     if (!people.length || !rootId) return;
     setPdfError(null);
