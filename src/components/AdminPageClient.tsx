@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ChangeSubmission, SubmissionPreview } from "@/types/submissions";
 import type { FamilyPayload, Person } from "@/types/family";
@@ -10,8 +10,10 @@ import { useAdminAuthStatus, useAdminLogout } from "@/lib/hooks";
 import { KIND_LABELS, STATUS_LABELS, genderLabel } from "@/lib/submissionLabels";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import { searchPeople } from "@/lib/search";
+import { getChildrenIds } from "@/lib/tree";
 import { Modal } from "@/components/Modal";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
+import { AdminRelEditor } from "@/components/AdminRelEditor";
 
 type AdminSubmission = ChangeSubmission & { preview?: SubmissionPreview };
 type Tab = "queue" | "people";
@@ -20,8 +22,10 @@ type StatusFilter = ChangeSubmission["status"] | "all";
 function AdminPanel({ email }: { email: string }) {
   const logout = useAdminLogout();
   const qc = useQueryClient();
+  const searchParams = useSearchParams();
+  const focusPersonId = searchParams.get("osoba");
   const [people, setPeople] = useState<Person[]>([]);
-  const [tab, setTab] = useState<Tab>("queue");
+  const [tab, setTab] = useState<Tab>(() => (focusPersonId ? "people" : "queue"));
   const [items, setItems] = useState<AdminSubmission[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -358,6 +362,7 @@ function AdminPanel({ email }: { email: string }) {
       ) : (
         <AdminPeoplePanel
           people={people}
+          initialPersonId={focusPersonId}
           onFamily={(family) => {
             qc.setQueryData(["family"], family);
             setPeople(family.people);
@@ -408,17 +413,30 @@ function AdminPanel({ email }: { email: string }) {
 
 function AdminPeoplePanel({
   people,
+  initialPersonId,
   onFamily,
   onError,
   onSuccess,
 }: {
   people: Person[];
+  initialPersonId?: string | null;
   onFamily: (family: FamilyPayload) => void;
   onError: (message: string | null) => void;
   onSuccess: (message: string | null) => void;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
-  const [personId, setPersonId] = useState<string | null>(people[0]?.id ?? null);
+  const [chosenId, setChosenId] = useState<string | null>(
+    () => initialPersonId ?? null,
+  );
+  const personId =
+    (chosenId && people.some((p) => p.id === chosenId) ? chosenId : null) ??
+    (initialPersonId && people.some((p) => p.id === initialPersonId)
+      ? initialPersonId
+      : null) ??
+    people[0]?.id ??
+    null;
   const person = people.find((p) => p.id === personId) ?? null;
   const [form, setForm] = useState({
     firstName: "",
@@ -430,12 +448,25 @@ function AdminPeoplePanel({
     phone: "",
     notes: "",
   });
+  const [parentIds, setParentIds] = useState<string[]>([]);
+  const [spouseIds, setSpouseIds] = useState<string[]>([]);
+  const [childIds, setChildIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const hydratedId = useRef<string | null>(null);
+
+  const selectPerson = (id: string) => {
+    setChosenId(id);
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("osoba", id);
+    router.replace(`/admin?${next.toString()}`, { scroll: false });
+  };
 
   useEffect(() => {
     if (!person) return;
+    if (hydratedId.current === person.id) return;
+    hydratedId.current = person.id;
     setForm({
       firstName: person.firstName,
       lastName: person.lastName,
@@ -446,11 +477,20 @@ function AdminPeoplePanel({
       phone: person.phone || "",
       notes: person.notes || "",
     });
-  }, [person]);
+    setParentIds([...person.parentIds]);
+    setSpouseIds([...person.spouseIds]);
+    setChildIds(getChildrenIds(people, person.id));
+  }, [person, people]);
 
-  const matches = query.trim()
-    ? searchPeople(people, query).slice(0, 12)
-    : people.slice(0, 12);
+  const matches = useMemo(() => {
+    const raw = query.trim() ? searchPeople(people, query) : people;
+    const sliced = raw.slice(0, 12);
+    if (personId && !sliced.some((p) => p.id === personId)) {
+      const selected = people.find((p) => p.id === personId);
+      if (selected) return [selected, ...sliced.slice(0, 11)];
+    }
+    return sliced;
+  }, [people, query, personId]);
 
   const save = async () => {
     if (!person) return;
@@ -463,13 +503,18 @@ function AdminPeoplePanel({
         body: JSON.stringify({
           action: "update",
           personId: person.id,
-          fields: form,
+          fields: {
+            ...form,
+            parentIds,
+            spouseIds,
+            childIds,
+          },
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd zapisu");
       onFamily(data.family);
-      onSuccess("Zapisano dane osoby.");
+      onSuccess("Zapisano dane i powiązania osoby.");
     } catch (e) {
       onError((e as Error).message);
     } finally {
@@ -490,7 +535,9 @@ function AdminPeoplePanel({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd usuwania");
       onFamily(data.family);
-      setPersonId(data.family.people[0]?.id ?? null);
+      const nextId = data.family.people[0]?.id as string | undefined;
+      if (nextId) selectPerson(nextId);
+      else setChosenId(null);
       setDeleteOpen(false);
       onSuccess(`Usunięto osobę. Odpięto powiązania: ${(data.affectedNames || []).join(", ")}`);
     } catch (e) {
@@ -524,7 +571,7 @@ function AdminPeoplePanel({
               <button
                 type="button"
                 className={p.id === personId ? "is-active" : undefined}
-                onClick={() => setPersonId(p.id)}
+                onClick={() => selectPerson(p.id)}
               >
                 {displayName(p)}
               </button>
@@ -550,6 +597,10 @@ function AdminPeoplePanel({
             />
             <p>
               <Link href={`/osoba/${person.id}`}>Otwórz kartę osoby</Link>
+              {" · "}
+              <Link href={`/drzewo?hl=${encodeURIComponent(person.id)}`}>
+                Pokaż na drzewie
+              </Link>
             </p>
           </div>
           <div className="form-grid">
@@ -636,6 +687,17 @@ function AdminPeoplePanel({
               onChange={(e) => setForm((s) => ({ ...s, notes: e.target.value }))}
             />
           </label>
+          <AdminRelEditor
+            person={person}
+            people={people}
+            parentIds={parentIds}
+            spouseIds={spouseIds}
+            childIds={childIds}
+            onParentIds={setParentIds}
+            onSpouseIds={setSpouseIds}
+            onChildIds={setChildIds}
+            onOpenPerson={selectPerson}
+          />
           <p className="empty-hint">
             Ur. {formatPolishDate(person.birthDate) || "—"} · id: {person.id}
           </p>
@@ -703,7 +765,9 @@ function AdminPeoplePanel({
               const data = await res.json();
               if (!res.ok) throw new Error(data.error || "Błąd");
               onFamily(data.family);
-              setPersonId(data.createdPersonId);
+              if (typeof data.createdPersonId === "string") {
+                selectPerson(data.createdPersonId);
+              }
               setCreateOpen(false);
               onSuccess("Dodano osobę.");
             } catch (e) {

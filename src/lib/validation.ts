@@ -24,6 +24,9 @@ export const personFieldPatchSchema = z.object({
     .optional()
     .transform((v) => (v ? sanitizePhone(v) : undefined)),
   notes: z.string().trim().max(2000).optional(),
+  parentIds: z.array(z.string().trim().min(1).max(120)).max(4).optional(),
+  spouseIds: z.array(z.string().trim().min(1).max(120)).max(8).optional(),
+  childIds: z.array(z.string().trim().min(1).max(120)).max(40).optional(),
 });
 
 export const changeKindSchema = z.enum([

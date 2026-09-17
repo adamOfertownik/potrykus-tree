@@ -2040,6 +2040,54 @@ textarea:focus-visible {
   letter-spacing: -0.02em;
 }
 
+.person-detail__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.person-relations__title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.person-rel-edit {
+  display: inline-grid;
+  place-items: center;
+  width: var(--touch);
+  height: var(--touch);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: var(--ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.person-rel-edit:hover,
+.person-rel-edit:focus-visible {
+  color: var(--accent-strong);
+  border-color: var(--accent);
+}
+
+.admin-person-rels-modal {
+  max-width: min(40rem, calc(100vw - 2rem));
+  max-height: min(88dvh, 52rem);
+  overflow: auto;
+}
+
+.admin-rels__warns p {
+  margin: 0 0 0.35rem;
+}
+
+.admin-rels__warns ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
 .person-detail__header .attend-toggle {
   display: block;
   margin: 0.35rem 0 0.5rem;
@@ -4170,6 +4218,131 @@ textarea:focus-visible {
     grid-template-columns: minmax(14rem, 0.8fr) minmax(18rem, 1.2fr);
     align-items: start;
   }
+}
+
+.admin-rels {
+  display: grid;
+  gap: 0.9rem;
+  margin: 1rem 0 0;
+  padding: 0.95rem 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.admin-rels h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.admin-rels__warns {
+  list-style: none;
+  margin: 0;
+  padding: 0.65rem 0.8rem;
+  display: grid;
+  gap: 0.4rem;
+  border-radius: 10px;
+  background: #fff4e5;
+  color: #6b3b00;
+  font-size: 0.88rem;
+  font-weight: 550;
+  line-height: 1.4;
+}
+
+.admin-rel-group {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.75rem 0.85rem 0.85rem;
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.admin-rel-group legend {
+  padding: 0 0.3rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.admin-rel-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.admin-rel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  max-width: 100%;
+  padding: 0 0.15rem 0 0.15rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.admin-rel-chip.is-conflict {
+  border-color: #d4a017;
+  background: #fff8e1;
+}
+
+.admin-rel-chip__name {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  padding: 0.4rem 0.45rem 0.4rem 0.6rem;
+  min-height: var(--touch);
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-rel-chip__name span {
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.admin-rel-chip > button:last-child {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  min-width: var(--touch);
+  min-height: var(--touch);
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.admin-rel-chip > button:last-child:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--bg) 70%, white);
+}
+
+.admin-rel-add {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--ink-soft);
+}
+
+.admin-rel-matches {
+  max-height: min(28dvh, 180px);
+}
+
+.admin-people .who-matches button.is-active {
+  background: var(--bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 70%, var(--line));
 }
 
 .person-photo__hit--static {

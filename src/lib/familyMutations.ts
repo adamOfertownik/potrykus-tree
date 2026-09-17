@@ -70,7 +70,7 @@ function requirePerson(people: Person[], id: string, label: string): Person {
   return p;
 }
 
-function wouldCreateCycle(
+export function wouldCreateCycle(
   people: Person[],
   childId: string,
   parentId: string,
@@ -407,7 +407,7 @@ export function patchPerson(
       | "parentIds"
       | "spouseIds"
     >
-  >,
+  > & { childIds?: string[] },
 ): FamilyDatabase {
   const db = cloneDb(source);
   const person = requirePerson(db.people, id, "edytowana");
@@ -429,9 +429,50 @@ export function patchPerson(
     if (patch.photoUrl) person.photoUrl = patch.photoUrl;
     else delete person.photoUrl;
   }
-  if (patch.parentIds) person.parentIds = [...patch.parentIds];
-  if (patch.spouseIds) person.spouseIds = [...patch.spouseIds];
+  if (patch.parentIds) {
+    person.parentIds = uniqueIds(
+      patch.parentIds.filter((pid) => pid !== person.id && db.people.some((p) => p.id === pid)),
+    );
+  }
+  if (patch.spouseIds) {
+    const next = uniqueIds(
+      patch.spouseIds.filter((sid) => sid !== person.id && db.people.some((p) => p.id === sid)),
+    );
+    const prev = [...person.spouseIds];
+    person.spouseIds = next;
+    for (const oldId of prev) {
+      if (next.includes(oldId)) continue;
+      const other = db.people.find((p) => p.id === oldId);
+      if (other) other.spouseIds = other.spouseIds.filter((sid) => sid !== person.id);
+    }
+    for (const newId of next) {
+      const other = db.people.find((p) => p.id === newId);
+      if (other && !other.spouseIds.includes(person.id)) {
+        other.spouseIds.push(person.id);
+      }
+    }
+  }
+  if (patch.childIds) {
+    const next = new Set(
+      uniqueIds(
+        patch.childIds.filter((cid) => cid !== person.id && db.people.some((p) => p.id === cid)),
+      ),
+    );
+    for (const other of db.people) {
+      const has = other.parentIds.includes(person.id);
+      const should = next.has(other.id);
+      if (has && !should) {
+        other.parentIds = other.parentIds.filter((pid) => pid !== person.id);
+      } else if (!has && should) {
+        other.parentIds.push(person.id);
+      }
+    }
+  }
   return db;
+}
+
+function uniqueIds(ids: string[]): string[] {
+  return [...new Set(ids.filter(Boolean))];
 }
 
 export function addStandalonePerson(
