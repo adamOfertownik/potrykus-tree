@@ -272,8 +272,8 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 0.45rem;
-  padding: 0.7rem 1rem 0.75rem;
+  gap: 0;
+  padding: 0.4rem 0.75rem;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
   background: color-mix(in srgb, var(--panel) 92%, white);
   backdrop-filter: blur(10px);
@@ -295,25 +295,24 @@ textarea:focus-visible {
   -webkit-tap-highlight-color: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
-.app-header__top {
+.app-header__bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.55rem 0.85rem;
   min-width: 0;
 }
 
 .app-header__brand {
   display: flex;
   align-items: baseline;
-  gap: 0.55rem;
+  gap: 0.45rem;
   min-width: 0;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
 }
 
 .brand-link {
   font-family: var(--font-display-stack);
-  font-size: clamp(1.15rem, 4.2vw, 1.45rem);
+  font-size: clamp(1rem, 3.4vw, 1.28rem);
   letter-spacing: -0.02em;
   color: var(--accent-strong);
   line-height: 1.15;
@@ -324,7 +323,7 @@ textarea:focus-visible {
 
 .people-count {
   flex-shrink: 0;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--ink-soft);
   white-space: nowrap;
 }
@@ -340,13 +339,13 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.25rem;
-  padding: 0.35rem 0.85rem;
+  min-height: 2.15rem;
+  padding: 0.28rem 0.75rem;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
   background: color-mix(in srgb, var(--accent) 8%, white);
   color: var(--accent-strong);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -373,12 +372,12 @@ textarea:focus-visible {
 .app-nav {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.15rem;
   min-width: 0;
+  flex: 1 1 auto;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding-bottom: 0.1rem;
 }
 
 .app-nav::-webkit-scrollbar {
@@ -389,11 +388,11 @@ textarea:focus-visible {
   border: 0;
   background: transparent;
   color: var(--ink-soft);
-  padding: 0.45rem 0.7rem;
-  min-height: 2.5rem;
+  padding: 0.32rem 0.62rem;
+  min-height: 2.15rem;
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
@@ -415,11 +414,11 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   background: white;
   color: var(--ink);
-  padding: 0.4rem 0.7rem;
-  min-height: 2.5rem;
+  padding: 0.32rem 0.65rem;
+  min-height: 2.15rem;
   border-radius: 999px;
   cursor: pointer;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 650;
   display: inline-flex;
   align-items: center;
@@ -509,6 +508,23 @@ textarea:focus-visible {
   z-index: 0;
   /* Keep chart transforms from stealing clicks above the header */
   isolation: isolate;
+  min-height: 0;
+}
+
+.app-shell--immersive {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.app-shell--immersive .app-main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .app-footer {
@@ -546,15 +562,58 @@ textarea:focus-visible {
   max-width: none;
 }
 
+.tree-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.tree-page__chrome {
+  position: absolute;
+  z-index: 80;
+  top: 0.7rem;
+  left: 0.7rem;
+  right: 5.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  pointer-events: none;
+  max-width: min(420px, calc(100% - 6.5rem));
+}
+
+.tree-page__chrome > * {
+  pointer-events: auto;
+}
+
+.person-search--overlay {
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: none;
+}
+
+.person-search--overlay .person-search__top {
+  display: none;
+}
+
+.person-search--overlay .person-search__field,
+.person-search--overlay .person-search__input {
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
 .tree-focus-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.65rem 1rem;
-  margin: -0.35rem 0 0.85rem;
-  padding: 0.65rem 0.85rem;
-  background: color-mix(in srgb, var(--accent) 10%, white);
+  gap: 0.45rem 0.75rem;
+  margin: 0;
+  padding: 0.45rem 0.7rem;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(8px);
   border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
   border-radius: 12px;
 }
@@ -838,16 +897,20 @@ textarea:focus-visible {
 .tree-scroll--chart {
   padding: 0;
   overflow: hidden;
-  min-height: calc(100dvh - 180px);
-  background: rgb(33, 33, 33);
+  flex: 1;
+  min-height: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 0%, rgba(62, 92, 58, 0.45), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 100%, rgba(40, 62, 42, 0.5), transparent 50%),
+    rgb(28, 36, 29);
   position: relative;
   z-index: 0;
 }
 
 .family-chart-wrap {
   position: relative;
-  height: calc(100dvh - 180px);
-  min-height: 520px;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
   z-index: 0;
   touch-action: manipulation;
@@ -861,7 +924,7 @@ textarea:focus-visible {
   position: relative;
   z-index: 0;
   /* family-chart defaults: dark canvas, dusty male/female cards, white type */
-  --background-color: rgb(33, 33, 33);
+  --background-color: rgb(28, 36, 29);
   --text-color: #fff;
   --female-color: rgb(196, 138, 146);
   --male-color: rgb(120, 159, 172);
@@ -1109,8 +1172,8 @@ textarea:focus-visible {
 
 .family-chart-tools {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 0.7rem;
+  right: 0.7rem;
   z-index: 5;
   display: flex;
   flex-wrap: wrap;
@@ -1126,6 +1189,87 @@ textarea:focus-visible {
   border-radius: 999px;
   background: color-mix(in srgb, var(--panel) 92%, transparent);
   backdrop-filter: blur(4px);
+}
+
+.tree-wind {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tree-wind__haze {
+  position: absolute;
+  inset: -18% -10%;
+  background: linear-gradient(
+    108deg,
+    transparent 28%,
+    rgba(214, 232, 198, 0.07) 48%,
+    transparent 64%
+  );
+  animation: tree-wind-gust 16s ease-in-out infinite;
+}
+
+.tree-wind__leaf {
+  position: absolute;
+  top: -10%;
+  display: block;
+  border-radius: 2px 72% 4px 72%;
+  transform-origin: 40% 60%;
+  animation: tree-leaf-fall linear infinite;
+  opacity: 0;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.tree-wind__leaf--0 {
+  background: #b7d36a;
+}
+
+.tree-wind__leaf--1 {
+  background: #e2c45a;
+}
+
+.tree-wind__leaf--2 {
+  background: #c47a3a;
+}
+
+@keyframes tree-leaf-fall {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-12deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.48;
+  }
+  55% {
+    transform: translate3d(calc(var(--leaf-drift, 16px) * 1.8), 58vh, 0)
+      rotate(210deg);
+    opacity: 0.38;
+  }
+  100% {
+    transform: translate3d(calc(var(--leaf-drift, 16px) * -0.5), 118vh, 0)
+      rotate(400deg);
+    opacity: 0;
+  }
+}
+
+@keyframes tree-wind-gust {
+  0%,
+  100% {
+    transform: translateX(-10%) skewX(-6deg);
+    opacity: 0.28;
+  }
+  50% {
+    transform: translateX(10%) skewX(6deg);
+    opacity: 0.65;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tree-wind {
+    display: none;
+  }
 }
 
 @media (max-width: 720px) {
@@ -2891,15 +3035,16 @@ textarea:focus-visible {
 
 @media (min-width: 900px) {
   .app-header {
-    padding: 0.85rem 1.25rem 0.75rem;
+    padding: 0.45rem 1.1rem;
   }
 
   .brand-link {
-    font-size: 1.45rem;
+    font-size: 1.28rem;
   }
 
   .app-nav {
     overflow: visible;
+    justify-content: center;
   }
 
   .people-count {
@@ -2917,9 +3062,35 @@ textarea:focus-visible {
     padding: 0.85rem 0.75rem 1.75rem;
   }
 
+  .app-shell--immersive .app-main {
+    padding: 0;
+  }
+
+  .app-header__brand,
+  .app-header__login {
+    display: none;
+  }
+
   .family-chart-wrap {
-    min-height: 420px;
-    height: calc(100dvh - 220px);
+    min-height: 0;
+    height: 100%;
+  }
+
+  .tree-page__chrome {
+    right: 0.65rem;
+    max-width: calc(100% - 1.3rem);
+  }
+
+  .family-chart-tools {
+    top: auto;
+    bottom: 2.4rem;
+    right: 0.55rem;
+  }
+}
+
+@media (min-width: 721px) {
+  .nav-menu__login-fallback {
+    display: none;
   }
 }
 

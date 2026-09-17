@@ -8,6 +8,7 @@ import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { GraphEditHost } from "@/components/GraphEditHost";
+import { TreeWind } from "@/components/TreeWind";
 
 type Props = {
   people: Person[];
@@ -110,7 +111,7 @@ export function FamilyChartView({
     const wrap = wrapRef.current;
     if (!wrap) return;
     const top = wrap.getBoundingClientRect().top;
-    const height = Math.max(360, window.innerHeight - top - 16);
+    const height = Math.max(360, window.innerHeight - top);
     wrap.style.height = `${height}px`;
   };
 
@@ -403,6 +404,7 @@ export function FamilyChartView({
 
   return (
     <div className="family-chart-wrap" id="family-tree-canvas" ref={wrapRef}>
+      <TreeWind />
       <div
         ref={containerRef}
         id="FamilyChart"

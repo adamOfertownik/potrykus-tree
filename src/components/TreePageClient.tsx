@@ -21,6 +21,7 @@ export function TreePageClient() {
     <AuthedPage
       exportRootId={rootId || undefined}
       loadingLabel="Wczytywanie drzewa…"
+      immersive
     >
       {({ people, family }) => {
         const familyRoot = family.meta.rootPersonId || "";
@@ -45,60 +46,60 @@ export function TreePageClient() {
         };
 
         return (
-          <>
-            <section className="toolbar toolbar--tree">
+          <div className="tree-page">
+            <section className="tree-page__chrome">
               <PersonSearch
                 people={people}
                 placeholder="Szukaj w drzewie…"
+                className="person-search--overlay"
                 onSelect={(p) => setHighlightId(p.id)}
               />
-            </section>
 
-            {focusedAway && (
-              <div className="tree-focus-bar" role="status">
-                <p>
-                  Widok wokół:{" "}
-                  <strong>
-                    {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
-                  </strong>
-                </p>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={goFullTree}
-                >
-                  ← Pełne drzewo
-                </button>
-              </div>
-            )}
-
-            {highlightPerson && !focusedAway && (
-              <div
-                className="tree-focus-bar tree-focus-bar--highlight"
-                role="status"
-              >
-                <p>
-                  Podświetlone: <strong>{displayName(highlightPerson)}</strong>{" "}
-                  — całe drzewo zostaje widoczne
-                </p>
-                <div className="tree-focus-bar__actions">
+              {focusedAway && (
+                <div className="tree-focus-bar" role="status">
+                  <p>
+                    Widok wokół:{" "}
+                    <strong>
+                      {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
+                    </strong>
+                  </p>
                   <button
                     type="button"
-                    className="btn btn-secondary"
-                    onClick={() => focusBranch(highlightPerson.id)}
+                    className="btn btn-primary"
+                    onClick={goFullTree}
                   >
-                    Pokaż tylko tę gałąź
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setHighlightId(null)}
-                  >
-                    Wyczyść
+                    ← Pełne drzewo
                   </button>
                 </div>
-              </div>
-            )}
+              )}
+
+              {highlightPerson && !focusedAway && (
+                <div
+                  className="tree-focus-bar tree-focus-bar--highlight"
+                  role="status"
+                >
+                  <p>
+                    Podświetlone: <strong>{displayName(highlightPerson)}</strong>
+                  </p>
+                  <div className="tree-focus-bar__actions">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => focusBranch(highlightPerson.id)}
+                    >
+                      Ta gałąź
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setHighlightId(null)}
+                    >
+                      Wyczyść
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
 
             <div className="tree-scroll tree-scroll--chart">
               {effectiveRoot ? (
@@ -114,7 +115,7 @@ export function TreePageClient() {
                 <p className="empty-hint">Brak danych drzewa.</p>
               )}
             </div>
-          </>
+          </div>
         );
       }}
     </AuthedPage>

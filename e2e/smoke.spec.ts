@@ -75,6 +75,29 @@ test("lista shows every person from the family API", async ({ browser }) => {
   await ctx.close();
 });
 
+test("tree is fullscreen with navbar links and wind overlay", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.locator(".app-shell--immersive")).toBeVisible();
+  await expect(page.locator(".app-header .app-nav a", { hasText: "Lista" })).toBeVisible();
+  await expect(page.locator(".app-footer")).toHaveCount(0);
+  await expect(page.locator(".tree-wind")).toHaveCount(1);
+  await expect(page.locator(".toolbar--tree")).toHaveCount(0);
+  await ctx.close();
+});
+
 test("kinship and birthdays pages load", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);
