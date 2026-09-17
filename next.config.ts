@@ -12,6 +12,19 @@ const nextConfig: NextConfig = {
       { source: "/home", destination: "/drzewo", permanent: false },
     ];
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow, noarchive, nosnippet, noimageindex",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

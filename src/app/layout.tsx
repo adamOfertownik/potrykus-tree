@@ -18,6 +18,22 @@ const body = Source_Sans_3({
 });
 
 export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    noarchive: true,
+    nosnippet: true,
+    noimageindex: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      nocache: true,
+      noarchive: true,
+      nosnippet: true,
+      noimageindex: true,
+    },
+  },
   title: "Drzewo Potrykus",
   description:
     "Prywatne drzewo genealogiczne rodziny Potrykus — twórca Adam Lieske",
