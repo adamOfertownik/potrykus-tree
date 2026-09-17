@@ -8,6 +8,7 @@ import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { GraphEditHost } from "@/components/GraphEditHost";
+import { TreeWind } from "@/components/TreeWind";
 
 type Props = {
   people: Person[];
@@ -110,7 +111,7 @@ export function FamilyChartView({
     const wrap = wrapRef.current;
     if (!wrap) return;
     const top = wrap.getBoundingClientRect().top;
-    const height = Math.max(360, window.innerHeight - top - 16);
+    const height = Math.max(360, window.innerHeight - top);
     wrap.style.height = `${height}px`;
   };
 
@@ -326,11 +327,21 @@ export function FamilyChartView({
     chart.updateTree({ tree_position: "inherit" });
   }, [scale]);
 
-  // Explicit branch focus (deep link ?root=) — recenter the tree around a person
+  // Explicit branch focus (deep link ?root=) — recenter the tree around a person.
+  // Returning to the family root keeps the current highlight and pans to that person.
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart || !mainId) return;
     chart.updateMainId(mainId);
+    const keep = highlightRef.current;
+    if (keep && keep !== mainId) {
+      chart.updateTree({ tree_position: "fit" });
+      const timer = window.setTimeout(() => {
+        applyHighlight();
+        panToCard(keep);
+      }, 280);
+      return () => window.clearTimeout(timer);
+    }
     chart.updateTree({ tree_position: "main_to_middle" });
   }, [mainId]);
 
@@ -403,6 +414,7 @@ export function FamilyChartView({
 
   return (
     <div className="family-chart-wrap" id="family-tree-canvas" ref={wrapRef}>
+      <TreeWind />
       <div
         ref={containerRef}
         id="FamilyChart"

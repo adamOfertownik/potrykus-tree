@@ -13,12 +13,15 @@ type Props = {
   }) => ReactNode;
   exportRootId?: string;
   loadingLabel?: string;
+  /** Edge-to-edge main (tree graph) */
+  immersive?: boolean;
 };
 
 export function AuthedPage({
   children,
   exportRootId,
   loadingLabel = "Wczytywanie…",
+  immersive = false,
 }: Props) {
   const auth = useAuthStatus();
   const unlocked = Boolean(auth.data?.unlocked);
@@ -32,14 +35,14 @@ export function AuthedPage({
   }
   if (family.isLoading) {
     return (
-      <AppShell>
+      <AppShell immersive={immersive}>
         <div className="loading-screen">{loadingLabel}</div>
       </AppShell>
     );
   }
   if (family.isError || !family.data) {
     return (
-      <AppShell>
+      <AppShell immersive={immersive}>
         <div className="loading-screen">
           Nie udało się wczytać danych. Odśwież stronę lub podaj kod ponownie.
         </div>
@@ -50,7 +53,11 @@ export function AuthedPage({
   const people = family.data.people;
 
   return (
-    <AppShell peopleCount={people.length} exportRootId={exportRootId}>
+    <AppShell
+      peopleCount={people.length}
+      exportRootId={exportRootId}
+      immersive={immersive}
+    >
       {children({ family: family.data, people })}
     </AppShell>
   );

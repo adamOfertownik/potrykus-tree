@@ -18,6 +18,7 @@ function AppShellInner({
   exportRootId,
   metaTitle,
   metaRootId,
+  immersive = false,
 }: {
   children: React.ReactNode;
   people: Person[];
@@ -25,6 +26,7 @@ function AppShellInner({
   exportRootId?: string;
   metaTitle?: string;
   metaRootId?: string;
+  immersive?: boolean;
 }) {
   const pathname = usePathname();
   const logout = useLogout();
@@ -82,10 +84,10 @@ function AppShellInner({
   };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell${immersive ? " app-shell--immersive" : ""}`}>
       <PrototypeBanner />
       <header className="app-header">
-        <div className="app-header__top">
+        <div className="app-header__bar">
           <div className="app-header__brand">
             <Link href="/drzewo" className="brand-link">
               Drzewo Potrykus
@@ -94,6 +96,28 @@ function AppShellInner({
               <span className="people-count">{peopleCount} osób</span>
             )}
           </div>
+
+          <nav className="app-nav" aria-label="Główne">
+            {(
+              [
+                ["/drzewo", "Drzewo"],
+                ["/lista", "Lista"],
+                ["/urodziny", "Urodziny"],
+                ["/spotkanie", "Spotkanie"],
+                ["/zglos", "Zgłoś"],
+                ["/pokrewienstwo", "Kto kim"],
+              ] as const
+            ).map(([href, label]) => (
+              <Link
+                key={href}
+                href={href}
+                className={pathname.startsWith(href) ? "is-active" : ""}
+                onClick={() => setMenuOpen(false)}
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
 
           <div className="app-header__actions">
             {isAdmin ? (
@@ -198,7 +222,19 @@ function AppShellInner({
                     </button>
                     <div className="nav-menu__sep" />
                   </>
-                ) : null}
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      role="menuitem"
+                      className="nav-menu__link nav-menu__login-fallback"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Logowanie
+                    </Link>
+                    <div className="nav-menu__sep nav-menu__login-fallback" />
+                  </>
+                )}
                 <button
                   type="button"
                   role="menuitem"
@@ -215,28 +251,6 @@ function AppShellInner({
           </div>
           </div>
         </div>
-
-        <nav className="app-nav" aria-label="Główne">
-          {(
-            [
-              ["/drzewo", "Drzewo"],
-              ["/lista", "Lista"],
-              ["/urodziny", "Urodziny"],
-              ["/spotkanie", "Spotkanie"],
-              ["/zglos", "Zgłoś"],
-              ["/pokrewienstwo", "Kto kim"],
-            ] as const
-          ).map(([href, label]) => (
-            <Link
-              key={href}
-              href={href}
-              className={pathname.startsWith(href) ? "is-active" : ""}
-              onClick={() => setMenuOpen(false)}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
       </header>
 
       {pdfError && (
@@ -246,9 +260,11 @@ function AppShellInner({
       )}
 
       <div className="app-main">{children}</div>
-      <footer className="app-footer">
-        Twórca: Adam Lieske · dane lokalne · dostęp kodem rodzinnym
-      </footer>
+      {!immersive && (
+        <footer className="app-footer">
+          Twórca: Adam Lieske · dane lokalne · dostęp kodem rodzinnym
+        </footer>
+      )}
     </div>
   );
 }
@@ -257,10 +273,12 @@ export function AppShell({
   children,
   peopleCount,
   exportRootId,
+  immersive = false,
 }: {
   children: React.ReactNode;
   peopleCount?: number;
   exportRootId?: string;
+  immersive?: boolean;
 }) {
   const family = useFamily(true);
   const people = family.data?.people ?? [];
@@ -274,6 +292,7 @@ export function AppShell({
         exportRootId={exportRootId}
         metaTitle={family.data?.meta?.title}
         metaRootId={family.data?.meta?.rootPersonId}
+        immersive={immersive}
       >
         {children}
       </AppShellInner>

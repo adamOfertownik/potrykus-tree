@@ -42,7 +42,7 @@ Zmiana kodu: wygeneruj hash (`bcrypt`) i wpisz w `data/config.json` → `accessC
 
 ## Dane
 
-Źródło prawdy przy ustawionym `DATABASE_URL`: tabele Neon `people` + `family_meta`.
+Źródło prawdy przy ustawionym `DATABASE_URL`: tabele Neon `people` + `family_meta` (drzewo i lista czytają ten sam zestaw osób).
 
 ```bash
 npm run db:migrate

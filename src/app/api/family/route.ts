@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { isSessionValid } from "@/lib/auth";
 import { readFamilyDb, toFamilyPayload } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const unlocked = await isSessionValid();
   if (!unlocked) {
@@ -12,5 +14,7 @@ export async function GET() {
   }
 
   const db = await readFamilyDb();
-  return NextResponse.json(toFamilyPayload(db));
+  return NextResponse.json(toFamilyPayload(db), {
+    headers: { "Cache-Control": "no-store" },
+  });
 }

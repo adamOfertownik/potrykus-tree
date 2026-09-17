@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
 import { GraphEditHost } from "@/components/GraphEditHost";
 import { PersonSearch } from "@/components/PersonSearch";
-import { buildDescendantList } from "@/lib/list";
+import { buildCompleteFamilyList } from "@/lib/list";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import type { Person } from "@/types/family";
 
@@ -33,8 +33,7 @@ function ListInner({
   const [selected, setSelected] = useState<Person | null>(null);
   const router = useRouter();
   const entries = useMemo(
-    () =>
-      people.length && rootId ? buildDescendantList(people, rootId) : [],
+    () => (people.length ? buildCompleteFamilyList(people, rootId) : []),
     [people, rootId],
   );
 
@@ -84,11 +83,11 @@ function ListInner({
 
       <div className="genealogy-panel">
         <header className="genealogy-panel__head">
-          <h1>Lista potomków</h1>
+          <h1>Lista rodziny</h1>
           <p>
-            Hierarchia z widocznymi powiązaniami — jak w dokumencie rodzinnym.
-            PDF pobierzesz z menu u góry. Plus przy osobie dodaje dziecko,
-            partnera albo przenosi gałąź — tak jak na grafie.
+            Te same osoby co na drzewie — wszyscy z bazy Neon, w hierarchii
+            od najstarszych przodków. PDF pobierzesz z menu u góry. Plus przy
+            osobie dodaje dziecko, partnera albo przenosi gałąź.
           </p>
         </header>
 

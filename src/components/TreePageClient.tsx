@@ -10,95 +10,105 @@ import { displayName } from "@/lib/db-client";
 export function TreePageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const rootId = searchParams.get("root");
-  const [highlightId, setHighlightId] = useState<string | null>(rootId);
+  const urlRoot = searchParams.get("root");
+  const [viewRoot, setViewRoot] = useState<string | null>(urlRoot);
+  const [highlightId, setHighlightId] = useState<string | null>(urlRoot);
 
   useEffect(() => {
-    if (rootId) setHighlightId(rootId);
-  }, [rootId]);
+    setViewRoot(urlRoot);
+  }, [urlRoot]);
+
+  useEffect(() => {
+    if (viewRoot) setHighlightId(viewRoot);
+  }, [viewRoot]);
 
   return (
     <AuthedPage
-      exportRootId={rootId || undefined}
+      exportRootId={viewRoot || undefined}
       loadingLabel="Wczytywanie drzewa…"
+      immersive
     >
       {({ people, family }) => {
         const familyRoot = family.meta.rootPersonId || "";
-        const effectiveRoot = rootId || familyRoot;
+        const effectiveRoot = viewRoot || familyRoot;
         const focusedAway =
-          Boolean(rootId) && Boolean(familyRoot) && rootId !== familyRoot;
+          Boolean(viewRoot) && Boolean(familyRoot) && viewRoot !== familyRoot;
         const focusPerson = focusedAway
-          ? people.find((p) => p.id === rootId) ?? null
+          ? people.find((p) => p.id === viewRoot) ?? null
           : null;
         const highlightPerson = highlightId
           ? people.find((p) => p.id === highlightId) ?? null
           : null;
 
         const goFullTree = () => {
-          setHighlightId(null);
+          const stayOn = highlightId || viewRoot;
+          if (stayOn) setHighlightId(stayOn);
+          setViewRoot(null);
           router.replace("/drzewo");
         };
 
         const focusBranch = (id: string) => {
           setHighlightId(id);
+          setViewRoot(id);
           router.replace(`/drzewo?root=${encodeURIComponent(id)}`);
         };
 
         return (
-          <>
-            <section className="toolbar toolbar--tree">
+          <div className="tree-page">
+            <section className="tree-page__chrome">
               <PersonSearch
                 people={people}
                 placeholder="Szukaj w drzewie…"
+                className="person-search--overlay"
                 onSelect={(p) => setHighlightId(p.id)}
               />
-            </section>
 
-            {focusedAway && (
-              <div className="tree-focus-bar" role="status">
-                <p>
-                  Widok wokół:{" "}
-                  <strong>
-                    {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
-                  </strong>
-                </p>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={goFullTree}
-                >
-                  ← Pełne drzewo
-                </button>
-              </div>
-            )}
-
-            {highlightPerson && !focusedAway && (
-              <div
-                className="tree-focus-bar tree-focus-bar--highlight"
-                role="status"
-              >
-                <p>
-                  Podświetlone: <strong>{displayName(highlightPerson)}</strong>{" "}
-                  — całe drzewo zostaje widoczne
-                </p>
-                <div className="tree-focus-bar__actions">
+              {focusedAway && (
+                <div className="tree-focus-bar" role="status">
+                  <p>
+                    Widok wokół:{" "}
+                    <strong>
+                      {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
+                    </strong>
+                  </p>
                   <button
                     type="button"
-                    className="btn btn-secondary"
-                    onClick={() => focusBranch(highlightPerson.id)}
+                    className="btn btn-primary"
+                    data-testid="full-tree-back"
+                    onClick={goFullTree}
                   >
-                    Pokaż tylko tę gałąź
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setHighlightId(null)}
-                  >
-                    Wyczyść
+                    ← Pełne drzewo
                   </button>
                 </div>
-              </div>
-            )}
+              )}
+
+              {highlightPerson && !focusedAway && (
+                <div
+                  className="tree-focus-bar tree-focus-bar--highlight"
+                  role="status"
+                >
+                  <p>
+                    Podświetlone: <strong>{displayName(highlightPerson)}</strong>
+                  </p>
+                  <div className="tree-focus-bar__actions">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => focusBranch(highlightPerson.id)}
+                    >
+                      Ta gałąź
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setHighlightId(null)}
+                    >
+                      Wyczyść
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
 
             <div className="tree-scroll tree-scroll--chart">
               {effectiveRoot ? (
@@ -114,7 +124,7 @@ export function TreePageClient() {
                 <p className="empty-hint">Brak danych drzewa.</p>
               )}
             </div>
-          </>
+          </div>
         );
       }}
     </AuthedPage>

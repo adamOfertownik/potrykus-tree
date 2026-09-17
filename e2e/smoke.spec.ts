@@ -45,6 +45,83 @@ test("search highlights without filtering tree", async ({ browser }) => {
   await ctx.close();
 });
 
+test("lista shows every person from the family API", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as { people: { id: string }[] };
+  const apiIds = [...new Set(payload.people.map((p) => p.id))].sort();
+  await page.goto("/lista");
+  await page.waitForSelector("[data-person-id]", { timeout: 45000 });
+  const listedIds = await page
+    .locator("[data-person-id]")
+    .evaluateAll((els) => [
+      ...new Set(
+        els
+          .map((el) => el.getAttribute("data-person-id"))
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ]);
+  listedIds.sort();
+  expect(listedIds).toEqual(apiIds);
+  await ctx.close();
+});
+
+test("tree is fullscreen with navbar links and wind overlay", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.locator(".app-shell--immersive")).toBeVisible();
+  await expect(page.locator(".app-header .app-nav a", { hasText: "Lista" })).toBeVisible();
+  await expect(page.locator(".app-footer")).toHaveCount(0);
+  await expect(page.locator(".tree-wind")).toHaveCount(1);
+  await expect(page.locator(".toolbar--tree")).toHaveCount(0);
+  await ctx.close();
+});
+
+test("returning to full tree keeps the highlighted person", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo?root=P016");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.getByTestId("full-tree-back")).toBeVisible();
+  await page.getByTestId("full-tree-back").click();
+  await expect(page.locator(".tree-focus-bar")).toContainText("Anna");
+  await expect(page.locator(".tree-focus-bar")).not.toContainText("Widok wokół");
+  await expect(page.locator(".is-chart-highlight").first()).toBeVisible({
+    timeout: 10_000,
+  });
+  await ctx.close();
+});
+
 test("kinship and birthdays pages load", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);
