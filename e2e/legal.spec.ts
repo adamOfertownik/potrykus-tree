@@ -8,7 +8,9 @@ test("regulamin and privacy are public and mention private family use", async ({
     page.getByRole("heading", { name: "Regulamin" }),
   ).toBeVisible();
   await expect(page.getByText("Adam Lieske").first()).toBeVisible();
-  await expect(page.getByText(/hasło rodzinne|kodem rodzinnym/i)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Dostęp — hasło rodzinne" }),
+  ).toBeVisible();
   await expect(page.getByText(/Administratorzy/i).first()).toBeVisible();
   await expect(page.getByText(/nie odpowiadają/i)).toBeVisible();
 
@@ -25,7 +27,7 @@ test("gate requires legal acceptance before enter", async ({ page }) => {
   const enter = page.getByRole("button", { name: "Wejdź do drzewa" });
   await expect(enter).toBeVisible({ timeout: 20_000 });
   await expect(enter).toBeDisabled();
-  await page.getByRole("link", { name: "regulamin" }).first().click();
+  await page.locator(".gate-footer a[href='/regulamin']").click();
   await expect(page).toHaveURL(/\/regulamin/);
   await page.goto("/");
   await page.getByLabel(/Akceptuję/).check();

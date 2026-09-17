@@ -28,14 +28,9 @@ export function TermsAccept({
       />
       <span>
         Akceptuję{" "}
-        <Link href="/regulamin" target="_blank" rel="noreferrer">
-          regulamin
-        </Link>{" "}
-        i{" "}
-        <Link href="/polityka-prywatnosci" target="_blank" rel="noreferrer">
-          politykę prywatności
-        </Link>
-        . Wiem, że to prywatne archiwum rodziny, a nie usługa publiczna.
+        <Link href="/regulamin">regulamin</Link> i{" "}
+        <Link href="/polityka-prywatnosci">politykę prywatności</Link>.
+        Wiem, że to prywatne archiwum rodziny, a nie usługa publiczna.
       </span>
     </label>
   );
