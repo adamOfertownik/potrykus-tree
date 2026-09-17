@@ -7,9 +7,29 @@ export function withChildrenIds(people: Person[]): PersonPublic[] {
   }));
 }
 
+/** Oldest first. Missing birth date goes last; then name, then id. */
+export function comparePeopleByBirth(
+  a: { id?: string; firstName?: string; lastName?: string; birthDate?: string },
+  b: { id?: string; firstName?: string; lastName?: string; birthDate?: string },
+): number {
+  const aDate = a.birthDate?.trim() ?? "";
+  const bDate = b.birthDate?.trim() ?? "";
+  if (aDate !== bDate) {
+    if (!aDate) return 1;
+    if (!bDate) return -1;
+    return aDate.localeCompare(bDate);
+  }
+  const aName = `${a.lastName ?? ""} ${a.firstName ?? ""}`;
+  const bName = `${b.lastName ?? ""} ${b.firstName ?? ""}`;
+  const byName = aName.localeCompare(bName, "pl");
+  if (byName !== 0) return byName;
+  return (a.id ?? "").localeCompare(b.id ?? "", "pl");
+}
+
 export function getChildrenIds(people: Person[], personId: string): string[] {
   return people
     .filter((p) => p.parentIds.includes(personId))
+    .sort(comparePeopleByBirth)
     .map((p) => p.id);
 }
 
@@ -28,7 +48,11 @@ export function getUnionChildrenIds(
       ids.push(childId);
     }
   }
-  return ids;
+  return ids
+    .map((id) => people.find((p) => p.id === id))
+    .filter((p): p is Person => Boolean(p))
+    .sort(comparePeopleByBirth)
+    .map((p) => p.id);
 }
 
 export function getPersonMap(people: Person[]): Map<string, Person> {
