@@ -290,7 +290,7 @@ function AppShellInner({
       <div className="app-main">{children}</div>
       {!immersive && (
         <footer className="app-footer">
-          Twórca: Adam Lieske · dane lokalne · dostęp kodem rodzinnym
+          Twórca: Adam Lieske · dostęp kodem rodzinnym
         </footer>
       )}
     </div>
