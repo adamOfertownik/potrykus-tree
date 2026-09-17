@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   title: "Drzewo Potrykus",
   description:
-    "Prywatne drzewo genealogiczne rodziny Potrykus — twórca Adam Lieske",
+    "Prywatne archiwum genealogiczne Rodu Potrykus",
   applicationName: "Drzewo Potrykus",
   authors: [{ name: "Adam Lieske" }],
   manifest: "/manifest.webmanifest",

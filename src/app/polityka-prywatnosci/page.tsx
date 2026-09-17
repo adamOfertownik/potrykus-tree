@@ -3,7 +3,7 @@ import { LegalDoc } from "@/components/LegalDoc";
 
 export const metadata: Metadata = {
   title: "Polityka prywatności — Drzewo Potrykus",
-  description: "Jak prywatne drzewo rodziny Potrykus przetwarza dane",
+  description: "Jak prywatne archiwum Rodu Potrykus przetwarza dane",
 };
 
 export default function PolitykaPrywatnosciPage() {
@@ -12,16 +12,21 @@ export default function PolitykaPrywatnosciPage() {
       <h2>1. Po co ten tekst</h2>
       <p>
         Krótko: jakie dane są w Drzewie Potrykus, po co i kto je widzi. To
-        prywatne archiwum rodziny, nie sklep i nie portal otwarty dla
-        internetu. Tekst jest napisany prostym językiem dla rodziny — nie
-        zastępuje porady prawnej.
+        prywatne archiwum <strong>Rodu Potrykus</strong>, nie sklep i nie
+        portal otwarty dla internetu. Tekst jest napisany prostym językiem —
+        nie zastępuje porady prawnej.
       </p>
 
-      <h2>2. Kto prowadzi stronę</h2>
+      <h2>2. Kto to prowadzi</h2>
       <p>
-        Stronę prowadzi <strong>Adam Lieske</strong> prywatnie, za zgodą
-        rodziny na grupie rodzinnej. Kontakt w sprawach danych: grupa
-        rodzinna, zakładka Zgłoś w aplikacji albo administratorzy.
+        Archiwum jest na prywatny użytek całego rodu, za zgodą na grupie
+        rodzinnej. Stronę technicznie utrzymuje m.in. Adam Lieske.
+        Kontakt w sprawach danych: grupa rodzinna, zakładka Zgłoś albo
+        administratorzy.
+      </p>
+      <p>
+        Cyfrową bazę złożyliśmy z papierów rodzinnych. Dalsze uzupełnienia
+        dodaje rodzina — każdy za swoją najbliższą linię.
       </p>
 
       <h2>3. Jakie dane tu są</h2>
@@ -36,9 +41,7 @@ export default function PolitykaPrywatnosciPage() {
         <li>
           zapisy na spotkanie rodzinne (kto idzie, bilety, czy zapłacono),
         </li>
-        <li>
-          zgłoszenia poprawek (kto zgłasza i czego dotyczy),
-        </li>
+        <li>zgłoszenia poprawek (kto zgłasza i czego dotyczy),</li>
         <li>
           dane logowania administratorów (e-mail i skrót hasła, nie hasło
           jawnym tekstem),
@@ -49,14 +52,15 @@ export default function PolitykaPrywatnosciPage() {
         </li>
       </ul>
       <p>
-        Część danych dotyczy osób, których już nie ma. Wprowadza je rodzina,
-        w dobrej wierze, jako pamięć rodową — nie jako publiczny rejestr.
+        Część danych dotyczy osób, których już nie ma. Są w archiwum jako
+        pamięć rodowa — nie jako publiczny rejestr.
       </p>
 
       <h2>4. Po co te dane</h2>
-      <p>Wyłącznie na potrzeby rodziny:</p>
+      <p>Wyłącznie na potrzeby Rodu Potrykus:</p>
       <ul>
         <li>wspólne drzewo i lista osób,</li>
+        <li>pobranie aktualnego grafu albo listy (PDF),</li>
         <li>urodziny i pokrewieństwo,</li>
         <li>organizacja spotkania rodzinnego,</li>
         <li>przyjmowanie i nadzór zgłoszeń przez administratorów.</li>
@@ -69,40 +73,48 @@ export default function PolitykaPrywatnosciPage() {
 
       <h2>5. Komu dane są widoczne</h2>
       <p>
-        Osobom, które znają kod rodzinny, oraz administratorom. Dostawcy
-        techniczni (hosting strony, baza danych, pliki ze zdjęciami) mogą
-        przetwarzać dane wyłącznie po to, żeby aplikacja działała — nie do
-        własnego marketingu z naszej strony.
+        Osobom z rodu, które znają kod rodzinny, oraz administratorom. Te
+        osoby mogą też pobrać aktualny graf albo listę na swój komputer.
+        Dostawcy techniczni (hosting, baza, pliki ze zdjęciami) mogą
+        przetwarzać dane wyłącznie po to, żeby aplikacja działała.
       </p>
       <p>
-        Nie mamy wpływu na to, czy ktoś z rodziny zrobi zrzut ekranu albo
-        przekaże kod. Dlatego kod ma zostać w rodzinie.
+        Nie mamy wpływu na to, czy ktoś z rodziny zrobi zrzut ekranu, zapisze
+        PDF albo przekaże kod. Dlatego kod i pobrane pliki zostają w rodzie.
       </p>
 
-      <h2>6. Jak długo i jak chronimy</h2>
+      <h2>6. Kto odpowiada za swoje zgłoszenia</h2>
       <p>
-        Dane trzymamy, dopóki archiwum jest potrzebne rodzinie. Wejście jest
-        za kodem. Administratorzy nadzorują zmiany. To nie gwarantuje
+        Kto dodaje albo zgłasza zmianę, bierze na siebie dane swojej
+        najbliższej rodziny: prawdziwość, zgodę bliskich i prawo do umieszczenia
+        ich w archiwum. Administratorzy mogą odrzucić zgłoszenie, ale nie
+        przejmują za Ciebie tej odpowiedzialności.
+      </p>
+
+      <h2>7. Jak długo i jak chronimy</h2>
+      <p>
+        Dane trzymamy, dopóki archiwum jest potrzebne rodowi. Wejście jest za
+        kodem. Administratorzy nadzorują zmiany. To nie gwarantuje
         absolutnego bezpieczeństwa — żaden serwis w internecie go nie ma.
       </p>
 
-      <h2>7. Twoje wybory</h2>
+      <h2>8. Twoje wybory</h2>
       <p>
         Możesz poprosić o wgląd, poprawkę albo usunięcie danych, które Cię
         dotyczą (albo osoby, którą reprezentujesz). Zgłoś to przez aplikację,
         administratora albo grupę rodzinną. Czasem usunięcie jednej osoby
-        psuje spójność drzewa — wtedy szukamy rozsądnego kompromisu w
-        rodzinie.
+        psuje spójność drzewa — wtedy szukamy rozsądnego kompromisu w rodzie.
       </p>
       <p>
-        W przeglądarce zostaje sesja po zalogowaniu kodem oraz informacja, że
+        W przeglądarce zostaje sesja po podaniu kodu oraz informacja, że
         zaakceptowałeś ten dokument. Bez tego nie da się wejść do drzewa.
       </p>
 
-      <h2>8. Dzieci</h2>
+      <h2>9. Dzieci</h2>
       <p>
-        W drzewie mogą być dane dzieci z rodziny. Dodaje je opiekun albo
-        bliscy na użytek rodzinny. Nie używamy tych danych do reklamy.
+        W drzewie mogą być dane dzieci z rodu. Dodaje je opiekun albo
+        najbliższa rodzina na użytek rodowy. Nie używamy tych danych do
+        reklamy.
       </p>
     </LegalDoc>
   );

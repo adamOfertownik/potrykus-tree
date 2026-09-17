@@ -7,11 +7,12 @@ test("regulamin and privacy are public and mention private family use", async ({
   await expect(
     page.getByRole("heading", { name: "Regulamin" }),
   ).toBeVisible();
-  await expect(page.getByText("Adam Lieske").first()).toBeVisible();
+  await expect(page.getByText(/Rodu Potrykus/).first()).toBeVisible();
+  await expect(page.getByText(/papierów rodzinnych/).first()).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Dostęp — hasło rodzinne" }),
+    page.getByRole("heading", { name: "Pobieranie drzewa i listy" }),
   ).toBeVisible();
-  await expect(page.getByText(/Administratorzy/i).first()).toBeVisible();
+  await expect(page.getByText(/najbliższej rodziny/).first()).toBeVisible();
   await expect(page.getByText(/nie odpowiadają/i)).toBeVisible();
 
   await page.goto("/polityka-prywatnosci");
@@ -20,6 +21,7 @@ test("regulamin and privacy are public and mention private family use", async ({
   ).toBeVisible();
   await expect(page.getByText(/prywatne archiwum/i).first()).toBeVisible();
   await expect(page.getByText(/nie sprzedajemy/i)).toBeVisible();
+  await expect(page.getByText(/najbliższej rodziny/).first()).toBeVisible();
 });
 
 test("gate requires legal acceptance before enter", async ({ page }) => {

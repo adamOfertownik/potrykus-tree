@@ -1,5 +1,5 @@
 /** Bump when the family notices change — the gate asks again. */
-export const LEGAL_VERSION = "1";
+export const LEGAL_VERSION = "2";
 export const LEGAL_UPDATED_LABEL = "17 września 2026";
 export const LEGAL_STORAGE_KEY = "potrykus_legal_accept";
 

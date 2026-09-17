@@ -33,8 +33,8 @@ export function AccessGate({ afterUnlockHref = "/" }: Props) {
         <p className="gate-brand">Drzewo Potrykus</p>
         <h1 className="gate-title">Rodzinne archiwum</h1>
         <p className="gate-lead">
-          Dane genealogiczne i numery telefonów są chronione kodem rodzinnym —
-          bez konta, ale też bez publicznego dostępu.
+          Prywatne archiwum Rodu Potrykus, złożone z papierów rodzinnych.
+          Chronione kodem — bez konta, bez publicznego dostępu.
         </p>
         <form className="gate-form" onSubmit={onSubmit}>
           <label htmlFor="family-code" className="field-block">

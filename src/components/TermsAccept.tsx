@@ -30,7 +30,8 @@ export function TermsAccept({
         Akceptuję{" "}
         <Link href="/regulamin">regulamin</Link> i{" "}
         <Link href="/polityka-prywatnosci">politykę prywatności</Link>.
-        Wiem, że to prywatne archiwum rodziny, a nie usługa publiczna.
+        Wiem, że to prywatne archiwum Rodu Potrykus. Zgłaszając zmiany, biorę
+        na siebie dane swojej najbliższej rodziny.
       </span>
     </label>
   );

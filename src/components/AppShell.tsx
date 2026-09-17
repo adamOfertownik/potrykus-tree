@@ -304,7 +304,7 @@ function AppShellInner({
       <div className="app-main">{children}</div>
       {!immersive && (
         <footer className="app-footer">
-          Twórca: Adam Lieske · dostęp kodem rodzinnym
+          Prywatny użytek Rodu Potrykus · dostęp kodem rodzinnym
           {" · "}
           <Link href="/regulamin" className="app-footer__link">
             Regulamin
