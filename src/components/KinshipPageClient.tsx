@@ -108,6 +108,10 @@ function KinshipInner({ people }: { people: Person[] }) {
           Wybierz dwie osoby z rodziny — pokażemy, kim są dla siebie.
           {identity?.name ? ` Jesteś zapisany/a jako ${identity.name}.` : ""}
         </p>
+        <p>
+          Kuzynów liczymy pokoleniami od wspólnego przodka, nie stopniami
+          z kodeksu cywilnego — zwykły kuzyn to tam 4. stopień linii bocznej.
+        </p>
       </header>
 
       <div className="kinship-picks">
