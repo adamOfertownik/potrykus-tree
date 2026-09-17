@@ -109,14 +109,25 @@ function niblingLabel(gender: Gender, removed: number): string {
   return `${greatPrefix(removed)}${base}`;
 }
 
+/**
+ * Genealogical cousin name — generations from the shared grandparents,
+ * not the Civil Code degree (a first cousin is 4th degree collateral).
+ */
 function cousinLabel(degree: number, removal: number, gender: Gender): string {
   const base = genderWord(gender, "kuzyn", "kuzynka", "kuzynostwo");
   if (degree <= 1 && removal === 0) return base;
   const parts: string[] = [base];
-  if (degree > 1) parts.push(`${degree}. stopnia`);
-  if (removal === 1) parts.push("raz odsunięty/a");
-  else if (removal > 1) parts.push(`${removal}× odsunięty/a`);
+  if (degree > 1) parts.push(`w ${degree}. pokoleniu`);
+  if (removal === 1) parts.push("z przesunięciem o jedno pokolenie");
+  else if (removal > 1) {
+    const word = removal >= 5 ? "pokoleń" : "pokolenia";
+    parts.push(`z przesunięciem o ${removal} ${word}`);
+  }
   return parts.join(" ");
+}
+
+function civilCollateralNote(genA: number, genB: number): string {
+  return `W prawie cywilnym: ${genA + genB}. stopień linii bocznej`;
 }
 
 function bloodLabels(
@@ -414,6 +425,9 @@ function describeBlood(
     : "Pokrewieństwo boczne";
   if (best.genA === 1 && best.genB === 1) {
     summary = half ? "Przyrodnie rodzeństwo" : "Rodzeństwo";
+  }
+  if (best.genA > 0 && best.genB > 0) {
+    summary = `${summary}. ${civilCollateralNote(best.genA, best.genB)}`;
   }
 
   return {
