@@ -47,6 +47,19 @@ test("spotkanie counts Helena and Władek and opens Franciszek's tree", async ({
     page.getByTestId("meeting-branch-count").filter({ hasText: /Władka/ }),
   ).toBeVisible();
   await expect(page.getByText("Kto będzie — od kogo")).toBeVisible();
+  const whoToggle = page.getByTestId("meeting-who-toggle");
+  await expect(whoToggle).toHaveAttribute("aria-expanded", "true");
+  await whoToggle.click();
+  await expect(page.getByTestId("meeting-who-block")).toHaveAttribute(
+    "data-who-visible",
+    "false",
+  );
+  await expect(page.getByText("Lista imion jest ukryta")).toBeVisible();
+  await page.getByTestId("meeting-who-toggle").click();
+  await expect(page.getByTestId("meeting-who-block")).toHaveAttribute(
+    "data-who-visible",
+    "true",
+  );
   if ((await page.locator(".rsvp-list").count()) > 0) {
     await expect(page.locator(".rsvp-list")).not.toContainText("zł");
   }
@@ -56,6 +69,26 @@ test("spotkanie counts Helena and Władek and opens Franciszek's tree", async ({
   await button.click();
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
   await expect(page.locator(".tree-focus-bar")).toContainText(/Franciszek/i);
-  await expect(page.getByTestId("meeting-branch-bar")).toBeVisible();
+  const bar = page.getByTestId("meeting-branch-bar");
+  await expect(bar).toBeVisible();
+  await expect(bar).toHaveAttribute("data-who-visible", "true");
+  await page.getByTestId("meeting-who-toggle").click();
+  await expect(bar).toHaveAttribute("data-who-visible", "false");
+  await expect(bar).toContainText("Kto będzie na spotkaniu");
+  await expect(bar.locator(".meeting-branch-chips")).toHaveCount(0);
+  await page.reload();
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
+  await expect(page.getByTestId("meeting-branch-bar")).toHaveAttribute(
+    "data-who-visible",
+    "false",
+  );
+  await page.getByTestId("meeting-who-toggle").click();
+  await expect(page.getByTestId("meeting-branch-bar")).toHaveAttribute(
+    "data-who-visible",
+    "true",
+  );
+  await expect(page.getByTestId("meeting-branch-bar")).toContainText(
+    /Na spotkaniu/,
+  );
   await ctx.close();
 });

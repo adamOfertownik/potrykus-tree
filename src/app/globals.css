@@ -1238,7 +1238,7 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
-/* Imię i nazwisko: pełny tekst, zawijanie do 2 linii zamiast „…” */
+/* Imię i nazwisko: większa czcionka, pełny tekst, zawijanie do 2 linii */
 .family-chart-host .card-image-rect .card-label > div:first-child {
   white-space: normal;
   overflow: hidden;
@@ -1250,6 +1250,8 @@ textarea:focus-visible {
   max-height: 2.4em;
   overflow-wrap: break-word;
   word-break: break-word;
+  font-size: 1.28em !important;
+  font-weight: 750;
 }
 
 .chart-photo-slot {
@@ -1413,7 +1415,6 @@ textarea:focus-visible {
   z-index: 3;
   overflow: hidden;
   pointer-events: none;
-  transition: opacity 0.2s ease;
 }
 
 .chart-overview__gens {
@@ -1428,15 +1429,16 @@ textarea:focus-visible {
   left: 0;
   padding: 0.18rem 0.45rem;
   border-radius: 999px;
-  background: color-mix(in srgb, #142018 72%, transparent);
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.68rem;
+  background: color-mix(in srgb, #142018 78%, transparent);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   backdrop-filter: blur(4px);
+  z-index: 4;
 }
 
 .chart-branch-label {
@@ -1459,7 +1461,8 @@ textarea:focus-visible {
   transform-origin: center bottom;
   transition:
     background 0.18s ease,
-    border-color 0.18s ease;
+    border-color 0.18s ease,
+    opacity 0.2s ease;
 }
 
 .chart-branch-label:hover,
@@ -1925,8 +1928,8 @@ button.person-card {
 
 .person-card__name {
   margin: 0;
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 750;
   line-height: 1.2;
 }
 
@@ -4179,10 +4182,39 @@ button.person-card {
   border-radius: 12px;
 }
 
+.meeting-branch-bar.is-collapsed {
+  padding: 0.32rem 0.5rem 0.32rem 0.7rem;
+}
+
+.meeting-branch-bar__head,
+.meeting-who-block__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.meeting-branch-bar__head .btn {
+  flex-shrink: 0;
+}
+
 .meeting-branch-bar__lead {
   margin: 0;
   font-size: 0.92rem;
   font-weight: 700;
+  min-width: 0;
+}
+
+.meeting-who-block {
+  margin-top: 1.15rem;
+}
+
+.meeting-who-block__head .meeting-subhead {
+  margin: 0;
+}
+
+.meeting-who-block__head .btn {
+  flex-shrink: 0;
 }
 
 .meeting-branch-chips {
@@ -4280,6 +4312,21 @@ button.person-card {
   }
 
   .tree-focus-bar .btn {
+    min-height: 1.9rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .meeting-branch-bar {
+    width: 100%;
+    padding: 0.32rem 0.5rem;
+  }
+
+  .meeting-branch-bar__lead {
+    font-size: 0.82rem;
+  }
+
+  .meeting-branch-bar .btn {
     min-height: 1.9rem;
     padding: 0.15rem 0.5rem;
     font-size: 0.75rem;

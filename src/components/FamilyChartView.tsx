@@ -47,9 +47,9 @@ const SCALE_LAYOUT: Record<
   TextScaleId,
   { w: number; h: number; xSpace: number; ySpace: number; font: number }
 > = {
-  normal: { w: 236, h: 100, xSpace: 286, ySpace: 330, font: 13 },
-  large: { w: 276, h: 120, xSpace: 336, ySpace: 370, font: 16 },
-  xlarge: { w: 316, h: 138, xSpace: 386, ySpace: 410, font: 18 },
+  normal: { w: 252, h: 118, xSpace: 304, ySpace: 348, font: 15 },
+  large: { w: 292, h: 136, xSpace: 354, ySpace: 388, font: 18 },
+  xlarge: { w: 332, h: 154, xSpace: 404, ySpace: 428, font: 20 },
 };
 
 /** Minimum zoom when jumping to a searched person, so the card stays readable */
@@ -266,17 +266,21 @@ export function FamilyChartView({
   const paintOverviewOverlay = (k: number, x: number, y: number) => {
     const overlay = overlayRef.current;
     if (!overlay) return;
-    const opacity = overviewOpacity(k);
-    overlay.style.opacity = String(opacity);
+    const branchOpacity = overviewOpacity(k);
+    const hasGens = gensRef.current.length > 0;
+    const hasBranches = labelsRef.current.length > 0;
+    overlay.style.opacity = "1";
     overlay.style.pointerEvents = "none";
-    overlay.hidden = opacity <= 0.02;
+    overlay.hidden = !hasGens && !hasBranches;
     const placed: { x: number; y: number }[] = [];
     const sorted = [...labelsRef.current].sort((a, b) => b.count - a.count);
     overlay.querySelectorAll<HTMLElement>("[data-branch-id]").forEach((el) => {
       const id = el.dataset.branchId;
       const label = sorted.find((item) => item.id === id);
-      if (!label) {
+      if (!label || branchOpacity <= 0.02) {
         el.style.visibility = "hidden";
+        el.style.opacity = "0";
+        el.style.pointerEvents = "none";
         return;
       }
       const screenX = label.x * k + x;
@@ -291,10 +295,14 @@ export function FamilyChartView({
       );
       if (overlaps && k < 0.4) {
         el.style.visibility = "hidden";
+        el.style.opacity = "0";
+        el.style.pointerEvents = "none";
         return;
       }
       placed.push({ x: screenX, y: screenY });
       el.style.visibility = "visible";
+      el.style.opacity = String(branchOpacity);
+      el.style.pointerEvents = "auto";
       el.style.width = `${screenW}px`;
       el.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
     });
@@ -313,6 +321,7 @@ export function FamilyChartView({
       }
       genPlaced.push(screenY);
       el.style.visibility = "visible";
+      el.style.opacity = "1";
       el.style.transform = `translateY(${screenY}px) translateY(-50%)`;
     });
   };
@@ -835,7 +844,7 @@ export function FamilyChartView({
         ref={overlayRef}
         className="chart-overview"
         hidden
-        aria-hidden={branchLabels.length === 0}
+        aria-hidden={branchLabels.length === 0 && generationBands.length === 0}
       >
         <div className="chart-overview__gens" aria-hidden>
           {generationBands.map((band) => (
@@ -843,6 +852,7 @@ export function FamilyChartView({
               key={band.key}
               className="chart-gen-label"
               data-gen-key={band.key}
+              data-testid="chart-gen-label"
             >
               {band.label}
             </span>

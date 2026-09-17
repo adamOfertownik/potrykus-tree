@@ -70,6 +70,16 @@ test("zoomed-out tree shows branch headers and zooming into one", async ({
     "data-tree-pan",
     "drag",
   );
+  await expect.poll(async () => {
+    const k = await page.evaluate(() => {
+      type Z = { __zoom?: { k?: number }; parentElement?: Z | null };
+      const svg = document.querySelector("#FamilyChart svg") as Z | null;
+      const parent = svg?.parentElement ?? null;
+      return svg?.__zoom?.k ?? parent?.__zoom?.k ?? 0;
+    });
+    return k;
+  }).toBeGreaterThan(0.5);
+  await expect(page.getByTestId("chart-gen-label").first()).toBeVisible();
   await ctx.close();
 });
 
@@ -143,5 +153,12 @@ test("phone portrait width-fits and keeps one-finger taps off the map", async ({
   expect(Math.abs(after.x - before.x)).toBeLessThan(12);
   expect(Math.abs(after.y - before.y)).toBeLessThan(12);
   expect(Math.abs(after.k - before.k)).toBeLessThan(0.01);
+
+  const labels = page.getByTestId("chart-branch-label");
+  const visible = labels.filter({ visible: true });
+  await expect(visible.first()).toBeVisible();
+  await visible.first().click({ force: true });
+  await expect.poll(async () => (await zoomOf()).k).toBeGreaterThan(0.5);
+  await expect(page.getByTestId("chart-gen-label").first()).toBeVisible();
   await ctx.close();
 });

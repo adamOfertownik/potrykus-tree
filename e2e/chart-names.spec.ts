@@ -42,5 +42,8 @@ test("tree cards show full two-line names without ellipsis", async ({
   await expect(card).toContainText("Potrykus");
   const text = (await card.innerText()) ?? "";
   expect(text).not.toMatch(/…|\.\.\./);
+  const name = card.locator(":scope > div").first();
+  const fontSize = await name.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  expect(fontSize).toBeGreaterThanOrEqual(18);
   await ctx.close();
 });

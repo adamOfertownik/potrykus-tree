@@ -216,6 +216,7 @@ export function overviewVisible(zoom: number): boolean {
   return zoom < 0.48;
 }
 
+/** Branch headers fade when zooming in. Generation labels stay visible. */
 export function overviewOpacity(zoom: number): number {
   if (zoom >= 0.5) return 0;
   if (zoom <= 0.32) return 1;
