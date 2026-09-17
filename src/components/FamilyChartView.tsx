@@ -283,11 +283,22 @@ export function FamilyChartView({
       el.style.width = `${screenW}px`;
       el.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
     });
+    const genPlaced: number[] = [];
     overlay.querySelectorAll<HTMLElement>("[data-gen-key]").forEach((el) => {
       const key = el.dataset.genKey;
       const band = gensRef.current.find((item) => item.key === key);
-      if (!band) return;
-      el.style.transform = `translateY(${band.y * k + y}px) translateY(-50%)`;
+      if (!band) {
+        el.style.visibility = "hidden";
+        return;
+      }
+      const screenY = band.y * k + y;
+      if (genPlaced.some((prev) => Math.abs(prev - screenY) < 22)) {
+        el.style.visibility = "hidden";
+        return;
+      }
+      genPlaced.push(screenY);
+      el.style.visibility = "visible";
+      el.style.transform = `translateY(${screenY}px) translateY(-50%)`;
     });
   };
 
@@ -437,18 +448,22 @@ export function FamilyChartView({
       });
       separateChartLinks(el);
     };
+    let overviewTimer = 0;
     const refreshOverview = () => {
-      const nodes = nodesFromChartTree(
-        chart.store.getTree?.() as { data?: unknown[] } | undefined,
-      );
-      const nextLabels = pickBranchLabels(nodes, peopleRef.current);
-      const nextGens = pickGenerationBands(nodes);
-      labelsRef.current = nextLabels;
-      gensRef.current = nextGens;
-      setBranchLabels(nextLabels);
-      setGenerationBands(nextGens);
-      const view = currentView();
-      if (view) paintOverviewOverlay(view.k, view.x, view.y);
+      window.clearTimeout(overviewTimer);
+      overviewTimer = window.setTimeout(() => {
+        const nodes = nodesFromChartTree(
+          chart.store.getTree?.() as { data?: unknown[] } | undefined,
+        );
+        const nextLabels = pickBranchLabels(nodes, peopleRef.current);
+        const nextGens = pickGenerationBands(nodes);
+        labelsRef.current = nextLabels;
+        gensRef.current = nextGens;
+        setBranchLabels(nextLabels);
+        setGenerationBands(nextGens);
+        const view = currentView();
+        if (view) paintOverviewOverlay(view.k, view.x, view.y);
+      }, 80);
     };
 
     chart.afterUpdate = () => {
@@ -600,6 +615,7 @@ export function FamilyChartView({
       cancelInitialFocus?.();
       window.cancelAnimationFrame(zoomAnimRef.current);
       window.clearTimeout(linkTimer);
+      window.clearTimeout(overviewTimer);
       el.removeEventListener("pointerdown", onPlusPointerDown, capture);
       window.removeEventListener("pointerup", onPlusPointerUp, capture);
       window.removeEventListener("pointercancel", onPlusPointerCancel, capture);
