@@ -306,6 +306,14 @@ function AppShellInner({
         <footer className="app-footer">
           Twórca: Adam Lieske · dostęp kodem rodzinnym
           {" · "}
+          <Link href="/regulamin" className="app-footer__link">
+            Regulamin
+          </Link>
+          {" · "}
+          <Link href="/polityka-prywatnosci" className="app-footer__link">
+            Prywatność
+          </Link>
+          {" · "}
           <button
             type="button"
             className="app-footer__link"

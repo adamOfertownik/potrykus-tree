@@ -161,7 +161,7 @@ textarea:focus-visible {
 
 .gate-panel {
   position: relative;
-  width: min(440px, 100%);
+  width: min(460px, 100%);
   padding: 2.5rem 2rem 2rem;
   background: color-mix(in srgb, var(--panel) 92%, white);
   border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
@@ -241,7 +241,30 @@ textarea:focus-visible {
 
 .gate-cta:disabled {
   opacity: 0.7;
-  cursor: wait;
+  cursor: not-allowed;
+}
+
+.gate-accept {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.15rem 0 0.2rem;
+  text-align: left;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.gate-accept input {
+  width: auto;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.gate-accept a {
+  color: var(--accent-strong);
+  font-weight: 650;
 }
 
 .gate-error {
@@ -267,6 +290,74 @@ textarea:focus-visible {
   text-align: left;
   font-size: 0.85rem;
   color: var(--ink-soft);
+}
+
+.legal-page {
+  min-height: 100dvh;
+  padding: 1.5rem 1.1rem 3rem;
+  background: var(--bg);
+}
+
+.legal-page__inner {
+  width: min(42rem, 100%);
+  margin: 0 auto;
+}
+
+.legal-page__brand {
+  margin: 0 0 1rem;
+  font-family: var(--font-display-stack);
+  font-size: 1.6rem;
+  letter-spacing: -0.03em;
+}
+
+.legal-page__brand a {
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+.legal-page h1 {
+  margin: 0;
+  font-size: 1.7rem;
+  line-height: 1.2;
+}
+
+.legal-page__meta {
+  margin: 0.6rem 0 1.4rem;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.legal-page__body h2 {
+  margin: 1.4rem 0 0.45rem;
+  font-size: 1.05rem;
+}
+
+.legal-page__body p,
+.legal-page__body li {
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.legal-page__body ul {
+  margin: 0.35rem 0 0.7rem;
+  padding-left: 1.2rem;
+}
+
+.legal-page__body li {
+  margin: 0.25rem 0;
+}
+
+.legal-page__nav {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.legal-page__nav a {
+  color: var(--accent-strong);
+  font-weight: 650;
 }
 
 /* ——— Shell ——— */
