@@ -55,6 +55,7 @@ test("statystyki show Franciszek branches and insights", async ({ browser }) => 
   await expect(page.locator(".tree-focus-bar")).toContainText(/Franciszek/i);
   const bar = page.getByTestId("meeting-branch-bar");
   await expect(bar).toBeVisible();
+  await expect(bar).toHaveAttribute("data-who-visible", "true");
   for (const name of [
     "Helena",
     "Władek",
@@ -69,6 +70,24 @@ test("statystyki show Franciszek branches and insights", async ({ browser }) => 
   ]) {
     await expect(bar.locator(".meeting-branch-chips li").filter({ hasText: name })).toHaveCount(1);
   }
+  await page.getByTestId("meeting-who-toggle").click();
+  await expect(bar).toHaveAttribute("data-who-visible", "false");
+  await expect(bar).toContainText("Kto będzie na spotkaniu");
+  await expect(bar.locator(".meeting-branch-chips")).toHaveCount(0);
+  await page.reload();
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
+  await expect(page.getByTestId("meeting-branch-bar")).toHaveAttribute(
+    "data-who-visible",
+    "false",
+  );
+  await page.getByTestId("meeting-who-toggle").click();
+  await expect(page.getByTestId("meeting-branch-bar")).toHaveAttribute(
+    "data-who-visible",
+    "true",
+  );
+  await expect(page.getByTestId("meeting-branch-bar")).toContainText(
+    /Na spotkaniu/,
+  );
   await ctx.close();
 });
 
@@ -83,6 +102,20 @@ test("spotkanie lists signup branches at the bottom only", async ({
   await expect(page.getByRole("heading", { name: "Zapisy od kogo" })).toBeVisible();
   await expect(page.getByTestId("meeting-family-groups")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Gałęzie od dzieci Franciszka" })).toHaveCount(0);
+  await expect(page.getByText("Kto będzie — od kogo")).toBeVisible();
+  const whoToggle = page.getByTestId("meeting-who-toggle");
+  await expect(whoToggle).toHaveAttribute("aria-expanded", "true");
+  await whoToggle.click();
+  await expect(page.getByTestId("meeting-who-block")).toHaveAttribute(
+    "data-who-visible",
+    "false",
+  );
+  await expect(page.getByText("Lista imion jest ukryta")).toBeVisible();
+  await page.getByTestId("meeting-who-toggle").click();
+  await expect(page.getByTestId("meeting-who-block")).toHaveAttribute(
+    "data-who-visible",
+    "true",
+  );
   const signup = page.getByTestId("meeting-from-franciszek");
   const list = page.getByRole("heading", { name: /Lista zapisanych/ });
   await expect(list).toBeVisible();

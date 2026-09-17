@@ -95,6 +95,7 @@ test("zoomed-out tree shows branch headers and drilling into one", async ({
   await expect(
     labels.filter({ visible: true }).filter({ hasText: before }),
   ).toHaveCount(0);
+  await expect(page.getByTestId("chart-gen-label").first()).toBeVisible();
   await ctx.close();
 });
 
@@ -194,5 +195,13 @@ test("phone portrait width-fits and keeps one-finger taps off the map", async ({
   expect(Math.abs(after.x - before.x)).toBeLessThan(12);
   expect(Math.abs(after.y - before.y)).toBeLessThan(12);
   expect(Math.abs(after.k - before.k)).toBeLessThan(0.01);
+
+  const labels = page.getByTestId("chart-branch-label");
+  const visible = labels.filter({ visible: true });
+  await expect(visible.first()).toBeVisible();
+  await expect(page.getByTestId("chart-gen-label").first()).toBeVisible();
+  await visible.first().click({ force: true });
+  await expect(page).toHaveURL(/[?&]root=/);
+  await expect(page.getByTestId("chart-gen-label").first()).toBeVisible();
   await ctx.close();
 });
