@@ -283,6 +283,18 @@ export function FamilyChartView({
     const chart = f3.createChart(el, data);
     chart.setTransitionTime(250);
     chart.setSingleParentEmptyCard(false);
+    chart.setSortChildrenFunction((a, b) => {
+      const aDate = String(a.data.birthday ?? "").trim();
+      const bDate = String(b.data.birthday ?? "").trim();
+      if (aDate !== bDate) {
+        if (!aDate) return 1;
+        if (!bDate) return -1;
+        return aDate.localeCompare(bDate);
+      }
+      const aName = `${a.data["last name"] ?? ""} ${a.data["first name"] ?? ""}`;
+      const bName = `${b.data["last name"] ?? ""} ${b.data["first name"] ?? ""}`;
+      return String(aName).localeCompare(String(bName), "pl");
+    });
     chart.setShowSiblingsOfMain(true);
     chart.setAncestryDepth(100);
     chart.setProgenyDepth(100);

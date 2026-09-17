@@ -12,7 +12,7 @@ import { useAdminAuthStatus } from "@/lib/hooks";
 import { describeKinship } from "@/lib/kinship";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
 import { findRelationConflicts } from "@/lib/relationConflicts";
-import { getChildrenIds } from "@/lib/tree";
+import { comparePeopleByBirth, getChildrenIds } from "@/lib/tree";
 import type { Person } from "@/types/family";
 
 function PersonInner({
@@ -37,15 +37,19 @@ function PersonInner({
   const byId = new Map(people.map((p) => [p.id, p]));
   const parents = person.parentIds.map((pid) => byId.get(pid)).filter(Boolean);
   const spouses = person.spouseIds.map((pid) => byId.get(pid)).filter(Boolean);
-  const children = people.filter((p) => p.parentIds.includes(person.id));
+  const children = people
+    .filter((p) => p.parentIds.includes(person.id))
+    .sort(comparePeopleByBirth);
   const siblings =
     person.parentIds.length === 0
       ? []
-      : people.filter(
-          (p) =>
-            p.id !== person.id &&
-            p.parentIds.some((pid) => person.parentIds.includes(pid)),
-        );
+      : people
+          .filter(
+            (p) =>
+              p.id !== person.id &&
+              p.parentIds.some((pid) => person.parentIds.includes(pid)),
+          )
+          .sort(comparePeopleByBirth);
 
   const meId = identity?.personId;
   const kinship =
