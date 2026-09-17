@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { isSessionValid } from "@/lib/auth";
 import { appendRsvp, readEvent, readRsvps } from "@/lib/event";
-import {
-  amountDuePln,
-  totalGuests,
-} from "@/lib/eventPricing";
+import { isActiveRsvp } from "@/lib/eventAttending";
+import { amountDuePln, totalGuests } from "@/lib/eventPricing";
 import { storageMode } from "@/lib/sql";
 import { rsvpPayloadSchema } from "@/lib/validation";
 import type { EventRsvp } from "@/types/event";
@@ -16,32 +14,34 @@ export async function GET() {
   }
 
   const [event, rsvps] = await Promise.all([readEvent(), readRsvps()]);
-  const appGuests = rsvps.reduce((sum, r) => sum + (r.guests || 1), 0);
-  const guestTotal = event.registeredCount + appGuests;
+  const active = rsvps.filter(isActiveRsvp);
+  const guestTotal = active.reduce((sum, r) => sum + (r.guests || 1), 0);
   const spotsLeft = Math.max(0, event.capacity - guestTotal);
-  const amountTotal = rsvps.reduce((sum, r) => sum + (r.amountPln || 0), 0);
+  const amountTotal = active.reduce((sum, r) => sum + (r.amountPln || 0), 0);
   const mode = storageMode();
 
   return NextResponse.json({
     storage: mode,
     event,
     stats: {
-      rsvpCount: event.registeredCount + rsvps.length,
+      rsvpCount: active.length,
       guestTotal,
       capacity: event.capacity,
       spotsLeft,
       amountTotal,
     },
-    rsvps: rsvps.map((r) => ({
+    rsvps: active.map((r) => ({
       id: r.id,
       createdAt: r.createdAt,
       fullName: r.fullName,
+      personId: r.personId,
       guests: r.guests,
       adults: r.adults,
       children3to12: r.children3to12,
       childrenUnder3: r.childrenUnder3,
       amountPln: r.amountPln,
       willTransfer: r.willTransfer,
+      earlyArrival: r.earlyArrival,
     })),
   });
 }
@@ -67,9 +67,15 @@ export async function POST(request: Request) {
       children3to12: body.children3to12,
       childrenUnder3: body.childrenUnder3,
     };
+    const early = {
+      earlyArrival: body.earlyArrival,
+      earlyArrivalOver7: body.earlyArrivalOver7,
+      earlyArrivalUnder7: body.earlyArrivalUnder7,
+    };
     const guests = totalGuests(breakdown);
-    const appGuests = existing.reduce((sum, r) => sum + (r.guests || 1), 0);
-    const taken = event.registeredCount + appGuests;
+    const taken = existing
+      .filter(isActiveRsvp)
+      .reduce((sum, r) => sum + (r.guests || 1), 0);
     if (taken + guests > event.capacity) {
       const left = Math.max(0, event.capacity - taken);
       return NextResponse.json(
@@ -82,7 +88,7 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     }
-    const amountPln = amountDuePln(breakdown, event.pricePerPersonPln);
+    const amountPln = amountDuePln(breakdown, event.pricePerPersonPln, early);
 
     const draft: EventRsvp = {
       id: `rsvp-${Date.now()}`,
@@ -97,6 +103,9 @@ export async function POST(request: Request) {
       amountPln,
       notes: body.notes || undefined,
       willTransfer: body.willTransfer,
+      earlyArrival: body.earlyArrival,
+      earlyArrivalOver7: body.earlyArrivalOver7,
+      earlyArrivalUnder7: body.earlyArrivalUnder7,
       status: "new",
     };
 

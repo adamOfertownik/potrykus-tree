@@ -19,6 +19,7 @@
   --text-scale: 1;
   --touch: 2.75rem; /* ~44px at 16px — senior-friendly tap target */
   --app-header-h: 3.25rem;
+  --attending: #e67a22;
 }
 
 @theme inline {
@@ -1024,6 +1025,20 @@ textarea:focus-visible {
   font-size: var(--f3-card-font, 13px) !important;
 }
 
+.family-chart-host .card_cont.is-attending .card,
+.family-chart-host .card_cont.is-attending .card-inner,
+.family-chart-host .card_cont.is-attending .card-rect {
+  outline: 3px solid var(--attending);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--attending) 32%, transparent);
+}
+
+.family-chart-host g.card_cont.is-attending .card-outline,
+.family-chart-host g.card_cont.is-attending .card-body-rect {
+  stroke: var(--attending);
+  stroke-width: 4px;
+}
+
 .family-chart-host .card_cont.is-chart-highlight .card,
 .family-chart-host .card_cont.is-chart-highlight .card-inner,
 .family-chart-host .card_cont.is-chart-highlight .card-rect {
@@ -1271,6 +1286,20 @@ textarea:focus-visible {
   border-radius: 999px;
   background: color-mix(in srgb, var(--panel) 92%, transparent);
   backdrop-filter: blur(4px);
+}
+
+.attending-legend {
+  pointer-events: auto;
+  align-self: center;
+  padding: 0.32rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: #9a4b12;
+  background: color-mix(in srgb, var(--attending) 18%, white);
+  border: 1px solid color-mix(in srgb, var(--attending) 50%, white);
+  border-radius: 999px;
+  max-width: 16rem;
+  line-height: 1.25;
 }
 
 .tree-wind {
@@ -1676,6 +1705,28 @@ textarea:focus-visible {
   outline: 1px solid color-mix(in srgb, var(--accent) 35%, white);
 }
 
+.genealogy-item.is-attending .genealogy-content {
+  outline: 2px solid var(--attending);
+  outline-offset: 1px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--attending) 8%, white);
+}
+
+.attending-pill {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #9a4b12;
+  background: color-mix(in srgb, var(--attending) 18%, white);
+  border: 1px solid color-mix(in srgb, var(--attending) 45%, white);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
 .genealogy-item.is-spouse {
   color: var(--ink-soft);
 }
@@ -1892,6 +1943,18 @@ textarea:focus-visible {
   font-family: var(--font-display-stack);
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   letter-spacing: -0.02em;
+}
+
+.attending-banner {
+  display: inline-block;
+  margin: 0.15rem 0 0.4rem;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #9a4b12;
+  background: color-mix(in srgb, var(--attending) 16%, white);
+  border: 2px solid var(--attending);
+  border-radius: 999px;
 }
 
 .person-detail__maiden,
@@ -2904,6 +2967,41 @@ textarea:focus-visible {
   color: var(--ink-soft);
   font-size: 0.9rem;
   line-height: 1.4;
+}
+
+.event-photos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.event-photos li {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem 0.95rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--attending) 10%, white), white);
+  border: 1px solid color-mix(in srgb, var(--attending) 28%, var(--line));
+  border-radius: 14px;
+}
+
+.event-photos strong {
+  font-size: 1rem;
+  color: var(--accent-strong);
+}
+
+.event-photos a {
+  color: var(--accent);
+  font-weight: 650;
+  word-break: break-all;
+  text-decoration: underline;
+}
+
+.event-photos .transfer-copy {
+  justify-self: start;
+  margin-top: 0.15rem;
 }
 
 .event-schedule {

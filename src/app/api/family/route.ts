@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { isSessionValid } from "@/lib/auth";
 import { readFamilyDb, toFamilyPayload } from "@/lib/db";
+import { readRsvps } from "@/lib/event";
+import { resolveAttendingPersonIds } from "@/lib/eventAttending";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +16,17 @@ export async function GET() {
   }
 
   const db = await readFamilyDb();
-  return NextResponse.json(toFamilyPayload(db), {
-    headers: { "Cache-Control": "no-store" },
-  });
+  const payload = toFamilyPayload(db);
+  let attendingPersonIds: string[] = [];
+  try {
+    attendingPersonIds = resolveAttendingPersonIds(await readRsvps(), db.people);
+  } catch {
+    attendingPersonIds = [];
+  }
+  return NextResponse.json(
+    { ...payload, attendingPersonIds },
+    {
+      headers: { "Cache-Control": "no-store" },
+    },
+  );
 }

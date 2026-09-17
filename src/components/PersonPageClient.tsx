@@ -10,7 +10,15 @@ import { describeKinship } from "@/lib/kinship";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
 import type { Person } from "@/types/family";
 
-function PersonInner({ id, people }: { id: string; people: Person[] }) {
+function PersonInner({
+  id,
+  people,
+  attendingPersonIds,
+}: {
+  id: string;
+  people: Person[];
+  attendingPersonIds: string[];
+}) {
   const { identity } = useIdentity();
   const admin = useAdminAuthStatus();
   const person = people.find((p) => p.id === id);
@@ -48,6 +56,9 @@ function PersonInner({ id, people }: { id: string; people: Person[] }) {
         <PersonPhotoControl person={person} size="lg" mode={admin.data?.loggedIn ? "admin" : "suggest"} />
         <div>
           <h1>{displayName(person, people)}</h1>
+          {attendingPersonIds.includes(person.id) && (
+            <p className="attending-banner">Na spotkaniu rodzinnym</p>
+          )}
           {person.maidenName && (
             <p className="person-detail__maiden">
               Nazwisko rodowe: {person.maidenName}
@@ -168,7 +179,13 @@ function PersonInner({ id, people }: { id: string; people: Person[] }) {
 export function PersonPageClient({ id }: { id: string }) {
   return (
     <AuthedPage loadingLabel="Wczytywanie osoby…">
-      {({ people }) => <PersonInner id={id} people={people} />}
+      {({ people, family }) => (
+        <PersonInner
+          id={id}
+          people={people}
+          attendingPersonIds={family.attendingPersonIds ?? []}
+        />
+      )}
     </AuthedPage>
   );
 }

@@ -152,6 +152,9 @@ export const rsvpPayloadSchema = z
     guests: z.coerce.number().int().min(1).max(20).optional(),
     notes: z.string().trim().max(1000).optional(),
     willTransfer: z.boolean().default(false),
+    earlyArrival: z.boolean().optional().default(false),
+    earlyArrivalOver7: z.coerce.number().int().min(0).max(20).optional().default(0),
+    earlyArrivalUnder7: z.coerce.number().int().min(0).max(20).optional().default(0),
   })
   .superRefine((v, ctx) => {
     const children3 = v.children3to12 ?? 0;
@@ -196,6 +199,9 @@ export const rsvpPayloadSchema = z
       childrenUnder3,
       notes: v.notes,
       willTransfer: v.willTransfer,
+      earlyArrival: Boolean(v.earlyArrival),
+      earlyArrivalOver7: v.earlyArrival ? (v.earlyArrivalOver7 ?? 0) : 0,
+      earlyArrivalUnder7: v.earlyArrival ? (v.earlyArrivalUnder7 ?? 0) : 0,
     };
   });
 

@@ -129,6 +129,7 @@ export function TreePageClient() {
                   people={people}
                   mainId={effectiveRoot}
                   highlightId={highlightId}
+                  attendingPersonIds={family.attendingPersonIds}
                   overview={!viewRoot}
                   onHighlight={setHighlightId}
                   onFocusBranch={focusBranch}

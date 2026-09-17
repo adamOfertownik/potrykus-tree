@@ -19,6 +19,11 @@ export interface EventScheduleItem {
   detail: string;
 }
 
+export interface EventPhotos {
+  email: string;
+  driveUrl: string;
+}
+
 export interface FamilyEvent {
   title: string;
   date: string;
@@ -35,6 +40,7 @@ export interface FamilyEvent {
   capacity: number;
   amenities: EventAmenity[];
   schedule: EventScheduleItem[];
+  photos?: EventPhotos;
   transfer: EventTransfer;
   rsvpDeadline?: string;
   contactNote?: string;
@@ -54,6 +60,9 @@ export interface EventRsvp {
   amountPln: number;
   notes?: string;
   willTransfer: boolean;
+  earlyArrival?: boolean;
+  earlyArrivalOver7?: number;
+  earlyArrivalUnder7?: number;
   status: "new" | "confirmed" | "cancelled" | "local_only";
 }
 
@@ -66,4 +75,7 @@ export interface RsvpPayload {
   childrenUnder3: number;
   notes?: string;
   willTransfer: boolean;
+  earlyArrival?: boolean;
+  earlyArrivalOver7?: number;
+  earlyArrivalUnder7?: number;
 }

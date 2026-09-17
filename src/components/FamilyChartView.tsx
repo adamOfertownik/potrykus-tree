@@ -16,6 +16,8 @@ type Props = {
   mainId: string;
   /** Person to highlight without changing what the tree shows */
   highlightId?: string | null;
+  /** People with an RSVP for the family gathering (orange border) */
+  attendingPersonIds?: string[];
   /** Full-tree view: fit every generation instead of centering on main */
   overview?: boolean;
   /** Called when a card is tapped — the tree itself stays untouched */
@@ -92,6 +94,7 @@ export function FamilyChartView({
   people,
   mainId,
   highlightId = null,
+  attendingPersonIds = [],
   overview = false,
   onHighlight,
   onFocusBranch,
@@ -107,6 +110,7 @@ export function FamilyChartView({
   const peopleRef = useRef(people);
   const mainIdRef = useRef(mainId);
   const highlightRef = useRef<string | null>(highlightId);
+  const attendingRef = useRef(new Set(attendingPersonIds));
   /** Set when the highlight came from a tap — no need to slide the view then */
   const skipPanRef = useRef<string | null>(null);
 
@@ -124,6 +128,7 @@ export function FamilyChartView({
     peopleRef.current = people;
     mainIdRef.current = mainId;
     highlightRef.current = highlightId;
+    attendingRef.current = new Set(attendingPersonIds);
   });
 
   /** Bars above the canvas come and go — keep it inside the window */
@@ -169,6 +174,20 @@ export function FamilyChartView({
     // Both the svg group and the html wrapper can back one person
     findCardNodes(id).forEach((node) => {
       node.classList.add("is-chart-highlight");
+    });
+  };
+
+  const applyAttending = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.querySelectorAll(".card_cont").forEach((node) => {
+      const datum = (node as Element & { __data__?: { data?: { id?: string } } })
+        .__data__;
+      const id = datum?.data?.id;
+      node.classList.toggle(
+        "is-attending",
+        Boolean(id && attendingRef.current.has(id)),
+      );
     });
   };
 
@@ -227,6 +246,7 @@ export function FamilyChartView({
     skipPanRef.current = id;
     highlightRef.current = id;
     applyHighlight();
+    applyAttending();
     setSelected(person);
     onHighlight?.(id);
   };
@@ -262,6 +282,7 @@ export function FamilyChartView({
         path.setAttribute("fill", "none");
       });
       applyHighlight();
+      applyAttending();
     };
 
     const card = chart.setCardHtml();
@@ -312,6 +333,7 @@ export function FamilyChartView({
 
       const photo = this.querySelector("img");
       if (photo) bindChartPhotoFallback(photo);
+      this.classList.toggle("is-attending", attendingRef.current.has(id));
     });
 
     chart.updateMainId(safeMain);
@@ -377,6 +399,7 @@ export function FamilyChartView({
       chart.updateTree({ tree_position: "fit" });
       const timer = window.setTimeout(() => {
         applyHighlight();
+        applyAttending();
         panToCard(keep);
       }, 280);
       return () => window.clearTimeout(timer);
@@ -393,6 +416,7 @@ export function FamilyChartView({
     if (!chartRef.current) return;
     highlightRef.current = highlightId;
     applyHighlight();
+    applyAttending();
     if (!highlightId) return;
     if (skipPanRef.current === highlightId) {
       // Tapped card is already on screen
@@ -402,12 +426,18 @@ export function FamilyChartView({
     const timer = window.setTimeout(() => {
       const status = panToCard(highlightId);
       applyHighlight();
+      applyAttending();
       // Only re-root when the person really is outside the rendered tree
       if (status === "missing") onHighlightMissing?.(highlightId);
     }, 80);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightId, peopleSig, scale]);
+
+  useEffect(() => {
+    attendingRef.current = new Set(attendingPersonIds);
+    applyAttending();
+  }, [attendingPersonIds, peopleSig]);
 
   /** Zoom out until every generation fits inside the visible canvas */
   const fitWholeTree = () => {
@@ -483,6 +513,11 @@ export function FamilyChartView({
             <span className="only-narrow">◎ Podświetlona</span>
             <span className="only-wide">◎ Wróć do podświetlonej osoby</span>
           </button>
+        )}
+        {attendingPersonIds.length > 0 && (
+          <span className="attending-legend" title="Osoby zapisane na spotkanie rodzinne">
+            Pomarańczowa ramka — idą na spotkanie
+          </span>
         )}
       </div>
 

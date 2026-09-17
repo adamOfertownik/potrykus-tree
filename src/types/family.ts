@@ -42,4 +42,6 @@ export interface FamilyPayload {
   meta: FamilyDatabase["meta"];
   people: PersonPublic[];
   unlocked: boolean;
+  /** People from the tree who RSVP'd to the family gathering */
+  attendingPersonIds?: string[];
 }

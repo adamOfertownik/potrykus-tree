@@ -25,9 +25,11 @@ function scrollToListPerson(id: string) {
 function ListInner({
   people,
   rootId,
+  attendingPersonIds,
 }: {
   people: Person[];
   rootId: string;
+  attendingPersonIds: string[];
 }) {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [selected, setSelected] = useState<Person | null>(null);
@@ -35,6 +37,11 @@ function ListInner({
   const entries = useMemo(
     () => (people.length ? buildCompleteFamilyList(people, rootId) : []),
     [people, rootId],
+  );
+
+  const attending = useMemo(
+    () => new Set(attendingPersonIds),
+    [attendingPersonIds],
   );
 
   const closeSelected = useCallback(() => setSelected(null), []);
@@ -87,7 +94,8 @@ function ListInner({
           <p>
             Te same osoby co na drzewie — wszyscy z bazy Neon, w hierarchii
             od najstarszych przodków. PDF pobierzesz z menu u góry. Plus przy
-            osobie dodaje dziecko, partnera albo przenosi gałąź.
+            osobie dodaje dziecko, partnera albo przenosi gałąź. Pomarańczowa
+            ramka oznacza zapis na spotkanie rodzinne.
           </p>
         </header>
 
@@ -97,6 +105,7 @@ function ListInner({
             const death = formatPolishDate(entry.person.deathDate);
             const depth = Math.floor(entry.railDepth);
             const isHighlight = highlightId === entry.person.id;
+            const isAttending = attending.has(entry.person.id);
 
             return (
               <li
@@ -112,6 +121,7 @@ function ListInner({
                   entry.isSpouse ? "is-spouse" : "is-person",
                   entry.isLast ? "is-last" : "",
                   isHighlight ? "is-highlight" : "",
+                  isAttending ? "is-attending" : "",
                 ]
                   .filter(Boolean)
                   .join(" ")}
@@ -150,6 +160,9 @@ function ListInner({
                     >
                       {displayName(entry.person, people)}
                     </Link>
+                    {isAttending && (
+                      <span className="attending-pill">spotkanie</span>
+                    )}
                     {birth && (
                       <span className="genealogy-date"> u. {birth}</span>
                     )}
@@ -210,7 +223,11 @@ export function ListPageClient() {
   return (
     <AuthedPage loadingLabel="Wczytywanie listy…">
       {({ people, family }) => (
-        <ListInner people={people} rootId={family.meta.rootPersonId ?? ""} />
+        <ListInner
+          people={people}
+          rootId={family.meta.rootPersonId ?? ""}
+          attendingPersonIds={family.attendingPersonIds ?? []}
+        />
       )}
     </AuthedPage>
   );

@@ -174,3 +174,67 @@ test("kinship and birthdays pages load", async ({ browser }) => {
   });
   await ctx.close();
 });
+
+test("spotkanie shows live signup count, price 240 and photo drop", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.goto("/spotkanie");
+  await expect(
+    page.getByRole("heading", { name: /Spotkanie rodziny/ }),
+  ).toBeVisible({
+    timeout: 20000,
+  });
+  await expect(page.getByText(/240\s*zł/).first()).toBeVisible();
+  await expect(page.getByText(/\/ 200 miejsc/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Prześlij zdjęcia rodzinne" }),
+  ).toBeVisible();
+  await expect(page.getByText("maciej.lieder@gmail.com")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Wstaw zdjęcia tutaj" }),
+  ).toHaveAttribute("href", /drive\.google\.com/);
+  await expect(page.getByText("Od 14:00 możliwe zakwaterowanie.")).toBeVisible();
+  await expect(page.getByText("Serwis szynki pieczonej")).toBeVisible();
+  await ctx.close();
+});
+
+test("attendees get orange border on list when family API marks them", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as { attendingPersonIds?: string[] };
+  const attending = payload.attendingPersonIds ?? [];
+  if (attending.length === 0) {
+    await ctx.close();
+    return;
+  }
+  await page.goto("/lista");
+  await expect(page.locator(".genealogy-item.is-attending").first()).toBeVisible({
+    timeout: 20000,
+  });
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.locator(".card_cont.is-attending").first()).toBeVisible({
+    timeout: 15000,
+  });
+  await ctx.close();
+});
