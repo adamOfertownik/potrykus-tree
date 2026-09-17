@@ -19,6 +19,11 @@ export interface EventScheduleItem {
   detail: string;
 }
 
+export interface EventPhotos {
+  email: string;
+  driveUrl: string;
+}
+
 export interface FamilyEvent {
   title: string;
   date: string;
@@ -29,12 +34,15 @@ export interface FamilyEvent {
   description: string;
   organizers: string[];
   pricePerPersonPln: number;
+  /** Half-price for children aged 3–7 */
+  priceUnder7Pln?: number;
   /** Already registered outside the app (shown in stats) */
   registeredCount: number;
   /** Max people for the gathering */
   capacity: number;
   amenities: EventAmenity[];
   schedule: EventScheduleItem[];
+  photos?: EventPhotos;
   transfer: EventTransfer;
   rsvpDeadline?: string;
   contactNote?: string;
@@ -54,6 +62,14 @@ export interface EventRsvp {
   amountPln: number;
   notes?: string;
   willTransfer: boolean;
+  /** Admin-only: marked as paid (transfer or cash received) */
+  paid?: boolean;
+  earlyArrival?: boolean;
+  earlyArrivalOver7?: number;
+  earlyArrivalUnder7?: number;
+  /** Tree people this RSVP covers (payer + family) */
+  coveredPersonIds?: string[];
+  source?: "form" | "admin";
   status: "new" | "confirmed" | "cancelled" | "local_only";
 }
 
@@ -66,4 +82,8 @@ export interface RsvpPayload {
   childrenUnder3: number;
   notes?: string;
   willTransfer: boolean;
+  earlyArrival?: boolean;
+  earlyArrivalOver7?: number;
+  earlyArrivalUnder7?: number;
+  coveredPersonIds?: string[];
 }

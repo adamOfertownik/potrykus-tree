@@ -8,6 +8,7 @@ export interface Person {
   gender: Gender;
   birthDate?: string;
   deathDate?: string;
+  weddingDate?: string;
   photoUrl?: string;
   phone?: string;
   notes?: string;
@@ -15,6 +16,8 @@ export interface Person {
   parentIds: string[];
   /** Spouse / partner person IDs */
   spouseIds: string[];
+  /** Client-only: staged locally, not yet accepted into the tree */
+  pending?: boolean;
 }
 
 export interface FamilyDatabase {
@@ -42,4 +45,6 @@ export interface FamilyPayload {
   meta: FamilyDatabase["meta"];
   people: PersonPublic[];
   unlocked: boolean;
+  /** People from the tree who RSVP'd to the family gathering */
+  attendingPersonIds?: string[];
 }

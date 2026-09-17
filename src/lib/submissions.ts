@@ -48,6 +48,7 @@ type Row = {
     self?: ChangeSubmission["self"];
     relatives?: ChangeSubmission["relatives"];
     graphEdit?: ChangeSubmission["graphEdit"];
+    graphEdits?: ChangeSubmission["graphEdits"];
     correction?: ChangeSubmission["correction"];
     photoUrl?: string;
     photoAction?: ChangeSubmission["photoAction"];
@@ -68,6 +69,7 @@ function payloadFrom(submission: ChangeSubmission) {
     self: submission.self ?? null,
     relatives: submission.relatives ?? null,
     graphEdit: submission.graphEdit ?? null,
+    graphEdits: submission.graphEdits ?? null,
     correction: submission.correction ?? null,
     photoUrl: submission.photoUrl ?? null,
     photoAction: submission.photoAction ?? null,
@@ -92,6 +94,7 @@ function rowToSubmission(row: Row): ChangeSubmission {
     self: row.payload?.self,
     relatives: row.payload?.relatives,
     graphEdit: row.payload?.graphEdit,
+    graphEdits: row.payload?.graphEdits,
     correction: row.payload?.correction,
     photoUrl: row.payload?.photoUrl,
     photoAction: row.payload?.photoAction,
@@ -188,6 +191,55 @@ export async function appendSubmission(
   `) as Row[];
 
   return rowToSubmission(rows[0]);
+}
+
+export async function saveSubmission(
+  submission: ChangeSubmission,
+): Promise<ChangeSubmission | null> {
+  if (!hasDb()) {
+    const existing = await readFileSubmissions();
+    const idx = existing.findIndex((s) => s.id === submission.id);
+    if (idx < 0) return null;
+    existing[idx] = submission;
+    await writeFileSubmissions(existing);
+    return existing[idx];
+  }
+
+  const sql = getSql();
+  try {
+    const rows = (await sql`
+      UPDATE submissions
+      SET kind = ${submission.kind},
+          reporter_name = ${submission.reporterName},
+          reporter_person_id = ${submission.reporterPersonId ?? null},
+          reporter_phone = ${submission.reporterPhone ?? null},
+          target_person_id = ${submission.targetPersonId ?? null},
+          target_person_name = ${submission.targetPersonName ?? null},
+          message = ${submission.message},
+          payload = ${payloadFrom(submission)},
+          status = ${submission.status},
+          reviewed_at = ${submission.reviewedAt ?? null},
+          reviewed_by_admin_id = ${submission.reviewedByAdminId ?? null}
+      WHERE id = ${submission.id}::uuid
+      RETURNING id, created_at, kind, reporter_name, reporter_person_id,
+                reporter_phone, target_person_id, target_person_name,
+                message, payload, status, reviewed_at, reviewed_by_admin_id
+    `) as Row[];
+    return rows[0] ? rowToSubmission(rows[0]) : null;
+  } catch {
+    const rows = (await sql`
+      UPDATE submissions
+      SET kind = ${submission.kind},
+          message = ${submission.message},
+          payload = ${payloadFrom(submission)},
+          status = ${submission.status}
+      WHERE id = ${submission.id}::uuid
+      RETURNING id, created_at, kind, reporter_name, reporter_person_id,
+                reporter_phone, target_person_id, target_person_name,
+                message, payload, status
+    `) as Row[];
+    return rows[0] ? rowToSubmission(rows[0]) : null;
+  }
 }
 
 export async function updateSubmissionStatus(

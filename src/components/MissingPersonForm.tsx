@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { RelativeDraft, SubmissionPayload } from "@/types/submissions";
+import { DateField } from "@/components/DateField";
 import { Modal } from "@/components/Modal";
 
 type Props = {
@@ -149,11 +150,7 @@ export function MissingPersonForm({
               </label>
               <label>
                 Data urodzenia
-                <input
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                />
+                <DateField value={birthDate} onChange={setBirthDate} />
               </label>
               <label>
                 Płeć
@@ -216,11 +213,10 @@ export function MissingPersonForm({
                 </label>
                 <label>
                   Data ur.
-                  <input
-                    type="date"
+                  <DateField
                     value={rel.birthDate || ""}
-                    onChange={(e) =>
-                      updateRelative(i, { birthDate: e.target.value })
+                    onChange={(value) =>
+                      updateRelative(i, { birthDate: value || undefined })
                     }
                   />
                 </label>

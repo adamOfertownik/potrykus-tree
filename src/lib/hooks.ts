@@ -27,7 +27,8 @@ export function useAuthStatus() {
 export function useFamily(enabled = true) {
   return useQuery({
     queryKey: ["family"],
-    queryFn: () => fetchJson<FamilyPayload>("/api/family"),
+    queryFn: () =>
+      fetchJson<FamilyPayload>("/api/family", { cache: "no-store" }),
     retry: false,
     enabled,
   });

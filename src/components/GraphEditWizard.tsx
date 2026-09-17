@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { DateField } from "@/components/DateField";
 import { Modal } from "@/components/Modal";
 import { displayName } from "@/lib/db-client";
 import {
@@ -9,6 +10,10 @@ import {
   type GraphOp,
   type NewPersonInput,
 } from "@/lib/familyMutations";
+import {
+  nextDraftPersonId,
+  useOptionalDraftGraph,
+} from "@/components/DraftGraphProvider";
 import { loadReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
 import { useAdminAuthStatus } from "@/lib/hooks";
@@ -53,6 +58,8 @@ export function GraphEditWizard({
 }: Props) {
   const qc = useQueryClient();
   const admin = useAdminAuthStatus();
+  const draft = useOptionalDraftGraph();
+  const useDrafts = Boolean(draft) && admin.data?.loggedIn === false;
   const [step, setStep] = useState<"pick" | "confirm">("pick");
   const [mode, setMode] = useState<Mode>("existing");
   const [query, setQuery] = useState("");
@@ -141,12 +148,33 @@ export function GraphEditWizard({
     setBusy(true);
     setError(null);
     try {
+      const stagedInput = {
+        ...previewInput,
+        newPerson:
+          mode === "new"
+            ? {
+                ...newPerson,
+                clientPersonId: newPerson.clientPersonId || nextDraftPersonId(),
+              }
+            : undefined,
+      };
+
+      if (useDrafts && draft) {
+        const result = draft.stage(stagedInput, people);
+        onApplied?.({
+          summary: `${result.summary} Widać na szaro — dodaj kolejne osoby albo wyślij całość.`,
+          createdPersonId: result.createdPersonId,
+        });
+        handleClose();
+        return;
+      }
+
       const reporter = loadReporter();
       const res = await fetch("/api/family/mutate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...previewInput,
+          ...stagedInput,
           reporterName: reporter?.name || "Edycja grafu",
           reporterPersonId: reporter?.personId,
         }),
@@ -314,14 +342,26 @@ export function GraphEditWizard({
                 </label>
                 <label className="field-block">
                   Data ur. (opcjonalnie)
-                  <input
+                  <DateField
                     className="field-input"
-                    type="date"
                     value={newPerson.birthDate || ""}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setNewPerson((s) => ({
                         ...s,
-                        birthDate: e.target.value || undefined,
+                        birthDate: value || undefined,
+                      }))
+                    }
+                  />
+                </label>
+                <label className="field-block">
+                  Data zgonu (opcjonalnie)
+                  <DateField
+                    className="field-input"
+                    value={newPerson.deathDate || ""}
+                    onChange={(value) =>
+                      setNewPerson((s) => ({
+                        ...s,
+                        deathDate: value || undefined,
                       }))
                     }
                   />
@@ -403,6 +443,18 @@ export function GraphEditWizard({
                   </strong>
                 </li>
               )}
+              {mode === "new" && newPerson.birthDate && (
+                <li>
+                  <span>Data urodzenia</span>
+                  <strong>{newPerson.birthDate}</strong>
+                </li>
+              )}
+              {mode === "new" && newPerson.deathDate && (
+                <li>
+                  <span>Data zgonu</span>
+                  <strong>{newPerson.deathDate}</strong>
+                </li>
+              )}
               {op === "reparent" && anchor.parentIds.length > 0 && (
                 <li>
                   <span>Obecni rodzice</span>
@@ -420,7 +472,7 @@ export function GraphEditWizard({
             <p className="graph-edit__note">
               {admin.data?.loggedIn
                 ? "Jesteś adminem — zmiana zapisze się od razu w drzewie."
-                : "To jest sugestia dla admina. Drzewo zmieni się dopiero po akceptacji."}
+                : "Osoba pojawi się od razu na szaro. Możesz dodać dzieci i wnuki, a potem wysłać wszystko razem do admina."}
             </p>
           </div>
         )}
@@ -467,7 +519,7 @@ export function GraphEditWizard({
                   ? "Zapisuję…"
                   : admin.data?.loggedIn
                     ? "Potwierdź i zapisz"
-                    : "Wyślij sugestię"}
+                    : "Dodaj roboczo"}
               </button>
               <button
                 type="button"

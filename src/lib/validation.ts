@@ -17,6 +17,7 @@ export const personFieldPatchSchema = z.object({
   gender: z.enum(["male", "female", "unknown"]).optional(),
   birthDate: optionalDate,
   deathDate: optionalDate,
+  weddingDate: optionalDate,
   phone: z
     .string()
     .trim()
@@ -24,6 +25,9 @@ export const personFieldPatchSchema = z.object({
     .optional()
     .transform((v) => (v ? sanitizePhone(v) : undefined)),
   notes: z.string().trim().max(2000).optional(),
+  parentIds: z.array(z.string().trim().min(1).max(120)).max(4).optional(),
+  spouseIds: z.array(z.string().trim().min(1).max(120)).max(8).optional(),
+  childIds: z.array(z.string().trim().min(1).max(120)).max(40).optional(),
 });
 
 export const changeKindSchema = z.enum([
@@ -51,35 +55,83 @@ export const newPersonSchema = z.object({
   lastName: z.string().trim().min(1).max(80),
   gender: z.enum(["male", "female", "unknown"]),
   birthDate: optionalDate,
+  deathDate: optionalDate,
   maidenName: z.string().trim().max(80).optional(),
+  clientPersonId: z
+    .string()
+    .trim()
+    .regex(/^draft-[a-z0-9-]{1,80}$/i, "Nieprawidłowy identyfikator roboczy.")
+    .optional(),
 });
+
+const graphEditFields = {
+  op: z.enum(["add_child", "link_spouse", "reparent"]),
+  anchorPersonId: z.string().trim().min(1).max(120),
+  relatedPersonId: z.string().trim().max(120).optional(),
+  newPerson: newPersonSchema.optional(),
+  secondParentId: z.string().trim().max(120).optional(),
+  replaceParentIds: z.boolean().optional(),
+};
+
+function refineGraphEdit(
+  v: { relatedPersonId?: string; newPerson?: unknown },
+  ctx: z.RefinementCtx,
+) {
+  if (!v.relatedPersonId && !v.newPerson) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Wybierz istniejącą osobę albo podaj dane nowej.",
+      path: ["relatedPersonId"],
+    });
+  }
+  if (v.relatedPersonId && v.newPerson) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Podaj albo istniejącą osobę, albo nową.",
+      path: ["relatedPersonId"],
+    });
+  }
+}
+
+export const graphEditPayloadSchema = z
+  .object({
+    ...graphEditFields,
+    summary: z.string().trim().max(500).optional(),
+  })
+  .superRefine(refineGraphEdit);
 
 export const graphMutationSchema = z
   .object({
-    op: z.enum(["add_child", "link_spouse", "reparent"]),
-    anchorPersonId: z.string().trim().min(1).max(120),
-    relatedPersonId: z.string().trim().max(120).optional(),
-    newPerson: newPersonSchema.optional(),
-    secondParentId: z.string().trim().max(120).optional(),
+    ...graphEditFields,
     replaceParentIds: z.boolean().optional().default(true),
     reporterName: z.string().trim().min(1).max(120).optional(),
     reporterPersonId: z.string().trim().max(120).optional(),
   })
+  .superRefine(refineGraphEdit);
+
+export const graphMutateRequestSchema = z
+  .object({
+    edits: z.array(graphMutationSchema).min(1).max(40).optional(),
+    reporterName: z.string().trim().min(1).max(120).optional(),
+    reporterPersonId: z.string().trim().max(120).optional(),
+    op: z.enum(["add_child", "link_spouse", "reparent"]).optional(),
+    anchorPersonId: z.string().trim().min(1).max(120).optional(),
+    relatedPersonId: z.string().trim().max(120).optional(),
+    newPerson: newPersonSchema.optional(),
+    secondParentId: z.string().trim().max(120).optional(),
+    replaceParentIds: z.boolean().optional(),
+  })
   .superRefine((v, ctx) => {
-    if (!v.relatedPersonId && !v.newPerson) {
+    if (v.edits?.length) return;
+    if (!v.op || !v.anchorPersonId) {
       ctx.addIssue({
         code: "custom",
-        message: "Wybierz istniejącą osobę albo podaj dane nowej.",
-        path: ["relatedPersonId"],
+        message: "Podaj zmianę albo listę zmian.",
+        path: ["edits"],
       });
+      return;
     }
-    if (v.relatedPersonId && v.newPerson) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Podaj albo istniejącą osobę, albo nową.",
-        path: ["relatedPersonId"],
-      });
-    }
+    refineGraphEdit(v, ctx);
   });
 
 export const submissionPayloadSchema = z
@@ -112,17 +164,8 @@ export const submissionPayloadSchema = z
       })
       .optional(),
     relatives: z.array(relativeDraftSchema).max(20).optional(),
-    graphEdit: z
-      .object({
-        op: z.enum(["add_child", "link_spouse", "reparent"]),
-        anchorPersonId: z.string().trim().min(1).max(120),
-        relatedPersonId: z.string().trim().max(120).optional(),
-        secondParentId: z.string().trim().max(120).optional(),
-        replaceParentIds: z.boolean().optional(),
-        newPerson: newPersonSchema.optional(),
-        summary: z.string().trim().max(500).optional(),
-      })
-      .optional(),
+    graphEdit: graphEditPayloadSchema.optional(),
+    graphEdits: z.array(graphEditPayloadSchema).min(1).max(40).optional(),
     correction: personFieldPatchSchema.optional(),
     photoUrl: z.string().trim().url().max(2000).optional(),
     photoAction: z.enum(["set", "remove"]).optional(),
@@ -132,6 +175,7 @@ export const submissionPayloadSchema = z
       Boolean(v.message?.trim()) ||
       Boolean(v.self?.firstName) ||
       Boolean(v.graphEdit) ||
+      Boolean(v.graphEdits?.length) ||
       Boolean(v.correction) ||
       Boolean(v.photoUrl) ||
       v.photoAction === "remove",
@@ -152,6 +196,10 @@ export const rsvpPayloadSchema = z
     guests: z.coerce.number().int().min(1).max(20).optional(),
     notes: z.string().trim().max(1000).optional(),
     willTransfer: z.boolean().default(false),
+    earlyArrival: z.boolean().optional().default(false),
+    earlyArrivalOver7: z.coerce.number().int().min(0).max(20).optional().default(0),
+    earlyArrivalUnder7: z.coerce.number().int().min(0).max(20).optional().default(0),
+    coveredPersonIds: z.array(z.string().trim().min(1).max(120)).max(20).optional(),
   })
   .superRefine((v, ctx) => {
     const children3 = v.children3to12 ?? 0;
@@ -196,8 +244,58 @@ export const rsvpPayloadSchema = z
       childrenUnder3,
       notes: v.notes,
       willTransfer: v.willTransfer,
+      earlyArrival: Boolean(v.earlyArrival),
+      earlyArrivalOver7: v.earlyArrival ? (v.earlyArrivalOver7 ?? 0) : 0,
+      earlyArrivalUnder7: v.earlyArrival ? (v.earlyArrivalUnder7 ?? 0) : 0,
+      coveredPersonIds: [...new Set(v.coveredPersonIds ?? [])],
     };
   });
+
+export const adminAttendSchema = z
+  .object({
+    personId: z.string().trim().min(1).max(120).optional(),
+    rsvpId: z.string().trim().min(1).max(120).optional(),
+    attending: z.boolean(),
+    fullName: z.string().trim().min(1).max(160).optional(),
+  })
+  .refine((v) => Boolean(v.personId || v.rsvpId), {
+    message: "Podaj osobę albo zgłoszenie.",
+  });
+
+export const adminRsvpPaidSchema = z.object({
+  rsvpId: z.string().trim().min(1).max(120),
+  paid: z.boolean(),
+});
+
+const adminTicketFields = {
+  adults: z.coerce.number().int().min(0).max(20).optional(),
+  children3to12: z.coerce.number().int().min(0).max(20).optional(),
+  childrenUnder3: z.coerce.number().int().min(0).max(20).optional(),
+  amountPln: z.coerce.number().int().min(0).max(100000).optional(),
+};
+
+export const adminEventWriteSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("paid"),
+    rsvpId: z.string().trim().min(1).max(120),
+    paid: z.boolean(),
+  }),
+  z.object({
+    action: z.literal("create"),
+    personId: z.string().trim().min(1).max(120),
+    coveredPersonIds: z.array(z.string().trim().min(1).max(120)).max(20),
+    willTransfer: z.boolean().default(false),
+    paid: z.boolean().default(true),
+    ...adminTicketFields,
+  }),
+  z.object({
+    action: z.literal("update"),
+    rsvpId: z.string().trim().min(1).max(120),
+    willTransfer: z.boolean().optional(),
+    paid: z.boolean().optional(),
+    ...adminTicketFields,
+  }),
+]);
 
 export const adminUserRoleSchema = z.enum(["admin", "editor"]);
 
@@ -207,22 +305,22 @@ const adminUserEmailSchema = z
   .toLowerCase()
   .max(254);
 
-const adminUserPasswordSchema = z
+const adminUserPasswordField = z
   .string()
   .min(8, "Hasło musi mieć co najmniej 8 znaków.")
   .max(200);
 
 export const adminUserCreateSchema = z.object({
   email: adminUserEmailSchema,
-  password: adminUserPasswordSchema,
-  role: adminUserRoleSchema,
+  password: adminUserPasswordField,
+  role: adminUserRoleSchema.default("editor"),
 });
 
 export const adminUserPatchSchema = z
   .object({
     email: adminUserEmailSchema.optional(),
     role: adminUserRoleSchema.optional(),
-    password: adminUserPasswordSchema.optional(),
+    password: adminUserPasswordField.optional(),
   })
   .refine((v) => v.email !== undefined || v.role !== undefined || v.password !== undefined, {
     message: "Brak zmian.",

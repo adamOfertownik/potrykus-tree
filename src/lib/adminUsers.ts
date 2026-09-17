@@ -58,9 +58,10 @@ function toPublic(row: PublicRow): AdminUserPublic {
 
 function isUniqueViolation(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
-  const e = error as { code?: string; message?: string };
+  const e = error as { code?: string; constraint?: string; message?: string };
   return (
     e.code === "23505" ||
+    e.constraint === "admin_users_email_unique" ||
     (e.message ?? "").includes("admin_users_email_unique")
   );
 }

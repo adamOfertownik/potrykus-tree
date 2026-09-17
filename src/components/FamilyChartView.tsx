@@ -6,8 +6,24 @@ import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
+import { separateChartLinks } from "@/lib/chartLinks";
+import {
+  nodesFromChartTree,
+  overviewOpacity,
+  pickBranchLabels,
+  pickGenerationBands,
+  type BranchLabel,
+  type GenerationBand,
+} from "@/lib/chartOverview";
+import {
+  chartZoomFilter,
+  fitTreeView,
+  overviewFocusY,
+  prefersTwoFingerPan,
+} from "@/lib/chartGestures";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { GraphEditHost } from "@/components/GraphEditHost";
+import { TreeWind } from "@/components/TreeWind";
 
 type Props = {
   people: Person[];
@@ -15,6 +31,10 @@ type Props = {
   mainId: string;
   /** Person to highlight without changing what the tree shows */
   highlightId?: string | null;
+  /** People with an RSVP for the family gathering (orange border) */
+  attendingPersonIds?: string[];
+  /** Full-tree view: fit every generation instead of centering on main */
+  overview?: boolean;
   /** Called when a card is tapped — the tree itself stays untouched */
   onHighlight?: (id: string) => void;
   /** Called only when user explicitly focuses a branch (modal action) */
@@ -27,9 +47,9 @@ const SCALE_LAYOUT: Record<
   TextScaleId,
   { w: number; h: number; xSpace: number; ySpace: number; font: number }
 > = {
-  normal: { w: 220, h: 78, xSpace: 250, ySpace: 250, font: 13 },
-  large: { w: 260, h: 96, xSpace: 300, ySpace: 290, font: 16 },
-  xlarge: { w: 300, h: 112, xSpace: 350, ySpace: 330, font: 18 },
+  normal: { w: 236, h: 100, xSpace: 286, ySpace: 330, font: 13 },
+  large: { w: 276, h: 120, xSpace: 336, ySpace: 370, font: 16 },
+  xlarge: { w: 316, h: 138, xSpace: 386, ySpace: 410, font: 18 },
 };
 
 /** Minimum zoom when jumping to a searched person, so the card stays readable */
@@ -42,6 +62,42 @@ function replaceBrokenChartPhoto(img: HTMLImageElement) {
   icon.className = "person-icon";
   icon.innerHTML = PERSON_ICON_SVG;
   img.replaceWith(icon);
+}
+
+/** Extra px around the plus so a thumb still counts as a hit. */
+const PLUS_HIT_SLOP = 16;
+const PLUS_TAP_MOVE = 18;
+
+function plusButtonAt(host: HTMLElement, x: number, y: number): HTMLButtonElement | null {
+  const pluses = host.querySelectorAll<HTMLButtonElement>(".chart-card-plus");
+  let hit: HTMLButtonElement | null = null;
+  let best = Infinity;
+  pluses.forEach((btn) => {
+    const r = btn.getBoundingClientRect();
+    if (
+      x < r.left - PLUS_HIT_SLOP ||
+      x > r.right + PLUS_HIT_SLOP ||
+      y < r.top - PLUS_HIT_SLOP ||
+      y > r.bottom + PLUS_HIT_SLOP
+    ) {
+      return;
+    }
+    const dx = x - (r.left + r.right) / 2;
+    const dy = y - (r.top + r.bottom) / 2;
+    const dist = dx * dx + dy * dy;
+    if (dist < best) {
+      best = dist;
+      hit = btn;
+    }
+  });
+  return hit;
+}
+
+function liftPlusCard(host: HTMLElement, hit: HTMLButtonElement | null) {
+  host.querySelectorAll(".card_cont--plus-top").forEach((node) => {
+    node.classList.remove("card_cont--plus-top");
+  });
+  hit?.closest(".card_cont")?.classList.add("card_cont--plus-top");
 }
 
 function bindChartPhotoFallback(img: HTMLImageElement) {
@@ -64,7 +120,13 @@ type ZoomTransform = {
 };
 
 type ZoomHost = Element & {
-  __zoomObj?: { on: (type: string) => ((e: unknown) => void) | undefined };
+  __zoomObj?: {
+    on: {
+      (type: string): ((e: unknown) => void) | undefined;
+      (type: string, handler: (e: unknown) => void): unknown;
+    };
+    filter: (fn: (event: Event) => boolean) => unknown;
+  };
   __zoom?: ZoomTransform;
 };
 
@@ -72,6 +134,8 @@ export function FamilyChartView({
   people,
   mainId,
   highlightId = null,
+  attendingPersonIds = [],
+  overview = false,
   onHighlight,
   onFocusBranch,
   onHighlightMissing,
@@ -86,8 +150,19 @@ export function FamilyChartView({
   const peopleRef = useRef(people);
   const mainIdRef = useRef(mainId);
   const highlightRef = useRef<string | null>(highlightId);
+  const attendingRef = useRef(new Set(attendingPersonIds));
+  const pendingRef = useRef(
+    new Set(people.filter((p) => p.pending).map((p) => p.id)),
+  );
+  const overviewRef = useRef(overview);
   /** Set when the highlight came from a tap — no need to slide the view then */
   const skipPanRef = useRef<string | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const zoomAnimRef = useRef(0);
+  const labelsRef = useRef<BranchLabel[]>([]);
+  const gensRef = useRef<GenerationBand[]>([]);
+  const [branchLabels, setBranchLabels] = useState<BranchLabel[]>([]);
+  const [generationBands, setGenerationBands] = useState<GenerationBand[]>([]);
 
   const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
@@ -95,7 +170,7 @@ export function FamilyChartView({
   const peopleSig = people
     .map(
       (p) =>
-        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.photoUrl ?? ""}`,
+        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.birthDate ?? ""}:${p.deathDate ?? ""}:${p.photoUrl ?? ""}:${p.pending ? "1" : "0"}`,
     )
     .join("|");
 
@@ -103,6 +178,11 @@ export function FamilyChartView({
     peopleRef.current = people;
     mainIdRef.current = mainId;
     highlightRef.current = highlightId;
+    attendingRef.current = new Set(attendingPersonIds);
+    pendingRef.current = new Set(
+      people.filter((p) => p.pending).map((p) => p.id),
+    );
+    overviewRef.current = overview;
   });
 
   /** Bars above the canvas come and go — keep it inside the window */
@@ -110,12 +190,16 @@ export function FamilyChartView({
     const wrap = wrapRef.current;
     if (!wrap) return;
     const top = wrap.getBoundingClientRect().top;
-    const height = Math.max(360, window.innerHeight - top - 16);
+    const height = Math.max(360, window.innerHeight - top);
     wrap.style.height = `${height}px`;
   };
 
   useEffect(() => {
     syncCanvasHeight();
+    wrapRef.current?.setAttribute(
+      "data-tree-pan",
+      prefersTwoFingerPan() ? "two-finger" : "drag",
+    );
     window.addEventListener("resize", syncCanvasHeight);
     return () => window.removeEventListener("resize", syncCanvasHeight);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -151,13 +235,91 @@ export function FamilyChartView({
     });
   };
 
-  /** Drive the chart's own d3 zoom so svg links and html cards stay in sync */
-  const setViewTransform = (k: number, x: number, y: number): boolean => {
+  const applyAttending = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.querySelectorAll(".card_cont").forEach((node) => {
+      const datum = (node as Element & { __data__?: { data?: { id?: string } } })
+        .__data__;
+      const id = datum?.data?.id;
+      node.classList.toggle(
+        "is-attending",
+        Boolean(id && attendingRef.current.has(id)),
+      );
+      node.classList.toggle(
+        "is-pending",
+        Boolean(id && pendingRef.current.has(id)),
+      );
+    });
+  };
+
+  const zoomHost = (): ZoomHost | null => {
     const svg = chartRef.current?.svg as ZoomHost | undefined;
-    if (!svg) return false;
-    const host: ZoomHost | null = svg.__zoomObj
+    if (!svg) return null;
+    return svg.__zoomObj
       ? svg
       : ((svg.parentNode as ZoomHost | null) ?? null);
+  };
+
+  const currentView = (): ZoomTransform | null => zoomHost()?.__zoom ?? null;
+
+  const paintOverviewOverlay = (k: number, x: number, y: number) => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+    const opacity = overviewOpacity(k);
+    overlay.style.opacity = String(opacity);
+    overlay.style.pointerEvents = "none";
+    overlay.hidden = opacity <= 0.02;
+    const placed: { x: number; y: number }[] = [];
+    const sorted = [...labelsRef.current].sort((a, b) => b.count - a.count);
+    overlay.querySelectorAll<HTMLElement>("[data-branch-id]").forEach((el) => {
+      const id = el.dataset.branchId;
+      const label = sorted.find((item) => item.id === id);
+      if (!label) {
+        el.style.visibility = "hidden";
+        return;
+      }
+      const screenX = label.x * k + x;
+      const screenY = label.y * k + y - 28;
+      const fromTitle = Math.ceil(label.title.length * 8.1) + 32;
+      const screenW = Math.min(
+        Math.max(176, fromTitle, label.width * k * 0.45),
+        340,
+      );
+      const overlaps = placed.some(
+        (p) => Math.abs(p.x - screenX) < screenW * 0.72 && Math.abs(p.y - screenY) < 52,
+      );
+      if (overlaps && k < 0.4) {
+        el.style.visibility = "hidden";
+        return;
+      }
+      placed.push({ x: screenX, y: screenY });
+      el.style.visibility = "visible";
+      el.style.width = `${screenW}px`;
+      el.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
+    });
+    const genPlaced: number[] = [];
+    overlay.querySelectorAll<HTMLElement>("[data-gen-key]").forEach((el) => {
+      const key = el.dataset.genKey;
+      const band = gensRef.current.find((item) => item.key === key);
+      if (!band) {
+        el.style.visibility = "hidden";
+        return;
+      }
+      const screenY = band.y * k + y;
+      if (genPlaced.some((prev) => Math.abs(prev - screenY) < 22)) {
+        el.style.visibility = "hidden";
+        return;
+      }
+      genPlaced.push(screenY);
+      el.style.visibility = "visible";
+      el.style.transform = `translateY(${screenY}px) translateY(-50%)`;
+    });
+  };
+
+  /** Drive the chart's own d3 zoom so svg links and html cards stay in sync */
+  const setViewTransform = (k: number, x: number, y: number): boolean => {
+    const host = zoomHost();
     const zoomObj = host?.__zoomObj;
     const current = host?.__zoom;
     if (!host || !zoomObj || !current) return false;
@@ -167,13 +329,75 @@ export function FamilyChartView({
       .translate((x - current.x) / k, (y - current.y) / k);
     host.__zoom = next;
     zoomObj.on("zoom")?.({ transform: next });
+    paintOverviewOverlay(next.k, next.x, next.y);
     return true;
+  };
+
+  const animateView = (k: number, x: number, y: number, ms = 560) => {
+    const start = currentView();
+    if (!start) {
+      setViewTransform(k, x, y);
+      return;
+    }
+    window.cancelAnimationFrame(zoomAnimRef.current);
+    const t0 = performance.now();
+    const ease = (t: number) => 1 - (1 - t) ** 3;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - t0) / ms);
+      const e = ease(t);
+      setViewTransform(
+        start.k + (k - start.k) * e,
+        start.x + (x - start.x) * e,
+        start.y + (y - start.y) * e,
+      );
+      if (t < 1) zoomAnimRef.current = window.requestAnimationFrame(step);
+    };
+    zoomAnimRef.current = window.requestAnimationFrame(step);
   };
 
   const viewportRect = (): DOMRect | null => {
     const rect = containerRef.current?.getBoundingClientRect();
     return rect && rect.width && rect.height ? rect : null;
   };
+
+  /** Zoom out until the tree fills the canvas — width-first on a tall phone. */
+  const applyWholeTreeFit = (animate: boolean) => {
+    const chart = chartRef.current;
+    const dim = chart?.store.getTree?.()?.dim as
+      | { width: number; height: number; x_off: number; y_off: number }
+      | undefined;
+    const rect = viewportRect();
+    if (!chart || !dim || !rect || !dim.width || !dim.height) {
+      chart?.updateTree({ tree_position: "fit" });
+      return;
+    }
+    const nodes = nodesFromChartTree(
+      chart.store.getTree?.() as { data?: unknown[] } | undefined,
+    );
+    const labels = labelsRef.current.length
+      ? labelsRef.current
+      : pickBranchLabels(nodes, peopleRef.current);
+    const gens = gensRef.current.length
+      ? gensRef.current
+      : pickGenerationBands(nodes);
+    const next = fitTreeView(
+      { width: rect.width, height: rect.height },
+      dim,
+      overviewFocusY(
+        labels.map((label) => label.y),
+        gens.filter((band) => !band.key.startsWith("up-")).map((band) => band.y),
+      ),
+    );
+    wrapRef.current?.setAttribute("data-tree-fit", next.mode);
+    wrapRef.current?.setAttribute(
+      "data-tree-pan",
+      prefersTwoFingerPan() ? "two-finger" : "drag",
+    );
+    if (animate) animateView(next.k, next.x, next.y);
+    else setViewTransform(next.k, next.x, next.y);
+  };
+
+  const fitWholeTree = () => applyWholeTreeFit(true);
 
   /**
    * Pan (and gently zoom in) to a card without re-rooting the tree.
@@ -192,12 +416,31 @@ export function FamilyChartView({
     if (!rect) return "unavailable";
 
     const k = Math.max(currentK ?? 1, READABLE_ZOOM);
-    const ok = setViewTransform(
-      k,
-      rect.width / 2 - datum.x * k,
-      rect.height / 2 - datum.y * k,
+    animateView(k, rect.width / 2 - datum.x * k, rect.height / 2 - datum.y * k);
+    return "ok";
+  };
+
+  /**
+   * family-chart's own zoom tween is duration + 100ms delay. A single early
+   * pan gets overwritten and the user is left looking at the apex.
+   */
+  const scheduleFocus = (id: string, reportMissing: boolean) => {
+    const delays = [80, 220, 500];
+    const timers = delays.map((ms, index) =>
+      window.setTimeout(() => {
+        applyHighlight();
+        applyAttending();
+        const status = panToCard(id);
+        if (
+          reportMissing &&
+          status === "missing" &&
+          index === delays.length - 1
+        ) {
+          onHighlightMissing?.(id);
+        }
+      }, ms),
     );
-    return ok ? "ok" : "unavailable";
+    return () => timers.forEach((t) => window.clearTimeout(t));
   };
 
   const openPersonActions = (id: string) => {
@@ -206,6 +449,7 @@ export function FamilyChartView({
     skipPanRef.current = id;
     highlightRef.current = id;
     applyHighlight();
+    applyAttending();
     setSelected(person);
     onHighlight?.(id);
   };
@@ -227,17 +471,62 @@ export function FamilyChartView({
     if (!safeMain) return;
 
     const chart = f3.createChart(el, data);
-    chart.setTransitionTime(250);
+    const keepHighlight = highlightRef.current;
+    chart.setTransitionTime(keepHighlight ? 0 : 250);
     chart.setSingleParentEmptyCard(false);
+    chart.setSortChildrenFunction((a, b) => {
+      const aDate = String(a.data.birthday ?? "").trim();
+      const bDate = String(b.data.birthday ?? "").trim();
+      if (aDate !== bDate) {
+        if (!aDate) return 1;
+        if (!bDate) return -1;
+        return aDate.localeCompare(bDate);
+      }
+      const aName = `${a.data["last name"] ?? ""} ${a.data["first name"] ?? ""}`;
+      const bName = `${b.data["last name"] ?? ""} ${b.data["first name"] ?? ""}`;
+      return String(aName).localeCompare(String(bName), "pl");
+    });
+    chart.setShowSiblingsOfMain(true);
+    chart.setAncestryDepth(100);
+    chart.setProgenyDepth(100);
     chart.setCardXSpacing(layout.xSpace);
     chart.setCardYSpacing(layout.ySpace);
-    chart.afterUpdate = () => {
+    let linkTimer = 0;
+    const paintLinks = () => {
       el.querySelectorAll("path.link").forEach((path) => {
-        path.setAttribute("stroke", "#5f7a6a");
-        path.setAttribute("stroke-width", "2.5");
+        if (!path.classList.contains("f3-path-to-main")) {
+          path.setAttribute("stroke", "#8aa392");
+          path.setAttribute("stroke-width", "2.25");
+        }
         path.setAttribute("fill", "none");
       });
+      separateChartLinks(el);
+    };
+    let overviewTimer = 0;
+    const refreshOverview = () => {
+      window.clearTimeout(overviewTimer);
+      overviewTimer = window.setTimeout(() => {
+        const nodes = nodesFromChartTree(
+          chart.store.getTree?.() as { data?: unknown[] } | undefined,
+        );
+        const nextLabels = pickBranchLabels(nodes, peopleRef.current);
+        const nextGens = pickGenerationBands(nodes);
+        labelsRef.current = nextLabels;
+        gensRef.current = nextGens;
+        setBranchLabels(nextLabels);
+        setGenerationBands(nextGens);
+        const view = currentView();
+        if (view) paintOverviewOverlay(view.k, view.x, view.y);
+      }, 80);
+    };
+
+    chart.afterUpdate = () => {
+      paintLinks();
+      window.clearTimeout(linkTimer);
+      linkTimer = window.setTimeout(paintLinks, 280);
       applyHighlight();
+      applyAttending();
+      refreshOverview();
     };
 
     const card = chart.setCardHtml();
@@ -275,26 +564,120 @@ export function FamilyChartView({
         btn.type = "button";
         btn.className = "chart-card-plus";
         btn.setAttribute("aria-label", "Dodaj powiązanie");
+        btn.setAttribute("data-testid", "chart-card-plus");
         btn.title = "Dodaj powiązanie";
         btn.textContent = "+";
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           e.preventDefault();
-          openPersonActions(id);
+          const personId = btn?.dataset.personId || id;
+          openPersonActions(personId);
         });
         this.classList.add("card_cont--addable");
         this.appendChild(btn);
       }
+      btn.dataset.personId = id;
 
       const photo = this.querySelector("img");
       if (photo) bindChartPhotoFallback(photo);
+      this.classList.toggle("is-attending", attendingRef.current.has(id));
+      this.classList.toggle("is-pending", pendingRef.current.has(id));
     });
 
-    chart.updateMainId(safeMain);
-    chart.updateTree({ initial: true, tree_position: "fit" });
     chartRef.current = chart;
+    chart.updateMainId(safeMain);
+    // `initial: true` always fits the whole tree. A mid-tree ancestor like
+    // Wincenty has ~400 cards and a 50k-px layout — fit shrinks cards to a
+    // few pixels and the canvas looks empty. Focused "widok wokół" and a
+    // kept highlight on the full tree must stay at a readable zoom.
+    const fitWhole = overviewRef.current && !keepHighlight;
+    try {
+      chart.updateTree({
+        initial: false,
+        tree_position: fitWhole ? "inherit" : "main_to_middle",
+      });
+    } catch (err) {
+      console.error("family-chart updateTree failed", err);
+      chart.updateTree({
+        initial: false,
+        tree_position: "main_to_middle",
+      });
+    }
+    if (fitWhole) applyWholeTreeFit(false);
+    chart.setTransitionTime(250);
+    const host = zoomHost();
+    const zoomObj = host?.__zoomObj;
+    zoomObj?.filter((event: Event) =>
+      chartZoomFilter(event, prefersTwoFingerPan()),
+    );
+    const prevZoom = zoomObj?.on("zoom");
+    zoomObj?.on("zoom", (event: unknown) => {
+      prevZoom?.(event);
+      const t =
+        event && typeof event === "object" && "transform" in event
+          ? (event as { transform?: ZoomTransform }).transform
+          : host?.__zoom;
+      if (t) paintOverviewOverlay(t.k, t.x, t.y);
+    });
+    const view = currentView();
+    if (view) paintOverviewOverlay(view.k, view.x, view.y);
+    const cancelInitialFocus = keepHighlight
+      ? scheduleFocus(keepHighlight, keepHighlight !== safeMain)
+      : undefined;
+
+    /** Neighbor cards sit in later stacking contexts and steal taps from the plus. */
+    let pendingPlus: HTMLButtonElement | null = null;
+    let pendingX = 0;
+    let pendingY = 0;
+    const stopZoom = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    };
+    const onPlusPointerDown = (e: PointerEvent) => {
+      const hit = plusButtonAt(el, e.clientX, e.clientY);
+      liftPlusCard(el, hit);
+      if (!hit) {
+        pendingPlus = null;
+        return;
+      }
+      pendingPlus = hit;
+      pendingX = e.clientX;
+      pendingY = e.clientY;
+      stopZoom(e);
+    };
+    const onPlusPointerUp = (e: PointerEvent) => {
+      const hit = pendingPlus;
+      pendingPlus = null;
+      if (!hit?.isConnected) return;
+      const moved = Math.hypot(e.clientX - pendingX, e.clientY - pendingY);
+      if (moved > PLUS_TAP_MOVE) return;
+      stopZoom(e);
+      const personId = hit.dataset.personId;
+      if (personId) openPersonActions(personId);
+    };
+    const onPlusClickCapture = (e: MouseEvent) => {
+      if (!plusButtonAt(el, e.clientX, e.clientY)) return;
+      stopZoom(e);
+    };
+    const onPlusPointerCancel = () => {
+      pendingPlus = null;
+    };
+    const capture = { capture: true, passive: false } as const;
+    el.addEventListener("pointerdown", onPlusPointerDown, capture);
+    window.addEventListener("pointerup", onPlusPointerUp, capture);
+    window.addEventListener("pointercancel", onPlusPointerCancel, capture);
+    el.addEventListener("click", onPlusClickCapture, capture);
 
     return () => {
+      cancelInitialFocus?.();
+      window.cancelAnimationFrame(zoomAnimRef.current);
+      window.clearTimeout(linkTimer);
+      window.clearTimeout(overviewTimer);
+      el.removeEventListener("pointerdown", onPlusPointerDown, capture);
+      window.removeEventListener("pointerup", onPlusPointerUp, capture);
+      window.removeEventListener("pointercancel", onPlusPointerCancel, capture);
+      el.removeEventListener("click", onPlusClickCapture, capture);
       chartRef.current = null;
       cardRef.current = null;
       el.innerHTML = "";
@@ -326,53 +709,83 @@ export function FamilyChartView({
     chart.updateTree({ tree_position: "inherit" });
   }, [scale]);
 
-  // Explicit branch focus (deep link ?root=) — recenter the tree around a person
+  // Explicit branch focus (deep link ?root=) — recenter the tree around a person.
+  // Returning to the family root keeps the current highlight and pans to that person
+  // at a readable zoom — never fit-to-window first, or the card becomes a speck.
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart || !mainId) return;
     chart.updateMainId(mainId);
-    chart.updateTree({ tree_position: "main_to_middle" });
-  }, [mainId]);
+    const keep = highlightRef.current;
+    if (keep && keep !== mainId) {
+      chart.setTransitionTime(0);
+      try {
+        chart.updateTree({ tree_position: "main_to_middle" });
+      } catch (err) {
+        console.error("family-chart updateTree failed", err);
+        chart.updateTree({ tree_position: "main_to_middle" });
+      }
+      chart.setTransitionTime(250);
+      return scheduleFocus(keep, true);
+    }
+    try {
+      chart.updateTree({
+        tree_position: overview && !keep ? "inherit" : "main_to_middle",
+      });
+    } catch (err) {
+      console.error("family-chart updateTree failed", err);
+      chart.updateTree({ tree_position: "main_to_middle" });
+    }
+    if (overview && !keep) applyWholeTreeFit(false);
+    // applyHighlight / panToCard close over DOM nodes rebuilt with the chart
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainId, overview]);
 
   // Highlight — mark the card and slide the view onto it
   useEffect(() => {
     if (!chartRef.current) return;
     highlightRef.current = highlightId;
     applyHighlight();
+    applyAttending();
     if (!highlightId) return;
     if (skipPanRef.current === highlightId) {
       // Tapped card is already on screen
       skipPanRef.current = null;
       return;
     }
-    const timer = window.setTimeout(() => {
-      const status = panToCard(highlightId);
-      applyHighlight();
-      // Only re-root when the person really is outside the rendered tree
-      if (status === "missing") onHighlightMissing?.(highlightId);
-    }, 80);
-    return () => window.clearTimeout(timer);
+    return scheduleFocus(highlightId, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [highlightId, peopleSig, scale]);
+  }, [highlightId, peopleSig, scale, mainId]);
 
-  /** Zoom out until every generation fits inside the visible canvas */
-  const fitWholeTree = () => {
-    const dim = chartRef.current?.store.getTree?.()?.dim;
+  useEffect(() => {
+    attendingRef.current = new Set(attendingPersonIds);
+    applyAttending();
+  }, [attendingPersonIds, peopleSig]);
+
+  useEffect(() => {
+    const view = currentView();
+    if (view) paintOverviewOverlay(view.k, view.x, view.y);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchLabels, generationBands]);
+
+  const zoomToBranch = (label: BranchLabel) => {
     const rect = viewportRect();
-    if (!dim || !rect || !dim.width || !dim.height) {
-      chartRef.current?.updateTree({ tree_position: "fit" });
-      return;
-    }
-    const pad = 24;
+    if (!rect) return;
+    skipPanRef.current = label.id;
+    highlightRef.current = label.id;
+    applyHighlight();
+    onHighlight?.(label.id);
+    const pad = 56;
     const k = Math.min(
-      (rect.width - pad * 2) / dim.width,
-      (rect.height - pad * 2) / dim.height,
-      1,
+      (rect.width - pad * 2) / Math.max(label.width, 360),
+      (rect.height - pad * 2) / 900,
+      0.82,
     );
-    setViewTransform(
-      k,
-      k * dim.x_off + (rect.width - dim.width * k) / 2,
-      k * dim.y_off + (rect.height - dim.height * k) / 2,
+    const nextK = Math.max(k, 0.56);
+    animateView(
+      nextK,
+      rect.width / 2 - label.x * nextK,
+      rect.height / 2 - (label.y + 80) * nextK,
     );
   };
 
@@ -403,6 +816,14 @@ export function FamilyChartView({
 
   return (
     <div className="family-chart-wrap" id="family-tree-canvas" ref={wrapRef}>
+      <TreeWind />
+      <div className="chart-gesture-gutters" aria-hidden>
+        <span
+          className="chart-gesture-gutter chart-gesture-gutter--left"
+          data-testid="chart-gesture-gutter"
+        />
+        <span className="chart-gesture-gutter chart-gesture-gutter--right" />
+      </div>
       <div
         ref={containerRef}
         id="FamilyChart"
@@ -410,13 +831,49 @@ export function FamilyChartView({
         data-text-scale={scale}
       />
 
+      <div
+        ref={overlayRef}
+        className="chart-overview"
+        hidden
+        aria-hidden={branchLabels.length === 0}
+      >
+        <div className="chart-overview__gens" aria-hidden>
+          {generationBands.map((band) => (
+            <span
+              key={band.key}
+              className="chart-gen-label"
+              data-gen-key={band.key}
+            >
+              {band.label}
+            </span>
+          ))}
+        </div>
+        {branchLabels.map((label) => (
+          <button
+            key={label.id}
+            type="button"
+            className="chart-branch-label"
+            data-branch-id={label.id}
+            data-testid="chart-branch-label"
+            title={`Przybliż gałąź: ${label.title}`}
+            onClick={() => zoomToBranch(label)}
+          >
+            <span className="chart-branch-label__name">{label.title}</span>
+            {label.subtitle ? (
+              <span className="chart-branch-label__meta">{label.subtitle}</span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+
       <div className="family-chart-tools">
         <button
           type="button"
           className="btn btn-secondary btn-mini"
           onClick={fitWholeTree}
         >
-          ⤢ Całe drzewo<span className="only-wide"> w kadrze</span>
+          <span className="only-narrow">⤢ Całe drzewo</span>
+          <span className="only-wide">⤢ Całe drzewo w kadrze</span>
         </button>
         {highlightId && (
           <button
@@ -424,14 +881,29 @@ export function FamilyChartView({
             className="btn btn-secondary btn-mini"
             onClick={() => panToCard(highlightId)}
           >
-            ◎ <span className="only-wide">Wróć do </span>podświetlonej
-            <span className="only-wide"> osoby</span>
+            <span className="only-narrow">◎ Podświetlona</span>
+            <span className="only-wide">◎ Wróć do podświetlonej osoby</span>
           </button>
+        )}
+        {attendingPersonIds.length > 0 && (
+          <span className="attending-legend" title="Osoby zapisane na spotkanie rodzinne">
+            Pomarańczowa ramka — idą na spotkanie
+          </span>
+        )}
+        {people.some((p) => p.pending) && (
+          <span className="pending-legend" title="Osoby dodane roboczo, czekają na akceptację">
+            Szara karta — roboczo, jeszcze niezaakceptowane
+          </span>
         )}
       </div>
 
       <p className="family-chart-hint">
-        Przeciągnij, aby przesunąć · scroll = zoom · + na karcie = powiązanie
+        <span className="family-chart-hint__mouse">
+          Przeciągnij, aby przesunąć · scroll = zoom · z góry widać nagłówki gałęzi — kliknij, żeby przybliżyć
+        </span>
+        <span className="family-chart-hint__touch">
+          1 palec: osoba · 2 palce: przesuń i powiększ · nagłówek przybliża gałąź
+        </span>
       </p>
 
       <GraphEditHost

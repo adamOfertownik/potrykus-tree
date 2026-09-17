@@ -8,7 +8,10 @@ export type NewPersonInput = {
   lastName: string;
   gender: Gender;
   birthDate?: string;
+  deathDate?: string;
   maidenName?: string;
+  /** Stable id across a batch (client draft → server remap) */
+  clientPersonId?: string;
 };
 
 export type GraphMutationInput = {
@@ -67,7 +70,7 @@ function requirePerson(people: Person[], id: string, label: string): Person {
   return p;
 }
 
-function wouldCreateCycle(
+export function wouldCreateCycle(
   people: Person[],
   childId: string,
   parentId: string,
@@ -96,13 +99,19 @@ function createPerson(
   parentIds: string[],
   spouseIds: string[] = [],
 ): Person {
+  const preferred = input.clientPersonId?.trim();
+  const id =
+    preferred && !people.some((p) => p.id === preferred)
+      ? preferred
+      : uniqueId(people, input.firstName, input.lastName);
   return {
-    id: uniqueId(people, input.firstName, input.lastName),
+    id,
     firstName: input.firstName.trim(),
     lastName: input.lastName.trim(),
     maidenName: input.maidenName?.trim() || undefined,
     gender: input.gender,
     birthDate: input.birthDate?.trim() || undefined,
+    deathDate: input.deathDate?.trim() || undefined,
     parentIds: [...parentIds],
     spouseIds: [...spouseIds],
   };
@@ -231,6 +240,109 @@ export function applyGraphMutation(
   };
 }
 
+export function remapGraphMutationIds(
+  input: GraphMutationInput,
+  idMap: Record<string, string>,
+): GraphMutationInput {
+  const mapId = (id?: string) => (id && idMap[id] ? idMap[id] : id);
+  return {
+    ...input,
+    anchorPersonId: mapId(input.anchorPersonId) ?? input.anchorPersonId,
+    relatedPersonId: mapId(input.relatedPersonId),
+    secondParentId: mapId(input.secondParentId),
+  };
+}
+
+export function applyGraphMutations(
+  source: FamilyDatabase,
+  edits: GraphMutationInput[],
+  options?: { keepClientIds?: boolean; markPending?: boolean },
+): {
+  db: FamilyDatabase;
+  summaries: string[];
+  summary: string;
+  createdPeople: Person[];
+  idMap: Record<string, string>;
+  targetPersonId: string;
+  targetPersonName: string;
+} {
+  if (edits.length === 0) {
+    throw new Error("Brak zmian do zastosowania.");
+  }
+
+  let db = cloneDb(source);
+  const idMap: Record<string, string> = {};
+  const createdPeople: Person[] = [];
+  const summaries: string[] = [];
+  let targetPersonId = "";
+  let targetPersonName = "";
+
+  for (const raw of edits) {
+    const mapped = remapGraphMutationIds(raw, idMap);
+    const input: GraphMutationInput = {
+      ...mapped,
+      newPerson: mapped.newPerson
+        ? {
+            ...mapped.newPerson,
+            clientPersonId: options?.keepClientIds
+              ? mapped.newPerson.clientPersonId
+              : undefined,
+          }
+        : undefined,
+    };
+    const result = applyGraphMutation(db, input);
+    db = result.db;
+    summaries.push(result.summary);
+    targetPersonId = result.targetPersonId;
+    targetPersonName = result.targetPersonName;
+    if (result.createdPerson) {
+      if (options?.markPending) {
+        const created = db.people.find((p) => p.id === result.createdPerson!.id);
+        if (created) created.pending = true;
+      }
+      createdPeople.push(result.createdPerson);
+      const clientId = raw.newPerson?.clientPersonId?.trim();
+      if (clientId) idMap[clientId] = result.createdPerson.id;
+    }
+  }
+
+  return {
+    db,
+    summaries,
+    summary: summaries.join(" "),
+    createdPeople,
+    idMap,
+    targetPersonId,
+    targetPersonName,
+  };
+}
+
+export function overlayDraftPeople(
+  people: Person[],
+  edits: GraphMutationInput[],
+): Person[] {
+  if (edits.length === 0) return people;
+  const result = applyGraphMutations(
+    {
+      meta: {
+        title: "",
+        rootPersonId: people[0]?.id ?? "",
+        creator: "",
+        updatedAt: "",
+        description: "",
+      },
+      people: people.map((p) => {
+        const { pending: _pending, ...rest } = p;
+        void _pending;
+        return { ...rest, pending: undefined };
+      }),
+    },
+    edits,
+    { keepClientIds: true, markPending: true },
+  );
+  return result.db.people;
+}
+
 export function summarizeMutationPreview(
   people: Person[],
   input: GraphMutationInput,
@@ -264,6 +376,7 @@ export function snapshotPerson(person: Person) {
     gender: person.gender,
     birthDate: person.birthDate,
     deathDate: person.deathDate,
+    weddingDate: person.weddingDate,
     photoUrl: person.photoUrl,
     phone: person.phone,
     notes: person.notes,
@@ -289,13 +402,14 @@ export function patchPerson(
       | "gender"
       | "birthDate"
       | "deathDate"
+      | "weddingDate"
       | "phone"
       | "notes"
       | "photoUrl"
       | "parentIds"
       | "spouseIds"
     >
-  >,
+  > & { childIds?: string[] },
 ): FamilyDatabase {
   const db = cloneDb(source);
   const person = requirePerson(db.people, id, "edytowana");
@@ -311,15 +425,59 @@ export function patchPerson(
   if (patch.deathDate !== undefined) {
     person.deathDate = patch.deathDate.trim() || undefined;
   }
+  if (patch.weddingDate !== undefined) {
+    person.weddingDate = patch.weddingDate.trim() || undefined;
+  }
   if (patch.phone !== undefined) person.phone = patch.phone.trim() || undefined;
   if (patch.notes !== undefined) person.notes = patch.notes.trim() || undefined;
   if (patch.photoUrl !== undefined) {
     if (patch.photoUrl) person.photoUrl = patch.photoUrl;
     else delete person.photoUrl;
   }
-  if (patch.parentIds) person.parentIds = [...patch.parentIds];
-  if (patch.spouseIds) person.spouseIds = [...patch.spouseIds];
+  if (patch.parentIds) {
+    person.parentIds = uniqueIds(
+      patch.parentIds.filter((pid) => pid !== person.id && db.people.some((p) => p.id === pid)),
+    );
+  }
+  if (patch.spouseIds) {
+    const next = uniqueIds(
+      patch.spouseIds.filter((sid) => sid !== person.id && db.people.some((p) => p.id === sid)),
+    );
+    const prev = [...person.spouseIds];
+    person.spouseIds = next;
+    for (const oldId of prev) {
+      if (next.includes(oldId)) continue;
+      const other = db.people.find((p) => p.id === oldId);
+      if (other) other.spouseIds = other.spouseIds.filter((sid) => sid !== person.id);
+    }
+    for (const newId of next) {
+      const other = db.people.find((p) => p.id === newId);
+      if (other && !other.spouseIds.includes(person.id)) {
+        other.spouseIds.push(person.id);
+      }
+    }
+  }
+  if (patch.childIds) {
+    const next = new Set(
+      uniqueIds(
+        patch.childIds.filter((cid) => cid !== person.id && db.people.some((p) => p.id === cid)),
+      ),
+    );
+    for (const other of db.people) {
+      const has = other.parentIds.includes(person.id);
+      const should = next.has(other.id);
+      if (has && !should) {
+        other.parentIds = other.parentIds.filter((pid) => pid !== person.id);
+      } else if (!has && should) {
+        other.parentIds.push(person.id);
+      }
+    }
+  }
   return db;
+}
+
+function uniqueIds(ids: string[]): string[] {
+  return [...new Set(ids.filter(Boolean))];
 }
 
 export function addStandalonePerson(
@@ -340,6 +498,7 @@ export function addStandalonePerson(
       lastName: input.lastName,
       gender: input.gender,
       birthDate: input.birthDate,
+      deathDate: input.deathDate,
       maidenName: input.maidenName,
     },
     input.parentIds ?? [],

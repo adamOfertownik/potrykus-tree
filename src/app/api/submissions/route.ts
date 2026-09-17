@@ -54,6 +54,10 @@ export async function POST(request: Request) {
       body.targetPersonId,
       body.graphEdit?.anchorPersonId,
       body.graphEdit?.relatedPersonId,
+      ...(body.graphEdits ?? []).flatMap((edit) => [
+        edit.anchorPersonId,
+        edit.relatedPersonId,
+      ]),
     ].filter((id): id is string => Boolean(id));
 
     const draft: ChangeSubmission = {
@@ -71,6 +75,7 @@ export async function POST(request: Request) {
       self: body.self,
       relatives: body.relatives?.filter((r) => r.firstName?.trim()),
       graphEdit: body.graphEdit,
+      graphEdits: body.graphEdits,
       correction: body.correction,
       photoUrl: body.photoUrl,
       photoAction: body.photoAction,

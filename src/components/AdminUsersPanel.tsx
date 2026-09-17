@@ -166,6 +166,11 @@ export function AdminUsersPanel({
   return (
     <div className="admin-workspace">
       <div className="admin-card-box">
+        <p className="admin-users__hint">
+          Hasło zapisujemy jako skrót (bcrypt), nie w jawnej postaci. Na razie
+          może być łatwe — minimum 8 znaków. Przypomnienia hasła nie ma, bo nie
+          mamy jeszcze wysyłki e-maili: przekaż dane do logowania osobiście.
+        </p>
         <div className="admin-toolbar">
           <label className="field-block">
             Szukaj

@@ -12,6 +12,7 @@ import { getSql, hasDb } from "@/lib/sql";
 export { getChildrenIds, getPersonMap } from "@/lib/tree";
 export { formatPolishDate, displayName, lifespan } from "@/lib/db-client";
 import { getChildrenIds } from "@/lib/tree";
+import { weddingDateFromNotes } from "@/lib/weddingDate";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FAMILY_PATH = path.join(DATA_DIR, "family.json");
@@ -25,6 +26,7 @@ type PersonRow = {
   gender: string;
   birth_date: string | null;
   death_date: string | null;
+  wedding_date?: string | null;
   photo_url: string | null;
   phone: string | null;
   notes: string | null;
@@ -53,6 +55,14 @@ function isMissingFamilySchema(err: unknown): boolean {
   );
 }
 
+function isMissingWeddingDateColumn(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return (
+    /undefined_column|does not exist/i.test(message) &&
+    /wedding_date/i.test(message)
+  );
+}
+
 function asGender(value: string | null | undefined): Gender {
   if (value === "male" || value === "female" || value === "unknown") {
     return value;
@@ -62,6 +72,33 @@ function asGender(value: string | null | undefined): Gender {
 
 function opt(value: string | null | undefined): string | undefined {
   return value ? value : undefined;
+}
+
+function asIdList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  }
+  if (typeof value === "string" && value.trim()) {
+    const text = value.trim();
+    if (text.startsWith("[")) {
+      try {
+        return asIdList(JSON.parse(text) as unknown);
+      } catch {
+        /* fall through */
+      }
+    }
+    if (text.startsWith("{") && text.endsWith("}")) {
+      return text
+        .slice(1, -1)
+        .split(",")
+        .map((part) => part.replace(/^"|"$/g, "").trim())
+        .filter(Boolean);
+    }
+    return [text];
+  }
+  return [];
 }
 
 function toIso(value: string | Date): string {
@@ -77,11 +114,22 @@ function rowToPerson(row: PersonRow): Person {
     gender: asGender(row.gender),
     birthDate: opt(row.birth_date),
     deathDate: opt(row.death_date),
+    weddingDate: opt(row.wedding_date) || weddingDateFromNotes(row.notes ?? undefined),
     photoUrl: opt(row.photo_url),
     phone: opt(row.phone),
     notes: opt(row.notes),
-    parentIds: row.parent_ids ?? [],
-    spouseIds: row.spouse_ids ?? [],
+    parentIds: asIdList(row.parent_ids),
+    spouseIds: asIdList(row.spouse_ids),
+  };
+}
+
+function normalizeStoredPerson(person: Person): Person {
+  return {
+    ...person,
+    parentIds: asIdList(person.parentIds),
+    spouseIds: asIdList(person.spouseIds),
+    gender: asGender(person.gender),
+    weddingDate: person.weddingDate || weddingDateFromNotes(person.notes),
   };
 }
 
@@ -95,6 +143,7 @@ function peopleInsertPayload(people: Person[]): string {
       gender: p.gender,
       birth_date: p.birthDate ?? null,
       death_date: p.deathDate ?? null,
+      wedding_date: p.weddingDate ?? null,
       photo_url: p.photoUrl ?? null,
       phone: p.phone ?? null,
       notes: p.notes ?? null,
@@ -113,16 +162,28 @@ async function readFamilyFromNeon(): Promise<FamilyDatabase> {
       WHERE id = 1
       LIMIT 1
     `) as MetaRow[];
-    const peopleRows = (await sql`
-      SELECT
-        id, first_name, last_name, maiden_name, gender,
-        birth_date, death_date, photo_url, phone, notes,
-        parent_ids, spouse_ids
-      FROM people
-    `) as PersonRow[];
+    let peopleRows: PersonRow[];
+    try {
+      peopleRows = (await sql`
+        SELECT
+          id, first_name, last_name, maiden_name, gender,
+          birth_date, death_date, wedding_date, photo_url, phone, notes,
+          parent_ids, spouse_ids
+        FROM people
+      `) as PersonRow[];
+    } catch (err) {
+      if (!isMissingWeddingDateColumn(err)) throw err;
+      peopleRows = (await sql`
+        SELECT
+          id, first_name, last_name, maiden_name, gender,
+          birth_date, death_date, photo_url, phone, notes,
+          parent_ids, spouse_ids
+        FROM people
+      `) as PersonRow[];
+    }
 
     const meta = metaRows[0];
-    if (meta && peopleRows.length > 0) {
+    if (meta) {
       return {
         meta: {
           title: meta.title,
@@ -143,7 +204,10 @@ async function readFamilyFromNeon(): Promise<FamilyDatabase> {
       SELECT meta, people FROM family_tree WHERE id = 'current' LIMIT 1
     `) as { meta: FamilyDatabase["meta"]; people: Person[] }[];
     if (docs[0]?.people?.length) {
-      return { meta: docs[0].meta, people: docs[0].people };
+      return {
+        meta: docs[0].meta,
+        people: docs[0].people.map(normalizeStoredPerson),
+      };
     }
   } catch {
     /* older schema may only have data jsonb */
@@ -153,24 +217,31 @@ async function readFamilyFromNeon(): Promise<FamilyDatabase> {
     const docs = (await sql`
       SELECT data FROM family_tree WHERE id = 'current' LIMIT 1
     `) as { data: FamilyDatabase }[];
-    if (docs[0]?.data?.people?.length) return docs[0].data;
+    if (docs[0]?.data?.people?.length) {
+      const data = docs[0].data;
+      return {
+        ...data,
+        people: data.people.map(normalizeStoredPerson),
+      };
+    }
   } catch {
     /* ignore */
   }
 
-  const fromFile = await readFamilyFile();
-  try {
-    await writePeopleTables(fromFile);
-  } catch {
-    /* tables may not exist yet */
-  }
-  return fromFile;
+  throw new Error(
+    "Brak danych rodziny w Neon (family_meta / people / family_tree).",
+  );
 }
 
 async function writePeopleTables(
   db: FamilyDatabase,
 ): Promise<void> {
   const sql = getSql();
+  try {
+    await sql`ALTER TABLE people ADD COLUMN IF NOT EXISTS wedding_date text`;
+  } catch {
+    /* role may lack ALTER; INSERT below still works after 008 */
+  }
   const payload = peopleInsertPayload(db.people);
   await sql.transaction([
     sql`
@@ -194,12 +265,12 @@ async function writePeopleTables(
     sql`
       INSERT INTO people (
         id, first_name, last_name, maiden_name, gender,
-        birth_date, death_date, photo_url, phone, notes,
+        birth_date, death_date, wedding_date, photo_url, phone, notes,
         parent_ids, spouse_ids
       )
       SELECT
         id, first_name, last_name, maiden_name, gender,
-        birth_date, death_date, photo_url, phone, notes,
+        birth_date, death_date, wedding_date, photo_url, phone, notes,
         parent_ids, spouse_ids
       FROM jsonb_to_recordset(${payload}::jsonb) AS t(
         id text,
@@ -209,6 +280,7 @@ async function writePeopleTables(
         gender text,
         birth_date text,
         death_date text,
+        wedding_date text,
         photo_url text,
         phone text,
         notes text,
@@ -261,19 +333,20 @@ async function writeFamilyTreeDocument(
 }
 
 export async function readFamilyDb(): Promise<FamilyDatabase> {
-  if (!hasDb()) return readFamilyFile();
-  try {
-    return await readFamilyFromNeon();
-  } catch (err) {
-    if (isMissingFamilySchema(err)) return readFamilyFile();
-    throw err;
+  if (!hasDb()) {
+    const db = await readFamilyFile();
+    return { ...db, people: db.people.map(normalizeStoredPerson) };
   }
+  return readFamilyFromNeon();
 }
 
 export async function writeFamilyDb(
   db: FamilyDatabase,
   adminId?: string,
 ): Promise<void> {
+  for (const person of db.people) {
+    delete person.pending;
+  }
   db.meta.updatedAt = new Date().toISOString();
   if (hasDb()) {
     try {

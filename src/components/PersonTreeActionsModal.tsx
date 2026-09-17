@@ -100,7 +100,9 @@ export function PersonTreeActionsModal({
             <p className="graph-person-modal__label">Buduj drzewo</p>
             <h2 id="graph-person-title">{displayName(person)}</h2>
             <p className="graph-person-modal__sub">
-              {lifespan(person) || "Wybierz, co dodać lub zmienić"}
+              {person.pending
+                ? "Roboczo — jeszcze niezaakceptowana"
+                : lifespan(person) || "Wybierz, co dodać lub zmienić"}
             </p>
           </div>
         </div>
@@ -136,9 +138,15 @@ export function PersonTreeActionsModal({
       </div>
 
       <div className="graph-person-modal__links">
-        <button type="button" className="btn btn-secondary" onClick={onViewPerson}>
-          Szczegóły osoby
-        </button>
+        {person.pending ? (
+          <p className="empty-hint">
+            Szczegóły karty pojawią się po akceptacji admina.
+          </p>
+        ) : (
+          <button type="button" className="btn btn-secondary" onClick={onViewPerson}>
+            Szczegóły osoby
+          </button>
+        )}
         <button type="button" className="btn btn-secondary" onClick={onFocusBranch}>
           Pokaż gałąź
         </button>

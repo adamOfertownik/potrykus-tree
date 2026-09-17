@@ -44,6 +44,12 @@ export function Modal({
 
   onCloseRef.current = onClose;
   compulsoryRef.current = compulsory;
+  const ignoreBackdropUntil = useRef(0);
+  const wasOpen = useRef(false);
+  if (open && !wasOpen.current) {
+    ignoreBackdropUntil.current = performance.now() + 700;
+  }
+  wasOpen.current = open;
 
   const listFocusables = () => {
     const card = cardRef.current;
@@ -101,7 +107,9 @@ export function Modal({
 
   const onBackdrop = (e: ReactMouseEvent) => {
     if (e.target !== e.currentTarget) return;
-    if (!compulsory) onClose();
+    if (compulsory) return;
+    if (performance.now() < ignoreBackdropUntil.current) return;
+    onClose();
   };
 
   return createPortal(

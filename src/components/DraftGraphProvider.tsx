@@ -1,0 +1,201 @@
+"use client";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  applyGraphMutations,
+  overlayDraftPeople,
+  type GraphMutationInput,
+} from "@/lib/familyMutations";
+import { loadReporter } from "@/lib/reporter";
+import { withChildrenIds } from "@/lib/tree";
+import type { Person, PersonPublic } from "@/types/family";
+
+const STORAGE_KEY = "potrykus_draft_graph_v1";
+
+export type DraftGraphEdit = GraphMutationInput & { summary: string };
+
+type DraftGraphValue = {
+  edits: DraftGraphEdit[];
+  pendingCount: number;
+  submitting: boolean;
+  error: string | null;
+  overlayPeople: (people: Person[]) => Person[];
+  mergePeople: (people: Person[]) => PersonPublic[];
+  stage: (
+    input: GraphMutationInput,
+    currentPeople: Person[],
+  ) => {
+    createdPersonId?: string;
+    summary: string;
+  };
+  discard: () => void;
+  submitAll: () => Promise<{ summary: string }>;
+};
+
+const DraftGraphContext = createContext<DraftGraphValue | null>(null);
+
+function readStoredEdits(): DraftGraphEdit[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as { edits?: DraftGraphEdit[] };
+    return Array.isArray(parsed.edits) ? parsed.edits : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistEdits(edits: DraftGraphEdit[]) {
+  if (typeof window === "undefined") return;
+  if (edits.length === 0) {
+    sessionStorage.removeItem(STORAGE_KEY);
+    return;
+  }
+  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ edits }));
+}
+
+let draftSeq = 0;
+
+export function nextDraftPersonId(): string {
+  draftSeq += 1;
+  return `draft-${Date.now().toString(36)}-${draftSeq}`;
+}
+
+export function DraftGraphProvider({ children }: { children: ReactNode }) {
+  const [edits, setEdits] = useState<DraftGraphEdit[]>(readStoredEdits);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const replaceEdits = useCallback((next: DraftGraphEdit[]) => {
+    setEdits(next);
+    persistEdits(next);
+  }, []);
+
+  const overlayPeople = useCallback(
+    (people: Person[]) => overlayDraftPeople(people, edits),
+    [edits],
+  );
+
+  const mergePeople = useCallback(
+    (people: Person[]) => withChildrenIds(overlayPeople(people)),
+    [overlayPeople],
+  );
+
+  const stage = useCallback(
+    (input: GraphMutationInput, currentPeople: Person[]) => {
+      const preview = applyGraphMutations(
+        {
+          meta: {
+            title: "",
+            rootPersonId: input.anchorPersonId,
+            creator: "",
+            updatedAt: "",
+            description: "",
+          },
+          people: currentPeople,
+        },
+        [input],
+        { keepClientIds: true, markPending: true },
+      );
+      const next: DraftGraphEdit[] = [
+        ...edits,
+        { ...input, summary: preview.summary },
+      ];
+      replaceEdits(next);
+      setError(null);
+      return {
+        createdPersonId: preview.createdPeople[0]?.id,
+        summary: preview.summary,
+      };
+    },
+    [edits, replaceEdits],
+  );
+
+  const discard = useCallback(() => {
+    replaceEdits([]);
+    setError(null);
+  }, [replaceEdits]);
+
+  const submitAll = useCallback(async () => {
+    if (edits.length === 0) return { summary: "" };
+    setSubmitting(true);
+    setError(null);
+    try {
+      const reporter = loadReporter();
+      const res = await fetch("/api/family/mutate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          edits: edits.map(({ summary: _summary, ...edit }) => {
+            void _summary;
+            return edit;
+          }),
+          reporterName: reporter?.name || "Edycja grafu",
+          reporterPersonId: reporter?.personId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd zapisu");
+      replaceEdits([]);
+      return {
+        summary: `${data.summary} Wysłano jako jedną sugestię — drzewo zmieni się po akceptacji admina.`,
+      };
+    } catch (err) {
+      const message = (err as Error).message;
+      setError(message);
+      throw err;
+    } finally {
+      setSubmitting(false);
+    }
+  }, [edits, replaceEdits]);
+
+  const value = useMemo<DraftGraphValue>(
+    () => ({
+      edits,
+      pendingCount: edits.length,
+      submitting,
+      error,
+      overlayPeople,
+      mergePeople,
+      stage,
+      discard,
+      submitAll,
+    }),
+    [
+      discard,
+      edits,
+      error,
+      mergePeople,
+      overlayPeople,
+      stage,
+      submitAll,
+      submitting,
+    ],
+  );
+
+  return (
+    <DraftGraphContext.Provider value={value}>
+      {children}
+    </DraftGraphContext.Provider>
+  );
+}
+
+export function useDraftGraph(): DraftGraphValue {
+  const ctx = useContext(DraftGraphContext);
+  if (!ctx) {
+    throw new Error("useDraftGraph wymaga DraftGraphProvider.");
+  }
+  return ctx;
+}
+
+export function useOptionalDraftGraph(): DraftGraphValue | null {
+  return useContext(DraftGraphContext);
+}
