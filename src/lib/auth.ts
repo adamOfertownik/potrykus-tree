@@ -2,6 +2,8 @@ import { SignJWT, jwtVerify } from "jose";
 import { compare } from "bcryptjs";
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
+import { findAdminById } from "@/lib/adminUsers";
+import type { AdminUserRole } from "@/types/admin";
 import { readConfig } from "@/lib/db";
 
 const SESSION_TTL = "30d";
@@ -53,6 +55,7 @@ export async function isSessionValid(): Promise<boolean> {
 export type AdminSession = {
   adminId: string;
   email: string;
+  role: AdminUserRole;
 };
 
 export async function getAdminSession(): Promise<AdminSession | null> {
@@ -65,9 +68,12 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     if (payload.role !== "admin" || typeof payload.adminId !== "string") {
       return null;
     }
+    const user = await findAdminById(payload.adminId);
+    if (!user) return null;
     return {
-      adminId: payload.adminId,
-      email: typeof payload.email === "string" ? payload.email : "",
+      adminId: user.id,
+      email: user.email,
+      role: user.role,
     };
   } catch {
     return null;

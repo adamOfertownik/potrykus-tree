@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FamilyPayload } from "@/types/family";
+import type { AdminUserRole } from "@/types/admin";
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
@@ -64,14 +65,20 @@ export function useLogout() {
   });
 }
 
+export type AdminAuthStatus = {
+  loggedIn: boolean;
+  email: string | null;
+  role: AdminUserRole | null;
+  adminId: string | null;
+};
+
 export function useAdminAuthStatus() {
   return useQuery({
     queryKey: ["admin-auth-status"],
     queryFn: () =>
-      fetchJson<{ loggedIn: boolean; email: string | null }>(
-        "/api/auth/admin/status",
-        { cache: "no-store" },
-      ),
+      fetchJson<AdminAuthStatus>("/api/auth/admin/status", {
+        cache: "no-store",
+      }),
   });
 }
 
@@ -99,7 +106,12 @@ export function useAdminLogout() {
         cache: "no-store",
       }),
     onSuccess: () => {
-      qc.setQueryData(["admin-auth-status"], { loggedIn: false, email: null });
+      qc.setQueryData(["admin-auth-status"], {
+        loggedIn: false,
+        email: null,
+        role: null,
+        adminId: null,
+      });
       window.location.assign("/login");
     },
   });

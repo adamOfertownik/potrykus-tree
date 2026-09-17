@@ -6,5 +6,7 @@ export async function GET() {
   return NextResponse.json({
     loggedIn: Boolean(session),
     email: session?.email ?? null,
+    role: session?.role ?? null,
+    adminId: session?.adminId ?? null,
   });
 }

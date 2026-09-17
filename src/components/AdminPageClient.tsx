@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ChangeSubmission, SubmissionPreview } from "@/types/submissions";
 import type { FamilyPayload, Person } from "@/types/family";
 import { useAdminAuthStatus, useAdminLogout } from "@/lib/hooks";
@@ -12,17 +12,48 @@ import { displayName, formatPolishDate } from "@/lib/db-client";
 import { searchPeople } from "@/lib/search";
 import { Modal } from "@/components/Modal";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
+import { AdminUsersPanel } from "@/components/AdminUsersPanel";
+import type { AdminUserRole } from "@/types/admin";
 
 type AdminSubmission = ChangeSubmission & { preview?: SubmissionPreview };
-type Tab = "queue" | "people";
+type Tab = "queue" | "people" | "users";
 type StatusFilter = ChangeSubmission["status"] | "all";
+type PersonFormState = {
+  firstName: string;
+  lastName: string;
+  maidenName: string;
+  gender: Person["gender"];
+  birthDate: string;
+  deathDate: string;
+  phone: string;
+  notes: string;
+};
 
-function AdminPanel({ email }: { email: string }) {
+function personToForm(person: Person): PersonFormState {
+  return {
+    firstName: person.firstName,
+    lastName: person.lastName,
+    maidenName: person.maidenName || "",
+    gender: person.gender,
+    birthDate: person.birthDate || "",
+    deathDate: person.deathDate || "",
+    phone: person.phone || "",
+    notes: person.notes || "",
+  };
+}
+
+function AdminPanel({
+  email,
+  role,
+  adminId,
+}: {
+  email: string;
+  role: AdminUserRole;
+  adminId: string;
+}) {
   const logout = useAdminLogout();
   const qc = useQueryClient();
-  const [people, setPeople] = useState<Person[]>([]);
   const [tab, setTab] = useState<Tab>("queue");
-  const [items, setItems] = useState<AdminSubmission[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -34,45 +65,50 @@ function AdminPanel({ email }: { email: string }) {
   } | null>(null);
   const errorRef = useRef<HTMLDivElement>(null);
 
-  const load = async () => {
-    setBusy(true);
-    setError(null);
-    try {
+  const submissionsQuery = useQuery({
+    queryKey: ["admin-submissions"],
+    queryFn: async () => {
       const res = await fetch("/api/admin/submissions");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd");
-      setItems(data.submissions || []);
-      const familyRes = await fetch("/api/admin/family");
-      if (familyRes.ok) {
-        const family = (await familyRes.json()) as FamilyPayload;
-        setPeople(family.people);
-        qc.setQueryData(["family"], family);
-      }
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
+      return (data.submissions ?? []) as AdminSubmission[];
+    },
+  });
+  const familyQuery = useQuery({
+    queryKey: ["admin-family"],
+    queryFn: async (): Promise<FamilyPayload | null> => {
+      const res = await fetch("/api/admin/family");
+      if (!res.ok) return null;
+      const family = (await res.json()) as FamilyPayload;
+      qc.setQueryData(["family"], family);
+      return family;
+    },
+  });
+
+  const items = submissionsQuery.data ?? [];
+  const people = familyQuery.data?.people ?? [];
+  const displayError =
+    error ??
+    (submissionsQuery.error instanceof Error
+      ? submissionsQuery.error.message
+      : null);
+  const loading = busy || submissionsQuery.isPending;
 
   useEffect(() => {
-    void load();
-  }, []);
-
-  useEffect(() => {
-    if (error) errorRef.current?.focus();
-  }, [error]);
+    if (displayError) errorRef.current?.focus();
+  }, [displayError]);
 
   const counts = useMemo(() => {
     const next = { new: 0, reviewed: 0, accepted: 0, rejected: 0, local_only: 0 };
-    for (const item of items) next[item.status] += 1;
+    for (const item of submissionsQuery.data ?? []) next[item.status] += 1;
     return next;
-  }, [items]);
+  }, [submissionsQuery.data]);
 
   const visible = items.filter(
     (s) => statusFilter === "all" || s.status === statusFilter,
   );
   const selected = items.find((s) => s.id === selectedId) ?? visible[0] ?? null;
+  const activeTab: Tab = role !== "admin" && tab === "users" ? "queue" : tab;
 
   const setStatus = async (
     id: string,
@@ -89,12 +125,12 @@ function AdminPanel({ email }: { email: string }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd");
-      setItems((list) =>
-        list.map((s) => (s.id === id ? data.submission : s)),
+      qc.setQueryData<AdminSubmission[]>(["admin-submissions"], (list) =>
+        (list ?? []).map((s) => (s.id === id ? data.submission : s)),
       );
       if (data.family) {
         qc.setQueryData(["family"], data.family);
-        setPeople(data.family.people);
+        qc.setQueryData(["admin-family"], data.family);
       }
       setSuccess(
         status === "accepted"
@@ -113,33 +149,36 @@ function AdminPanel({ email }: { email: string }) {
 
   return (
     <section className="admin-page">
-      <header className="admin-page__intro">
-        <h1>Panel admina</h1>
-        <p>
-          Zalogowany jako <strong>{email}</strong>. Sugestie rodziny są tu
-          widoczne — reszta użytkowników ich nie widzi.
-        </p>
-        <div className="admin-page__toolbar">
-          <Link href="/drzewo" className="btn btn-secondary">
-            ← Do drzewa
-          </Link>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            disabled={logout.isPending}
-            onClick={() => {
-              logout.mutate();
-            }}
-          >
-            Wyloguj
-          </button>
+      <header className="admin-chrome">
+        <div className="admin-chrome__top">
+          <div>
+            <h1>Panel admina</h1>
+            <p>
+              Zalogowany jako <strong>{email}</strong>
+            </p>
+          </div>
+          <div className="admin-chrome__actions">
+            <Link href="/drzewo" className="btn btn-secondary">
+              ← Do drzewa
+            </Link>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={logout.isPending}
+              onClick={() => {
+                logout.mutate();
+              }}
+            >
+              Wyloguj
+            </button>
+          </div>
         </div>
         <div className="admin-tabs" role="tablist" aria-label="Panel admina">
           <button
             type="button"
             role="tab"
-            aria-selected={tab === "queue"}
-            className={tab === "queue" ? "is-active" : undefined}
+            aria-selected={activeTab === "queue"}
+            className={activeTab === "queue" ? "is-active" : undefined}
             onClick={() => setTab("queue")}
           >
             Zgłoszenia
@@ -147,18 +186,29 @@ function AdminPanel({ email }: { email: string }) {
           <button
             type="button"
             role="tab"
-            aria-selected={tab === "people"}
-            className={tab === "people" ? "is-active" : undefined}
+            aria-selected={activeTab === "people"}
+            className={activeTab === "people" ? "is-active" : undefined}
             onClick={() => setTab("people")}
           >
             Osoby
           </button>
+          {role === "admin" && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeTab === "users"}
+              className={activeTab === "users" ? "is-active" : undefined}
+              onClick={() => setTab("users")}
+            >
+              Użytkownicy
+            </button>
+          )}
         </div>
       </header>
 
-      {error && (
+      {displayError && (
         <div ref={errorRef} className="banner-error" role="alert" tabIndex={-1}>
-          {error}
+          {displayError}
         </div>
       )}
       {success && (
@@ -167,92 +217,107 @@ function AdminPanel({ email }: { email: string }) {
         </p>
       )}
 
-      {tab === "queue" ? (
-        <>
-          <ul className="admin-metrics">
-            {(
-              [
-                ["new", "Nowe"],
-                ["reviewed", "Przejrzane"],
-                ["accepted", "Zaakceptowane"],
-                ["rejected", "Odrzucone"],
-              ] as const
-            ).map(([key, label]) => (
-              <li key={key}>
+      {activeTab === "queue" ? (
+        <div className="admin-workspace">
+          <div className="admin-card-box">
+            <div
+              className="admin-filters"
+              role="group"
+              aria-label="Status zgłoszeń"
+            >
+              {(
+                [
+                  ["new", "Nowe", counts.new],
+                  ["reviewed", "Przejrzane", counts.reviewed],
+                  ["accepted", "Zaakceptowane", counts.accepted],
+                  ["rejected", "Odrzucone", counts.rejected],
+                  ["all", "Wszystkie", items.length],
+                ] as const
+              ).map(([key, label, count]) => (
                 <button
+                  key={key}
                   type="button"
-                  className={statusFilter === key ? "is-active" : undefined}
+                  aria-pressed={statusFilter === key}
                   onClick={() => setStatusFilter(key)}
                 >
-                  <strong>{counts[key]}</strong>
-                  {label}
+                  {label} ({count})
                 </button>
-              </li>
-            ))}
-            <li>
-              <button
-                type="button"
-                className={statusFilter === "all" ? "is-active" : undefined}
-                onClick={() => setStatusFilter("all")}
-              >
-                <strong>{items.length}</strong>
-                Wszystkie
-              </button>
-            </li>
-          </ul>
-
-          <div className="admin-queue">
-            <ul className="admin-list">
+              ))}
+            </div>
+            <ul className="admin-list-box">
               {visible.length === 0 && (
-                <li className="empty-hint">Brak zgłoszeń w tym filtrze.</li>
+                <li className="admin-list-empty">
+                  Brak zgłoszeń w tym widoku.
+                  {statusFilter !== "all" && (
+                    <button
+                      type="button"
+                      className="btn-text"
+                      onClick={() => setStatusFilter("all")}
+                    >
+                      Pokaż wszystkie
+                    </button>
+                  )}
+                </li>
               )}
               {visible.map((s) => (
                 <li key={s.id}>
                   <button
                     type="button"
-                    className={`admin-card${selected?.id === s.id ? " is-selected" : ""}`}
+                    className={`admin-row${selected?.id === s.id ? " is-selected" : ""}`}
+                    aria-current={selected?.id === s.id ? "true" : undefined}
                     onClick={() => setSelectedId(s.id)}
                   >
-                    <div className="admin-card__head">
-                      <strong>{s.reporterName}</strong>
-                      <span>{KIND_LABELS[s.kind]}</span>
-                      <span className={`admin-card__status admin-card__status--${s.status}`}>
+                    <span className="admin-row__title">
+                      {s.reporterName}
+                      <span
+                        className={`admin-role-badge admin-status-badge--${s.status}`}
+                      >
                         {STATUS_LABELS[s.status]}
                       </span>
-                    </div>
-                    <p>{s.preview?.summary || s.message || "(bez opisu)"}</p>
-                    {s.targetPersonName && (
-                      <p className="empty-hint">Dotyczy: {s.targetPersonName}</p>
-                    )}
+                    </span>
+                    <span className="admin-row__meta">
+                      {KIND_LABELS[s.kind]}
+                      {s.targetPersonName ? ` · ${s.targetPersonName}` : ""}
+                    </span>
+                    <span className="admin-row__summary">
+                      {s.preview?.summary || s.message || "(bez opisu)"}
+                    </span>
                   </button>
                 </li>
               ))}
             </ul>
+          </div>
 
-            {selected && (
-              <article className="admin-detail" aria-live="polite">
-                <header>
-                  <h2>{KIND_LABELS[selected.kind]}</h2>
-                  <p>
-                    {selected.reporterName}
-                    {selected.reporterPhone ? ` · ${selected.reporterPhone}` : ""}
-                  </p>
-                </header>
-                {selected.targetPersonId && (
-                  <p>
-                    Dotyczy:{" "}
-                    <Link href={`/osoba/${selected.targetPersonId}`}>
-                      {selected.targetPersonName || selected.targetPersonId}
-                    </Link>
-                  </p>
-                )}
-                {selected.message && <p>{selected.message}</p>}
-                {selected.preview?.warnings.map((w) => (
-                  <p key={w} className="banner-error" role="status">
-                    {w}
-                  </p>
-                ))}
-                {selected.preview?.diffs.length ? (
+          {selected ? (
+            <article className="admin-detail" aria-live="polite">
+              <header className="admin-detail__head">
+                <h2>{KIND_LABELS[selected.kind]}</h2>
+                <span
+                  className={`admin-role-badge admin-status-badge--${selected.status}`}
+                >
+                  {STATUS_LABELS[selected.status]}
+                </span>
+              </header>
+              <p>
+                {selected.reporterName}
+                {selected.reporterPhone ? ` · ${selected.reporterPhone}` : ""}
+              </p>
+              {selected.targetPersonId && (
+                <p>
+                  Dotyczy:{" "}
+                  <Link href={`/osoba/${selected.targetPersonId}`}>
+                    {selected.targetPersonName || selected.targetPersonId}
+                  </Link>
+                </p>
+              )}
+              {selected.message && <p>{selected.message}</p>}
+              {selected.preview?.warnings.map((w) => (
+                <p key={w} className="banner-error" role="status">
+                  {w}
+                </p>
+              ))}
+              {selected.preview?.diffs.length ? (
+                <div className="admin-diff-wrap">
                   <table className="admin-diff">
                     <caption>Podgląd zmian</caption>
                     <thead>
@@ -272,91 +337,103 @@ function AdminPanel({ email }: { email: string }) {
                       ))}
                     </tbody>
                   </table>
-                ) : null}
-                {(selected.preview?.photoBefore || selected.preview?.photoAfter || selected.photoUrl) && (
-                  <div className="admin-photo-diff">
-                    <figure>
-                      <figcaption>Teraz</figcaption>
-                      {selected.preview?.photoBefore ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={selected.preview.photoBefore} alt="" />
-                      ) : (
-                        <span>brak</span>
-                      )}
-                    </figure>
-                    <figure>
-                      <figcaption>Propozycja</figcaption>
-                      {selected.preview?.photoAfter || selected.photoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={selected.preview?.photoAfter || selected.photoUrl}
-                          alt=""
-                        />
-                      ) : (
-                        <span>usunąć</span>
-                      )}
-                    </figure>
-                  </div>
-                )}
-                {selected.graphEdit && (
-                  <p className="empty-hint">
-                    Operacja: {selected.graphEdit.op}
-                    {selected.graphEdit.summary
-                      ? ` — ${selected.graphEdit.summary}`
-                      : ""}
-                  </p>
-                )}
-                {selected.status === "new" || selected.status === "reviewed" ? (
-                  <div className="admin-card__actions">
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      disabled={busy}
-                      onClick={() => setStatus(selected.id, "reviewed")}
-                    >
-                      Przejrzane
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      disabled={busy}
-                      onClick={() =>
-                        setConfirm({ id: selected.id, status: "accepted" })
-                      }
-                    >
-                      Akceptuj
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      disabled={busy}
-                      onClick={() =>
-                        setConfirm({ id: selected.id, status: "rejected" })
-                      }
-                    >
-                      Odrzuć
-                    </button>
-                  </div>
-                ) : (
-                  <p className="empty-hint">
-                    Status: {STATUS_LABELS[selected.status]}
-                  </p>
-                )}
-              </article>
-            )}
-          </div>
-        </>
-      ) : (
+                </div>
+              ) : null}
+              {(selected.preview?.photoBefore ||
+                selected.preview?.photoAfter ||
+                selected.photoUrl) && (
+                <div className="admin-photo-diff">
+                  <figure>
+                    <figcaption>Teraz</figcaption>
+                    {selected.preview?.photoBefore ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={selected.preview.photoBefore} alt="" />
+                    ) : (
+                      <span>brak</span>
+                    )}
+                  </figure>
+                  <figure>
+                    <figcaption>Propozycja</figcaption>
+                    {selected.preview?.photoAfter || selected.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={selected.preview?.photoAfter || selected.photoUrl}
+                        alt=""
+                      />
+                    ) : (
+                      <span>usunąć</span>
+                    )}
+                  </figure>
+                </div>
+              )}
+              {selected.graphEdit && (
+                <p className="empty-hint">
+                  Operacja: {selected.graphEdit.op}
+                  {selected.graphEdit.summary
+                    ? ` — ${selected.graphEdit.summary}`
+                    : ""}
+                </p>
+              )}
+              {selected.status === "new" || selected.status === "reviewed" ? (
+                <div className="admin-card__actions">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={loading}
+                    onClick={() => setStatus(selected.id, "reviewed")}
+                  >
+                    Przejrzane
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={loading}
+                    onClick={() =>
+                      setConfirm({ id: selected.id, status: "accepted" })
+                    }
+                  >
+                    Akceptuj
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    disabled={loading}
+                    onClick={() =>
+                      setConfirm({ id: selected.id, status: "rejected" })
+                    }
+                  >
+                    Odrzuć
+                  </button>
+                </div>
+              ) : (
+                <p className="empty-hint">
+                  Status: {STATUS_LABELS[selected.status]}
+                </p>
+              )}
+            </article>
+          ) : (
+            <p className="admin-card-box admin-list-empty">
+              Wybierz zgłoszenie z listy.
+            </p>
+          )}
+        </div>
+      ) : activeTab === "people" ? (
         <AdminPeoplePanel
           people={people}
           onFamily={(family) => {
             qc.setQueryData(["family"], family);
-            setPeople(family.people);
+            qc.setQueryData(["admin-family"], family);
           }}
           onError={setError}
           onSuccess={setSuccess}
         />
-      )}
+      ) : role === "admin" ? (
+        <AdminUsersPanel
+          currentUserId={adminId}
+          onError={setError}
+          onSuccess={setSuccess}
+        />
+      ) : null}
 
       {confirm && selected && confirm.id === selected.id && (
         <Modal
@@ -377,8 +454,10 @@ function AdminPanel({ email }: { email: string }) {
           <div className="modal-actions">
             <button
               type="button"
-              className="btn btn-primary"
-              disabled={busy}
+              className={
+                confirm.status === "accepted" ? "btn btn-primary" : "btn btn-danger"
+              }
+              disabled={loading}
               onClick={() => setStatus(confirm.id, confirm.status)}
             >
               {confirm.status === "accepted" ? "Akceptuj i zapisz" : "Odrzuć"}
@@ -409,42 +488,134 @@ function AdminPeoplePanel({
   onSuccess: (message: string | null) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [personId, setPersonId] = useState<string | null>(people[0]?.id ?? null);
-  const person = people.find((p) => p.id === personId) ?? null;
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    maidenName: "",
-    gender: "unknown" as Person["gender"],
-    birthDate: "",
-    deathDate: "",
-    phone: "",
-    notes: "",
-  });
+  const [personId, setPersonId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createBusy, setCreateBusy] = useState(false);
+  const resolvedPersonId =
+    personId && people.some((p) => p.id === personId)
+      ? personId
+      : (people[0]?.id ?? null);
+  const person = people.find((p) => p.id === resolvedPersonId) ?? null;
+  const matches = query.trim() ? searchPeople(people, query) : people;
+
+  return (
+    <div className="admin-workspace">
+      <div className="admin-card-box">
+        <div className="admin-toolbar">
+          <label className="field-block">
+            Szukaj osoby
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Imię lub nazwisko"
+            />
+          </label>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setCreateOpen(true)}
+          >
+            Nowa osoba
+          </button>
+        </div>
+        <ul className="admin-list-box">
+          {matches.length === 0 && (
+            <li className="admin-list-empty">
+              {query.trim()
+                ? `Brak osób dla „${query.trim()}”.`
+                : "Brak osób w drzewie."}
+              {query.trim() ? (
+                <button
+                  type="button"
+                  className="btn-text"
+                  onClick={() => setQuery("")}
+                >
+                  Pokaż wszystkie
+                </button>
+              ) : null}
+            </li>
+          )}
+          {matches.map((p) => (
+            <li key={p.id}>
+              <button
+                type="button"
+                className={`admin-row${p.id === resolvedPersonId ? " is-selected" : ""}`}
+                aria-current={p.id === resolvedPersonId ? "true" : undefined}
+                onClick={() => setPersonId(p.id)}
+              >
+                <span className="admin-row__title">{displayName(p)}</span>
+                <span className="admin-row__meta">
+                  {genderLabel(p.gender)}
+                  {` · ur. ${formatPolishDate(p.birthDate) || "—"}`}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {person ? (
+        <PersonEditor
+          key={person.id}
+          person={person}
+          onFamily={onFamily}
+          onError={onError}
+          onSuccess={onSuccess}
+          onDeleted={(nextId) => setPersonId(nextId)}
+        />
+      ) : (
+        <p className="admin-card-box admin-list-empty">Wybierz osobę z listy.</p>
+      )}
+
+      {createOpen && (
+        <CreatePersonModal
+          busy={createBusy}
+          onClose={() => setCreateOpen(false)}
+          onCreate={async (payload) => {
+            setCreateBusy(true);
+            onError(null);
+            try {
+              const res = await fetch("/api/admin/family", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "create", newPerson: payload }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error || "Błąd");
+              onFamily(data.family);
+              setPersonId(data.createdPersonId);
+              setCreateOpen(false);
+              onSuccess("Dodano osobę.");
+            } catch (e) {
+              onError((e as Error).message);
+            } finally {
+              setCreateBusy(false);
+            }
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function PersonEditor({
+  person,
+  onFamily,
+  onError,
+  onSuccess,
+  onDeleted,
+}: {
+  person: Person;
+  onFamily: (family: FamilyPayload) => void;
+  onError: (message: string | null) => void;
+  onSuccess: (message: string | null) => void;
+  onDeleted: (nextId: string | null) => void;
+}) {
+  const [form, setForm] = useState(() => personToForm(person));
   const [busy, setBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-
-  useEffect(() => {
-    if (!person) return;
-    setForm({
-      firstName: person.firstName,
-      lastName: person.lastName,
-      maidenName: person.maidenName || "",
-      gender: person.gender,
-      birthDate: person.birthDate || "",
-      deathDate: person.deathDate || "",
-      phone: person.phone || "",
-      notes: person.notes || "",
-    });
-  }, [person]);
-
-  const matches = query.trim()
-    ? searchPeople(people, query).slice(0, 12)
-    : people.slice(0, 12);
 
   const save = async () => {
-    if (!person) return;
     setBusy(true);
     onError(null);
     try {
@@ -469,7 +640,6 @@ function AdminPeoplePanel({
   };
 
   const remove = async () => {
-    if (!person) return;
     setBusy(true);
     onError(null);
     try {
@@ -481,9 +651,11 @@ function AdminPeoplePanel({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd usuwania");
       onFamily(data.family);
-      setPersonId(data.family.people[0]?.id ?? null);
       setDeleteOpen(false);
-      onSuccess(`Usunięto osobę. Odpięto powiązania: ${(data.affectedNames || []).join(", ")}`);
+      onDeleted(data.family.people[0]?.id ?? null);
+      onSuccess(
+        `Usunięto osobę. Odpięto powiązania: ${(data.affectedNames || []).join(", ")}`,
+      );
     } catch (e) {
       onError((e as Error).message);
     } finally {
@@ -492,162 +664,127 @@ function AdminPeoplePanel({
   };
 
   return (
-    <div className="admin-people">
-      <div className="admin-people__search">
-        <label className="field-block">
-          Szukaj osoby
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Imię lub nazwisko"
+    <>
+      <form
+        className="admin-detail change-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void save();
+        }}
+      >
+        <div className="admin-people__identity">
+          <PersonPhotoControl
+            person={person}
+            size="lg"
+            mode="admin"
+            onFamily={onFamily}
           />
-        </label>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={() => setCreateOpen(true)}
-        >
-          Nowa osoba
-        </button>
-        <ul className="who-matches">
-          {matches.map((p) => (
-            <li key={p.id}>
-              <button
-                type="button"
-                className={p.id === personId ? "is-active" : undefined}
-                onClick={() => setPersonId(p.id)}
-              >
-                {displayName(p)}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {person ? (
-        <form
-          className="change-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void save();
-          }}
-        >
-          <div className="admin-people__identity">
-            <PersonPhotoControl
-              person={person}
-              size="lg"
-              mode="admin"
-              onFamily={onFamily}
-            />
-            <p>
-              <Link href={`/osoba/${person.id}`}>Otwórz kartę osoby</Link>
-            </p>
-          </div>
-          <div className="form-grid">
-            <label>
-              Imię
-              <input
-                required
-                value={form.firstName}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, firstName: e.target.value }))
-                }
-              />
-            </label>
-            <label>
-              Nazwisko
-              <input
-                required
-                value={form.lastName}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, lastName: e.target.value }))
-                }
-              />
-            </label>
-            <label>
-              Nazwisko rodowe
-              <input
-                value={form.maidenName}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, maidenName: e.target.value }))
-                }
-              />
-            </label>
-            <label>
-              Płeć
-              <select
-                value={form.gender}
-                onChange={(e) =>
-                  setForm((s) => ({
-                    ...s,
-                    gender: e.target.value as Person["gender"],
-                  }))
-                }
-              >
-                <option value="unknown">{genderLabel("unknown")}</option>
-                <option value="female">{genderLabel("female")}</option>
-                <option value="male">{genderLabel("male")}</option>
-              </select>
-            </label>
-            <label>
-              Data urodzenia
-              <input
-                value={form.birthDate}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, birthDate: e.target.value }))
-                }
-                placeholder="RRRR-MM-DD"
-              />
-            </label>
-            <label>
-              Data zgonu
-              <input
-                value={form.deathDate}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, deathDate: e.target.value }))
-                }
-                placeholder="RRRR-MM-DD"
-              />
-            </label>
-            <label>
-              Telefon
-              <input
-                value={form.phone}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, phone: e.target.value }))
-                }
-              />
-            </label>
-          </div>
-          <label className="field-block">
-            Notatki
-            <textarea
-              rows={4}
-              value={form.notes}
-              onChange={(e) => setForm((s) => ({ ...s, notes: e.target.value }))}
+          <p>
+            <Link href={`/osoba/${person.id}`}>Otwórz kartę osoby</Link>
+          </p>
+        </div>
+        <div className="form-grid">
+          <label>
+            Imię
+            <input
+              required
+              value={form.firstName}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, firstName: e.target.value }))
+              }
             />
           </label>
-          <p className="empty-hint">
-            Ur. {formatPolishDate(person.birthDate) || "—"} · id: {person.id}
-          </p>
-          <div className="admin-card__actions">
-            <button type="submit" className="btn btn-primary" disabled={busy}>
-              {busy ? "Zapisuję…" : "Zapisz"}
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setDeleteOpen(true)}
+          <label>
+            Nazwisko
+            <input
+              required
+              value={form.lastName}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, lastName: e.target.value }))
+              }
+            />
+          </label>
+          <label>
+            Nazwisko rodowe
+            <input
+              value={form.maidenName}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, maidenName: e.target.value }))
+              }
+            />
+          </label>
+          <label>
+            Płeć
+            <select
+              value={form.gender}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  gender: e.target.value as Person["gender"],
+                }))
+              }
             >
-              Usuń osobę
-            </button>
-          </div>
-        </form>
-      ) : (
-        <p className="empty-hint">Wybierz osobę z listy.</p>
-      )}
+              <option value="unknown">{genderLabel("unknown")}</option>
+              <option value="female">{genderLabel("female")}</option>
+              <option value="male">{genderLabel("male")}</option>
+            </select>
+          </label>
+          <label>
+            Data urodzenia
+            <input
+              value={form.birthDate}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, birthDate: e.target.value }))
+              }
+              placeholder="RRRR-MM-DD"
+            />
+          </label>
+          <label>
+            Data zgonu
+            <input
+              value={form.deathDate}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, deathDate: e.target.value }))
+              }
+              placeholder="RRRR-MM-DD"
+            />
+          </label>
+          <label>
+            Telefon
+            <input
+              value={form.phone}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, phone: e.target.value }))
+              }
+            />
+          </label>
+        </div>
+        <label className="field-block">
+          Notatki
+          <textarea
+            rows={4}
+            value={form.notes}
+            onChange={(e) => setForm((s) => ({ ...s, notes: e.target.value }))}
+          />
+        </label>
+        <p className="empty-hint">
+          Ur. {formatPolishDate(person.birthDate) || "—"} · id: {person.id}
+        </p>
+        <div className="admin-card__actions">
+          <button type="submit" className="btn btn-primary" disabled={busy}>
+            {busy ? "Zapisuję…" : "Zapisz"}
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setDeleteOpen(true)}
+          >
+            Usuń osobę
+          </button>
+        </div>
+      </form>
 
-      {deleteOpen && person && (
+      {deleteOpen && (
         <Modal
           open
           labelledBy="admin-delete-title"
@@ -677,35 +814,7 @@ function AdminPeoplePanel({
           </div>
         </Modal>
       )}
-
-      {createOpen && (
-        <CreatePersonModal
-          busy={busy}
-          onClose={() => setCreateOpen(false)}
-          onCreate={async (payload) => {
-            setBusy(true);
-            onError(null);
-            try {
-              const res = await fetch("/api/admin/family", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "create", newPerson: payload }),
-              });
-              const data = await res.json();
-              if (!res.ok) throw new Error(data.error || "Błąd");
-              onFamily(data.family);
-              setPersonId(data.createdPersonId);
-              setCreateOpen(false);
-              onSuccess("Dodano osobę.");
-            } catch (e) {
-              onError((e as Error).message);
-            } finally {
-              setBusy(false);
-            }
-          }}
-        />
-      )}
-    </div>
+    </>
   );
 }
 
@@ -787,13 +896,23 @@ export function AdminPageClient() {
     }
   }, [auth.isLoading, auth.data?.loggedIn, router]);
 
-  if (auth.isLoading || !auth.data?.loggedIn || !auth.data.email) {
+  if (
+    auth.isLoading ||
+    !auth.data?.loggedIn ||
+    !auth.data.email ||
+    !auth.data.role ||
+    !auth.data.adminId
+  ) {
     return <div className="loading-screen">Ładowanie…</div>;
   }
 
   return (
     <main className="page-shell page-shell--admin">
-      <AdminPanel email={auth.data.email} />
+      <AdminPanel
+        email={auth.data.email}
+        role={auth.data.role}
+        adminId={auth.data.adminId}
+      />
     </main>
   );
 }

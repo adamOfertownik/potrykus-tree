@@ -199,6 +199,35 @@ export const rsvpPayloadSchema = z
     };
   });
 
+export const adminUserRoleSchema = z.enum(["admin", "editor"]);
+
+const adminUserEmailSchema = z
+  .email("Podaj prawidłowy e-mail.")
+  .trim()
+  .toLowerCase()
+  .max(254);
+
+const adminUserPasswordSchema = z
+  .string()
+  .min(8, "Hasło musi mieć co najmniej 8 znaków.")
+  .max(200);
+
+export const adminUserCreateSchema = z.object({
+  email: adminUserEmailSchema,
+  password: adminUserPasswordSchema,
+  role: adminUserRoleSchema,
+});
+
+export const adminUserPatchSchema = z
+  .object({
+    email: adminUserEmailSchema.optional(),
+    role: adminUserRoleSchema.optional(),
+    password: adminUserPasswordSchema.optional(),
+  })
+  .refine((v) => v.email !== undefined || v.role !== undefined || v.password !== undefined, {
+    message: "Brak zmian.",
+  });
+
 export const adminPersonWriteSchema = z.object({
   action: z.enum(["update", "create", "delete", "graph"]),
   personId: z.string().trim().min(1).max(120).optional(),

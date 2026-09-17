@@ -30,14 +30,16 @@ const pool = new Pool({ connectionString: url });
 try {
   const passwordHash = await hash(password, 12);
   const { rows } = await pool.query(
-    `INSERT INTO admin_users (email, password_hash)
-     VALUES ($1, $2)
-     ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash
-     RETURNING id, email, created_at`,
+    `INSERT INTO admin_users (email, password_hash, role)
+     VALUES ($1, $2, 'admin')
+     ON CONFLICT (email) DO UPDATE SET
+       password_hash = EXCLUDED.password_hash,
+       role = 'admin'
+     RETURNING id, email, role, created_at`,
     [email.trim().toLowerCase(), passwordHash],
   );
   const admin = rows[0];
-  console.log(`Admin ready: ${admin.email} (${admin.id})`);
+  console.log(`Admin ready: ${admin.email} (${admin.id}) role=${admin.role}`);
 } finally {
   await pool.end();
 }
