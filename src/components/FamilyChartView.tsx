@@ -318,11 +318,13 @@ export function FamilyChartView({
         return;
       }
       const screenY = band.y * k + y;
-      if (genPlaced.some((prev) => Math.abs(prev - screenY) < 16)) {
+      const tight = genPlaced.some((prev) => Math.abs(prev - screenY) < 18);
+      if (tight && k < 0.34) {
         el.style.visibility = "hidden";
         return;
       }
       genPlaced.push(screenY);
+      el.textContent = k < 0.4 || tight ? band.digit : band.label;
       el.style.visibility = "visible";
       el.style.transform = `translateY(${screenY}px) translateY(-50%)`;
     });
@@ -394,7 +396,7 @@ export function FamilyChartView({
         );
     const gens = gensRef.current.length
       ? gensRef.current
-      : pickGenerationBands(nodes);
+      : pickGenerationBands(nodes, peopleRef.current);
     const next = fitTreeView(
       { width: rect.width, height: rect.height },
       dim,
@@ -529,7 +531,7 @@ export function FamilyChartView({
           peopleRef.current,
           overviewNextRef.current ? "next" : "overview",
         ).filter((label) => label.id !== mainIdRef.current);
-        const nextGens = pickGenerationBands(nodes);
+        const nextGens = pickGenerationBands(nodes, peopleRef.current);
         labelsRef.current = nextLabels;
         gensRef.current = nextGens;
         setBranchLabels(nextLabels);
@@ -879,7 +881,7 @@ export function FamilyChartView({
               data-gen-key={band.key}
               title={band.label}
             >
-              {band.digit}
+              {band.label}
             </span>
           ))}
         </div>

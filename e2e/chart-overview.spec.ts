@@ -48,7 +48,16 @@ test("zoomed-out tree shows branch headers and drilling into one", async ({
   await expect.poll(async () => labels.count()).toBeGreaterThan(1);
   const genLabel = page.locator(".chart-gen-label").first();
   await expect(genLabel).toBeVisible();
-  await expect(genLabel).toHaveText(/^\d+$/);
+  await expect
+    .poll(async () => {
+      const titles = await page
+        .locator(".chart-gen-label")
+        .evaluateAll((els) =>
+          els.map((el) => el.getAttribute("title") || el.textContent || ""),
+        );
+      return titles.some((t) => /Pień|Pokolenie|Przodkowie/.test(t));
+    })
+    .toBeTruthy();
   const clipped = await labels.evaluateAll((els) =>
     els
       .filter((el) => {
