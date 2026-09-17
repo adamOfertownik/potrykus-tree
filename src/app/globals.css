@@ -2040,6 +2040,54 @@ textarea:focus-visible {
   letter-spacing: -0.02em;
 }
 
+.person-detail__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.person-relations__title {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.person-rel-edit {
+  display: inline-grid;
+  place-items: center;
+  width: var(--touch);
+  height: var(--touch);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: var(--ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.person-rel-edit:hover,
+.person-rel-edit:focus-visible {
+  color: var(--accent-strong);
+  border-color: var(--accent);
+}
+
+.admin-person-rels-modal {
+  max-width: min(40rem, calc(100vw - 2rem));
+  max-height: min(88dvh, 52rem);
+  overflow: auto;
+}
+
+.admin-rels__warns p {
+  margin: 0 0 0.35rem;
+}
+
+.admin-rels__warns ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
 .person-detail__header .attend-toggle {
   display: block;
   margin: 0.35rem 0 0.5rem;

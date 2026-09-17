@@ -1,14 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { AttendToggle } from "@/components/AttendToggle";
 import { AuthedPage } from "@/components/AuthedPage";
+import { AdminPersonRelsModal } from "@/components/AdminPersonRelsModal";
 import { PersonCard } from "@/components/PersonCard";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { useIdentity } from "@/components/IdentityProvider";
 import { useAdminAuthStatus } from "@/lib/hooks";
 import { describeKinship } from "@/lib/kinship";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
+import { findRelationConflicts } from "@/lib/relationConflicts";
+import { getChildrenIds } from "@/lib/tree";
 import type { Person } from "@/types/family";
 
 function PersonInner({
@@ -22,6 +26,8 @@ function PersonInner({
 }) {
   const { identity } = useIdentity();
   const admin = useAdminAuthStatus();
+  const isAdmin = Boolean(admin.data?.loggedIn);
+  const [relsOpen, setRelsOpen] = useState(false);
   const person = people.find((p) => p.id === id);
 
   if (!person) {
@@ -46,6 +52,15 @@ function PersonInner({
     meId && meId !== person.id
       ? describeKinship(people, meId, person.id)
       : null;
+  const conflicts = isAdmin
+    ? findRelationConflicts(
+        people,
+        person.id,
+        person.parentIds,
+        person.spouseIds,
+        getChildrenIds(people, person.id),
+      )
+    : [];
 
   return (
     <article className="person-detail">
@@ -56,7 +71,15 @@ function PersonInner({
       <header className="person-detail__header">
         <PersonPhotoControl person={person} size="lg" mode={admin.data?.loggedIn ? "admin" : "suggest"} />
         <div>
-          <h1>{displayName(person, people)}</h1>
+          <h1 className="person-detail__name">
+            {displayName(person, people)}
+            {isAdmin ? (
+              <PencilButton
+                label={`Edytuj powiązania: ${displayName(person)}`}
+                onClick={() => setRelsOpen(true)}
+              />
+            ) : null}
+          </h1>
           {attendingPersonIds.includes(person.id) && (
             <p className="attending-banner">Na spotkaniu rodzinnym</p>
           )}
@@ -94,6 +117,15 @@ function PersonInner({
                 Jak jesteśmy spokrewnieni?
               </Link>
             )}
+            {isAdmin ? (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setRelsOpen(true)}
+              >
+                Edytuj powiązania
+              </button>
+            ) : null}
           </div>
         </div>
       </header>
@@ -116,8 +148,30 @@ function PersonInner({
         </section>
       )}
 
+      {conflicts.length > 0 && (
+        <div className="admin-rels__warns" role="status">
+          <p>
+            Sprzeczne powiązania — stąd ×2 / ×3 na drzewie. Ołówek otwiera
+            edycję.
+          </p>
+          <ul>
+            {conflicts.map((c) => (
+              <li key={`${c.personId}:${c.message}`}>{c.message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <section className="person-relations">
-        <h2>Rodzice</h2>
+        <h2 className="person-relations__title">
+          <span>Rodzice</span>
+          {isAdmin ? (
+            <PencilButton
+              label="Edytuj rodziców"
+              onClick={() => setRelsOpen(true)}
+            />
+          ) : null}
+        </h2>
         <div className="relation-grid">
           {parents.length === 0 && <p className="empty-hint">Brak danych</p>}
           {parents.map(
@@ -138,7 +192,15 @@ function PersonInner({
       </section>
 
       <section className="person-relations">
-        <h2>Małżonek / partner</h2>
+        <h2 className="person-relations__title">
+          <span>Małżonek / partner</span>
+          {isAdmin ? (
+            <PencilButton
+              label="Edytuj małżonka"
+              onClick={() => setRelsOpen(true)}
+            />
+          ) : null}
+        </h2>
         <div className="relation-grid">
           {spouses.length === 0 && <p className="empty-hint">Brak danych</p>}
           {spouses.map(
@@ -149,7 +211,15 @@ function PersonInner({
       </section>
 
       <section className="person-relations">
-        <h2>Dzieci ({children.length})</h2>
+        <h2 className="person-relations__title">
+          <span>Dzieci ({children.length})</span>
+          {isAdmin ? (
+            <PencilButton
+              label="Edytuj dzieci"
+              onClick={() => setRelsOpen(true)}
+            />
+          ) : null}
+        </h2>
         <div className="relation-grid">
           {children.length === 0 && <p className="empty-hint">Brak danych</p>}
           {children.map((p) => (
@@ -157,6 +227,14 @@ function PersonInner({
           ))}
         </div>
       </section>
+
+      {relsOpen && isAdmin && (
+        <AdminPersonRelsModal
+          person={person}
+          people={people}
+          onClose={() => setRelsOpen(false)}
+        />
+      )}
 
       <dl className="person-facts">
         <div>
@@ -179,6 +257,39 @@ function PersonInner({
         </div>
       </dl>
     </article>
+  );
+}
+
+function PencilButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="person-rel-edit"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        width="18"
+        height="18"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden
+      >
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+      </svg>
+    </button>
   );
 }
 
