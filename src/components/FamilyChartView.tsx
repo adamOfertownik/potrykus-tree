@@ -47,6 +47,23 @@ function replaceBrokenChartPhoto(img: HTMLImageElement) {
   img.replaceWith(icon);
 }
 
+function plusButtonAt(host: HTMLElement, x: number, y: number): HTMLButtonElement | null {
+  const pluses = host.querySelectorAll<HTMLButtonElement>(".chart-card-plus");
+  let hit: HTMLButtonElement | null = null;
+  pluses.forEach((btn) => {
+    const r = btn.getBoundingClientRect();
+    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) hit = btn;
+  });
+  return hit;
+}
+
+function liftPlusCard(host: HTMLElement, hit: HTMLButtonElement | null) {
+  host.querySelectorAll(".card_cont--plus-top").forEach((node) => {
+    node.classList.remove("card_cont--plus-top");
+  });
+  hit?.closest(".card_cont")?.classList.add("card_cont--plus-top");
+}
+
 function bindChartPhotoFallback(img: HTMLImageElement) {
   if (img.dataset.photoFallback === "1") return;
   img.dataset.photoFallback = "1";
@@ -301,7 +318,23 @@ export function FamilyChartView({
     chart.updateTree({ initial: true, tree_position: "fit" });
     chartRef.current = chart;
 
+    /** Neighbor cards sit in later stacking contexts and steal clicks from the plus. */
+    const onPlusPointerDown = (e: PointerEvent) => {
+      const hit = plusButtonAt(el, e.clientX, e.clientY);
+      liftPlusCard(el, hit);
+      if (!hit) return;
+      if (e.target instanceof Element && hit.contains(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      hit.click();
+    };
+    const onPlusPointerLeave = () => liftPlusCard(el, null);
+    el.addEventListener("pointerdown", onPlusPointerDown, true);
+    el.addEventListener("pointerleave", onPlusPointerLeave);
+
     return () => {
+      el.removeEventListener("pointerdown", onPlusPointerDown, true);
+      el.removeEventListener("pointerleave", onPlusPointerLeave);
       chartRef.current = null;
       cardRef.current = null;
       el.innerHTML = "";

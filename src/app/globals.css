@@ -987,6 +987,13 @@ textarea:focus-visible {
 
 .family-chart-host .card_cont--addable {
   overflow: visible !important;
+  z-index: 1;
+}
+
+.family-chart-host .card_cont--addable:hover,
+.family-chart-host .card_cont--addable:focus-within,
+.family-chart-host .card_cont--plus-top {
+  z-index: 80;
 }
 
 .family-chart-host .card-inner.card-image-rect {
@@ -1086,7 +1093,7 @@ textarea:focus-visible {
   position: absolute;
   top: -14px;
   left: 50%;
-  z-index: 7;
+  z-index: 100;
   display: grid;
   place-items: center;
   width: 30px;
@@ -1103,6 +1110,9 @@ textarea:focus-visible {
   box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent);
   transform: translateX(-50%);
   cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  isolation: isolate;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
