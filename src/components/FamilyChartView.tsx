@@ -47,9 +47,9 @@ const SCALE_LAYOUT: Record<
   TextScaleId,
   { w: number; h: number; xSpace: number; ySpace: number; font: number }
 > = {
-  normal: { w: 252, h: 118, xSpace: 304, ySpace: 348, font: 15 },
-  large: { w: 292, h: 136, xSpace: 354, ySpace: 388, font: 18 },
-  xlarge: { w: 332, h: 154, xSpace: 404, ySpace: 428, font: 20 },
+  normal: { w: 292, h: 132, xSpace: 348, ySpace: 368, font: 15 },
+  large: { w: 332, h: 150, xSpace: 396, ySpace: 408, font: 18 },
+  xlarge: { w: 372, h: 168, xSpace: 444, ySpace: 448, font: 20 },
 };
 
 /** Minimum zoom when jumping to a searched person, so the card stays readable */
@@ -551,7 +551,8 @@ export function FamilyChartView({
       img_y: 0,
     });
     card.setCardDisplay([
-      ["first name", "last name"],
+      ["first name"],
+      ["last name"],
       ["maiden"],
       ["birthday"],
       ["death"],
