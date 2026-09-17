@@ -227,7 +227,7 @@ function ListInner({
                       title="Pokaż w drzewie"
                       onClick={() =>
                         router.push(
-                          `/drzewo?root=${encodeURIComponent(entry.person.id)}`,
+                          `/drzewo?hl=${encodeURIComponent(entry.person.id)}`,
                         )
                       }
                     >

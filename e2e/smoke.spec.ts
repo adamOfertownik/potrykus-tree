@@ -165,6 +165,57 @@ test("returning to full tree keeps the highlighted person", async ({
   await ctx.close();
 });
 
+test("kinship tree from B highlights the person on the full tree", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as {
+    people: { id: string; firstName: string; lastName: string }[];
+  };
+  const adam = payload.people.find(
+    (p) => p.firstName === "Adam" && p.lastName === "Lieske",
+  );
+  const wincenty = payload.people.find(
+    (p) =>
+      p.lastName === "Potrykus" &&
+      (p.firstName.includes("Wincenty") ||
+        p.firstName.includes("Vincentius")),
+  );
+  expect(adam, "Adam Lieske must exist").toBeTruthy();
+  expect(wincenty, "Wincenty Potrykus must exist").toBeTruthy();
+
+  await page.goto(
+    `/pokrewienstwo?a=${encodeURIComponent(adam!.id)}&b=${encodeURIComponent(wincenty!.id)}`,
+  );
+  await expect(page.getByRole("heading", { name: "Kto jest kim" })).toBeVisible({
+    timeout: 20000,
+  });
+  await page.getByRole("button", { name: "Drzewo od B" }).click();
+  await expect(page).toHaveURL(new RegExp(`[?&]hl=${wincenty!.id}\\b`));
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.getByTestId("full-tree-back")).toHaveCount(0);
+  await expect(page.locator(".tree-focus-bar")).toContainText(/Wincenty|Vincentius/);
+  await expect(page.locator(".is-chart-highlight").first()).toBeVisible({
+    timeout: 15_000,
+  });
+  const cardBox = await page.locator(".is-chart-highlight").first().boundingBox();
+  expect(cardBox, "highlighted card should be on screen").toBeTruthy();
+  expect(cardBox!.width).toBeGreaterThan(40);
+  expect(cardBox!.height).toBeGreaterThan(20);
+  await ctx.close();
+});
+
 test("kinship and birthdays pages load", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);

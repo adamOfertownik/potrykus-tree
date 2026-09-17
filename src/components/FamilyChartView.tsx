@@ -115,6 +115,7 @@ export function FamilyChartView({
   const pendingRef = useRef(
     new Set(people.filter((p) => p.pending).map((p) => p.id)),
   );
+  const overviewRef = useRef(overview);
   /** Set when the highlight came from a tap — no need to slide the view then */
   const skipPanRef = useRef<string | null>(null);
 
@@ -136,6 +137,7 @@ export function FamilyChartView({
     pendingRef.current = new Set(
       people.filter((p) => p.pending).map((p) => p.id),
     );
+    overviewRef.current = overview;
   });
 
   /** Bars above the canvas come and go — keep it inside the window */
@@ -358,7 +360,22 @@ export function FamilyChartView({
     });
 
     chart.updateMainId(safeMain);
-    chart.updateTree({ initial: true, tree_position: "fit" });
+    // `initial: true` always fits the whole tree. A mid-tree ancestor like
+    // Wincenty has ~400 cards and a 50k-px layout — fit shrinks cards to a
+    // few pixels and the canvas looks empty. Focused "widok wokół" must
+    // center the person at a readable zoom.
+    try {
+      chart.updateTree({
+        initial: false,
+        tree_position: overviewRef.current ? "fit" : "main_to_middle",
+      });
+    } catch (err) {
+      console.error("family-chart updateTree failed", err);
+      chart.updateTree({
+        initial: false,
+        tree_position: "main_to_middle",
+      });
+    }
     chartRef.current = chart;
 
     /** Neighbor cards sit in later stacking contexts and steal clicks from the plus. */
@@ -426,9 +443,14 @@ export function FamilyChartView({
       }, 280);
       return () => window.clearTimeout(timer);
     }
-    chart.updateTree({
-      tree_position: overview ? "fit" : "main_to_middle",
-    });
+    try {
+      chart.updateTree({
+        tree_position: overview ? "fit" : "main_to_middle",
+      });
+    } catch (err) {
+      console.error("family-chart updateTree failed", err);
+      chart.updateTree({ tree_position: "main_to_middle" });
+    }
     // applyHighlight / panToCard close over DOM nodes rebuilt with the chart
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainId, overview]);
