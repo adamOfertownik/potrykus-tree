@@ -456,10 +456,10 @@ function AdminPeoplePanel({
     (chosenId && people.some((p) => p.id === chosenId) ? chosenId : null) ??
     (initialPersonId && people.some((p) => p.id === initialPersonId)
       ? initialPersonId
-      : null) ??
-    people[0]?.id ??
-    null;
-  const person = people.find((p) => p.id === personId) ?? null;
+      : null);
+  const person = personId
+    ? people.find((p) => p.id === personId) ?? null
+    : null;
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -485,6 +485,15 @@ function AdminPeoplePanel({
     router.replace(`/admin?${next.toString()}`, { scroll: false });
   };
 
+  const clearPerson = () => {
+    setChosenId(null);
+    hydratedId.current = null;
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("osoba");
+    const qs = next.toString();
+    router.replace(qs ? `/admin?${qs}` : "/admin", { scroll: false });
+  };
+
   useEffect(() => {
     if (!person) return;
     if (hydratedId.current === person.id) return;
@@ -506,13 +515,8 @@ function AdminPeoplePanel({
 
   const matches = useMemo(() => {
     const raw = query.trim() ? searchPeople(people, query) : people;
-    const sliced = raw.slice(0, 12);
-    if (personId && !sliced.some((p) => p.id === personId)) {
-      const selected = people.find((p) => p.id === personId);
-      if (selected) return [selected, ...sliced.slice(0, 11)];
-    }
-    return sliced;
-  }, [people, query, personId]);
+    return raw.slice(0, 12);
+  }, [people, query]);
 
   const save = async () => {
     if (!person) return;
@@ -557,9 +561,7 @@ function AdminPeoplePanel({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd usuwania");
       onFamily(data.family);
-      const nextId = data.family.people[0]?.id as string | undefined;
-      if (nextId) selectPerson(nextId);
-      else setChosenId(null);
+      clearPerson();
       setDeleteOpen(false);
       onSuccess(`Usunięto osobę. Odpięto powiązania: ${(data.affectedNames || []).join(", ")}`);
     } catch (e) {
