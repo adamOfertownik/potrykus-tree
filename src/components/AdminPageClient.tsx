@@ -1008,12 +1008,15 @@ function CreatePersonModal({
 export function AdminPageClient() {
   const auth = useAdminAuthStatus();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!auth.isLoading && !auth.data?.loggedIn) {
-      router.replace("/login?next=/admin");
+      const tab = searchParams.get("tab");
+      const next = tab ? `/admin?tab=${encodeURIComponent(tab)}` : "/admin";
+      router.replace(`/login?next=${encodeURIComponent(next)}`);
     }
-  }, [auth.isLoading, auth.data?.loggedIn, router]);
+  }, [auth.isLoading, auth.data?.loggedIn, router, searchParams]);
 
   if (auth.isLoading || !auth.data?.loggedIn || !auth.data.email) {
     return <div className="loading-screen">Ładowanie…</div>;
