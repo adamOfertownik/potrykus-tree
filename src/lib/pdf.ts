@@ -148,7 +148,39 @@ async function exportHierarchicalPdf(
   doc.line(margin, y, pageW - margin, y);
   y += isA0 ? 8 : 6;
 
-  for (const entry of entries) {
+  doc.setFont("DejaVuSans", "normal");
+  doc.setFontSize(isA0 ? 10 : 8);
+  doc.setTextColor(70, 90, 80);
+  doc.text(
+    "Numer to pokolenie od najstarszego przodka, nie kolejny numer z bazy.",
+    margin,
+    y,
+  );
+  y += isA0 ? 8 : 6;
+
+  for (const [index, entry] of entries.entries()) {
+    if (entry.detached && !entries[index - 1]?.detached) {
+      if (y > pageH - margin - lineH * 3) {
+        doc.addPage();
+        y = margin;
+      }
+      y += isA0 ? 4 : 3;
+      doc.setFont("DejaVuSans", "bold");
+      doc.setFontSize(isA0 ? 13 : 11);
+      doc.setTextColor(15, 60, 45);
+      doc.text("Pozostałe osoby (brak powiązania z głównym pniem)", margin, y);
+      y += isA0 ? 6 : 5;
+      doc.setFont("DejaVuSans", "normal");
+      doc.setFontSize(isA0 ? 10 : 8);
+      doc.setTextColor(70, 90, 80);
+      doc.text(
+        "Są w bazie, ale nie mają wpisanego rodzica w głównym drzewie.",
+        margin,
+        y,
+      );
+      y += isA0 ? 8 : 6;
+    }
+
     if (y > pageH - margin - lineH) {
       doc.addPage();
       y = margin;

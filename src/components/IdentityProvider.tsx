@@ -65,7 +65,9 @@ export function IdentityProvider({
 
       const onTree = pathname === "/" || pathname.startsWith("/drzewo");
       if (onTree && next.personId) {
-        router.replace(`/drzewo?root=${encodeURIComponent(next.personId)}`);
+        // Highlight in the full tree — do not re-root (?root=) or "Widok wokół"
+        // covers the mobile screen.
+        router.replace(`/drzewo?hl=${encodeURIComponent(next.personId)}`);
       }
     },
     [pathname, router],

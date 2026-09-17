@@ -16,6 +16,10 @@ type Props = {
   mainId: string;
   /** Person to highlight without changing what the tree shows */
   highlightId?: string | null;
+  /** People with an RSVP for the family gathering (orange border) */
+  attendingPersonIds?: string[];
+  /** Full-tree view: fit every generation instead of centering on main */
+  overview?: boolean;
   /** Called when a card is tapped — the tree itself stays untouched */
   onHighlight?: (id: string) => void;
   /** Called only when user explicitly focuses a branch (modal action) */
@@ -43,6 +47,23 @@ function replaceBrokenChartPhoto(img: HTMLImageElement) {
   icon.className = "person-icon";
   icon.innerHTML = PERSON_ICON_SVG;
   img.replaceWith(icon);
+}
+
+function plusButtonAt(host: HTMLElement, x: number, y: number): HTMLButtonElement | null {
+  const pluses = host.querySelectorAll<HTMLButtonElement>(".chart-card-plus");
+  let hit: HTMLButtonElement | null = null;
+  pluses.forEach((btn) => {
+    const r = btn.getBoundingClientRect();
+    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) hit = btn;
+  });
+  return hit;
+}
+
+function liftPlusCard(host: HTMLElement, hit: HTMLButtonElement | null) {
+  host.querySelectorAll(".card_cont--plus-top").forEach((node) => {
+    node.classList.remove("card_cont--plus-top");
+  });
+  hit?.closest(".card_cont")?.classList.add("card_cont--plus-top");
 }
 
 function bindChartPhotoFallback(img: HTMLImageElement) {
@@ -73,6 +94,8 @@ export function FamilyChartView({
   people,
   mainId,
   highlightId = null,
+  attendingPersonIds = [],
+  overview = false,
   onHighlight,
   onFocusBranch,
   onHighlightMissing,
@@ -87,6 +110,7 @@ export function FamilyChartView({
   const peopleRef = useRef(people);
   const mainIdRef = useRef(mainId);
   const highlightRef = useRef<string | null>(highlightId);
+  const attendingRef = useRef(new Set(attendingPersonIds));
   /** Set when the highlight came from a tap — no need to slide the view then */
   const skipPanRef = useRef<string | null>(null);
 
@@ -96,7 +120,7 @@ export function FamilyChartView({
   const peopleSig = people
     .map(
       (p) =>
-        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.photoUrl ?? ""}`,
+        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.birthDate ?? ""}:${p.deathDate ?? ""}:${p.photoUrl ?? ""}`,
     )
     .join("|");
 
@@ -104,6 +128,7 @@ export function FamilyChartView({
     peopleRef.current = people;
     mainIdRef.current = mainId;
     highlightRef.current = highlightId;
+    attendingRef.current = new Set(attendingPersonIds);
   });
 
   /** Bars above the canvas come and go — keep it inside the window */
@@ -149,6 +174,20 @@ export function FamilyChartView({
     // Both the svg group and the html wrapper can back one person
     findCardNodes(id).forEach((node) => {
       node.classList.add("is-chart-highlight");
+    });
+  };
+
+  const applyAttending = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.querySelectorAll(".card_cont").forEach((node) => {
+      const datum = (node as Element & { __data__?: { data?: { id?: string } } })
+        .__data__;
+      const id = datum?.data?.id;
+      node.classList.toggle(
+        "is-attending",
+        Boolean(id && attendingRef.current.has(id)),
+      );
     });
   };
 
@@ -207,6 +246,7 @@ export function FamilyChartView({
     skipPanRef.current = id;
     highlightRef.current = id;
     applyHighlight();
+    applyAttending();
     setSelected(person);
     onHighlight?.(id);
   };
@@ -230,6 +270,9 @@ export function FamilyChartView({
     const chart = f3.createChart(el, data);
     chart.setTransitionTime(250);
     chart.setSingleParentEmptyCard(false);
+    chart.setShowSiblingsOfMain(true);
+    chart.setAncestryDepth(100);
+    chart.setProgenyDepth(100);
     chart.setCardXSpacing(layout.xSpace);
     chart.setCardYSpacing(layout.ySpace);
     chart.afterUpdate = () => {
@@ -239,6 +282,7 @@ export function FamilyChartView({
         path.setAttribute("fill", "none");
       });
       applyHighlight();
+      applyAttending();
     };
 
     const card = chart.setCardHtml();
@@ -289,13 +333,30 @@ export function FamilyChartView({
 
       const photo = this.querySelector("img");
       if (photo) bindChartPhotoFallback(photo);
+      this.classList.toggle("is-attending", attendingRef.current.has(id));
     });
 
     chart.updateMainId(safeMain);
     chart.updateTree({ initial: true, tree_position: "fit" });
     chartRef.current = chart;
 
+    /** Neighbor cards sit in later stacking contexts and steal clicks from the plus. */
+    const onPlusPointerDown = (e: PointerEvent) => {
+      const hit = plusButtonAt(el, e.clientX, e.clientY);
+      liftPlusCard(el, hit);
+      if (!hit) return;
+      if (e.target instanceof Element && hit.contains(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      hit.click();
+    };
+    const onPlusPointerLeave = () => liftPlusCard(el, null);
+    el.addEventListener("pointerdown", onPlusPointerDown, true);
+    el.addEventListener("pointerleave", onPlusPointerLeave);
+
     return () => {
+      el.removeEventListener("pointerdown", onPlusPointerDown, true);
+      el.removeEventListener("pointerleave", onPlusPointerLeave);
       chartRef.current = null;
       cardRef.current = null;
       el.innerHTML = "";
@@ -338,18 +399,24 @@ export function FamilyChartView({
       chart.updateTree({ tree_position: "fit" });
       const timer = window.setTimeout(() => {
         applyHighlight();
+        applyAttending();
         panToCard(keep);
       }, 280);
       return () => window.clearTimeout(timer);
     }
-    chart.updateTree({ tree_position: "main_to_middle" });
-  }, [mainId]);
+    chart.updateTree({
+      tree_position: overview ? "fit" : "main_to_middle",
+    });
+    // applyHighlight / panToCard close over DOM nodes rebuilt with the chart
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainId, overview]);
 
   // Highlight — mark the card and slide the view onto it
   useEffect(() => {
     if (!chartRef.current) return;
     highlightRef.current = highlightId;
     applyHighlight();
+    applyAttending();
     if (!highlightId) return;
     if (skipPanRef.current === highlightId) {
       // Tapped card is already on screen
@@ -359,12 +426,18 @@ export function FamilyChartView({
     const timer = window.setTimeout(() => {
       const status = panToCard(highlightId);
       applyHighlight();
+      applyAttending();
       // Only re-root when the person really is outside the rendered tree
       if (status === "missing") onHighlightMissing?.(highlightId);
     }, 80);
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightId, peopleSig, scale]);
+
+  useEffect(() => {
+    attendingRef.current = new Set(attendingPersonIds);
+    applyAttending();
+  }, [attendingPersonIds, peopleSig]);
 
   /** Zoom out until every generation fits inside the visible canvas */
   const fitWholeTree = () => {
@@ -428,7 +501,8 @@ export function FamilyChartView({
           className="btn btn-secondary btn-mini"
           onClick={fitWholeTree}
         >
-          ⤢ Całe drzewo<span className="only-wide"> w kadrze</span>
+          <span className="only-narrow">⤢ Całe drzewo</span>
+          <span className="only-wide">⤢ Całe drzewo w kadrze</span>
         </button>
         {highlightId && (
           <button
@@ -436,9 +510,14 @@ export function FamilyChartView({
             className="btn btn-secondary btn-mini"
             onClick={() => panToCard(highlightId)}
           >
-            ◎ <span className="only-wide">Wróć do </span>podświetlonej
-            <span className="only-wide"> osoby</span>
+            <span className="only-narrow">◎ Podświetlona</span>
+            <span className="only-wide">◎ Wróć do podświetlonej osoby</span>
           </button>
+        )}
+        {attendingPersonIds.length > 0 && (
+          <span className="attending-legend" title="Osoby zapisane na spotkanie rodzinne">
+            Pomarańczowa ramka — idą na spotkanie
+          </span>
         )}
       </div>
 

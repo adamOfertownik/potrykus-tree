@@ -6,21 +6,26 @@ import { AuthedPage } from "@/components/AuthedPage";
 import { FamilyChartView } from "@/components/FamilyChartView";
 import { PersonSearch } from "@/components/PersonSearch";
 import { displayName } from "@/lib/db-client";
+import { findApexPersonId } from "@/lib/tree";
 
 export function TreePageClient() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const urlRoot = searchParams.get("root");
+  const urlHighlight = searchParams.get("hl");
   const [viewRoot, setViewRoot] = useState<string | null>(urlRoot);
-  const [highlightId, setHighlightId] = useState<string | null>(urlRoot);
+  const [highlightId, setHighlightId] = useState<string | null>(
+    urlRoot || urlHighlight,
+  );
 
   useEffect(() => {
     setViewRoot(urlRoot);
   }, [urlRoot]);
 
   useEffect(() => {
-    if (viewRoot) setHighlightId(viewRoot);
-  }, [viewRoot]);
+    if (urlRoot) setHighlightId(urlRoot);
+    else if (urlHighlight) setHighlightId(urlHighlight);
+  }, [urlRoot, urlHighlight]);
 
   return (
     <AuthedPage
@@ -29,10 +34,16 @@ export function TreePageClient() {
       immersive
     >
       {({ people, family }) => {
-        const familyRoot = family.meta.rootPersonId || "";
-        const effectiveRoot = viewRoot || familyRoot;
+        const familyRoot = family.meta.rootPersonId || people[0]?.id || "";
+        const apexId = familyRoot
+          ? findApexPersonId(people, familyRoot)
+          : "";
+        const defaultMain = apexId || familyRoot;
+        const effectiveRoot = viewRoot || defaultMain;
         const focusedAway =
-          Boolean(viewRoot) && Boolean(familyRoot) && viewRoot !== familyRoot;
+          Boolean(viewRoot) &&
+          Boolean(defaultMain) &&
+          viewRoot !== defaultMain;
         const focusPerson = focusedAway
           ? people.find((p) => p.id === viewRoot) ?? null
           : null;
@@ -66,7 +77,8 @@ export function TreePageClient() {
               {focusedAway && (
                 <div className="tree-focus-bar" role="status">
                   <p>
-                    Widok wokół:{" "}
+                    <span className="only-narrow">Wokół: </span>
+                    <span className="only-wide">Widok wokół: </span>
                     <strong>
                       {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
                     </strong>
@@ -88,7 +100,8 @@ export function TreePageClient() {
                   role="status"
                 >
                   <p>
-                    Podświetlone: <strong>{displayName(highlightPerson)}</strong>
+                    <span className="only-wide">Podświetlone: </span>
+                    <strong>{displayName(highlightPerson)}</strong>
                   </p>
                   <div className="tree-focus-bar__actions">
                     <button
@@ -116,6 +129,8 @@ export function TreePageClient() {
                   people={people}
                   mainId={effectiveRoot}
                   highlightId={highlightId}
+                  attendingPersonIds={family.attendingPersonIds}
+                  overview={!viewRoot}
                   onHighlight={setHighlightId}
                   onFocusBranch={focusBranch}
                   onHighlightMissing={focusBranch}

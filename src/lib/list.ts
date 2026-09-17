@@ -1,5 +1,5 @@
 import type { Person } from "@/types/family";
-import { getPersonMap, getUnionChildrenIds } from "@/lib/tree";
+import { findApexPersonId, getPersonMap, getUnionChildrenIds } from "@/lib/tree";
 
 export interface ListEntry {
   generation: number;
@@ -11,6 +11,8 @@ export interface ListEntry {
   isLast: boolean;
   /** Ancestor last-flags for drawing vertical rails */
   ancestorLast: boolean[];
+  /** Outside the main blood line (missing parent link in the database) */
+  detached?: boolean;
 }
 
 /** Flat indented list like the printed genealogical documents. */
@@ -96,48 +98,50 @@ function hasKnownParent(person: Person, ids: Set<string>): boolean {
 }
 
 /**
- * Full family list from the same people array the tree uses (Neon payload):
- * every progenitor branch, then anyone not yet shown.
+ * Full family list from the same Neon people as the tree.
+ * One main trunk from the genealogical apex (generation 1 = oldest ancestor),
+ * then leftover people who are in the database but not linked to that trunk.
  */
 export function buildCompleteFamilyList(
   people: Person[],
   preferredRootId?: string,
 ): ListEntry[] {
   if (!people.length) return [];
-  const ids = new Set(people.map((p) => p.id));
+  const startId =
+    preferredRootId && people.some((p) => p.id === preferredRootId)
+      ? preferredRootId
+      : people[0]!.id;
+  const apexId = findApexPersonId(people, startId);
   const visited = new Set<string>();
-  const entries: ListEntry[] = [];
+  const main = buildDescendantList(people, apexId, 1, 0, visited);
+  const shown = new Set(main.map((e) => e.person.id));
 
-  const progenitors = people
-    .filter((p) => !hasKnownParent(p, ids))
+  const leftover = people.filter((p) => !shown.has(p.id));
+  const leftoverIds = new Set(leftover.map((p) => p.id));
+  const leftoverRoots = leftover
+    .filter((p) => !hasKnownParent(p, leftoverIds))
     .sort(comparePeople);
 
-  const preferred = preferredRootId
-    ? people.find((p) => p.id === preferredRootId)
-    : undefined;
-
-  const preferredFirst = preferred
-    ? [
-        ...progenitors.filter((p) => p.id === preferred.id),
-        ...progenitors.filter((p) => p.id !== preferred.id),
-      ]
-    : progenitors;
-
-  for (const person of preferredFirst) {
-    if (entries.some((e) => e.person.id === person.id)) continue;
-    entries.push(
-      ...buildDescendantList(people, person.id, 1, 0, visited),
-    );
+  const detached: ListEntry[] = [];
+  for (const person of leftoverRoots) {
+    if (shown.has(person.id)) continue;
+    const branch = buildDescendantList(people, person.id, 1, 0, visited);
+    for (const entry of branch) {
+      entry.detached = true;
+      shown.add(entry.person.id);
+    }
+    detached.push(...branch);
   }
 
-  const shown = new Set(entries.map((e) => e.person.id));
-  const leftover = people.filter((p) => !shown.has(p.id)).sort(comparePeople);
-  for (const person of leftover) {
-    if (entries.some((e) => e.person.id === person.id)) continue;
-    entries.push(
-      ...buildDescendantList(people, person.id, 1, 0, visited),
-    );
+  const stillMissing = people.filter((p) => !shown.has(p.id)).sort(comparePeople);
+  for (const person of stillMissing) {
+    const branch = buildDescendantList(people, person.id, 1, 0, visited);
+    for (const entry of branch) {
+      entry.detached = true;
+      shown.add(entry.person.id);
+    }
+    detached.push(...branch);
   }
 
-  return entries;
+  return [...main, ...detached];
 }

@@ -11,6 +11,9 @@ import { displayName } from "@/lib/db-client";
 import {
   amountDuePln,
   buildTransferTitle,
+  DEFAULT_PRICE_PER_PERSON_PLN,
+  EARLY_ARRIVAL_OVER_7_PLN,
+  EARLY_ARRIVAL_UNDER_7_PLN,
   formatPln,
   payingGuests,
   totalGuests,
@@ -37,6 +40,7 @@ type EventApi = {
     childrenUnder3?: number;
     amountPln?: number;
     willTransfer: boolean;
+    earlyArrival?: boolean;
   }[];
 };
 
@@ -117,6 +121,9 @@ export function EventPageClient() {
   const [childrenUnder3, setChildrenUnder3] = useState(0);
   const [notes, setNotes] = useState("");
   const [willTransfer, setWillTransfer] = useState(true);
+  const [earlyArrival, setEarlyArrival] = useState(false);
+  const [earlyArrivalOver7, setEarlyArrivalOver7] = useState(0);
+  const [earlyArrivalUnder7, setEarlyArrivalUnder7] = useState(0);
   const [nameQuery, setNameQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -138,14 +145,18 @@ export function EventPageClient() {
     [people, nameQuery],
   );
 
-  const price = eventQ.data?.event.pricePerPersonPln ?? 250;
+  const price = eventQ.data?.event.pricePerPersonPln ?? DEFAULT_PRICE_PER_PERSON_PLN;
   const breakdown = useMemo(
     () => ({ adults, children3to12, childrenUnder3 }),
     [adults, children3to12, childrenUnder3],
   );
+  const early = useMemo(
+    () => ({ earlyArrival, earlyArrivalOver7, earlyArrivalUnder7 }),
+    [earlyArrival, earlyArrivalOver7, earlyArrivalUnder7],
+  );
   const guests = totalGuests(breakdown);
   const paying = payingGuests(breakdown);
-  const amount = amountDuePln(breakdown, price);
+  const amount = amountDuePln(breakdown, price, early);
 
   if (auth.isLoading) return <div className="loading-screen">Ładowanie…</div>;
   if (!auth.data?.unlocked) return <AccessGate />;
@@ -157,7 +168,8 @@ export function EventPageClient() {
     );
   }
 
-  const { event, stats, rsvps } = eventQ.data;
+  const { event, stats, rsvps, storage } = eventQ.data;
+  const photos = event.photos;
   const spotsLeft = stats.spotsLeft ?? Math.max(0, (stats.capacity ?? event.capacity) - stats.guestTotal);
   const iban = event.transfer.iban?.trim();
   const transferTitle = buildTransferTitle(
@@ -217,6 +229,9 @@ export function EventPageClient() {
           childrenUnder3,
           notes: notes.trim() || undefined,
           willTransfer,
+          earlyArrival,
+          earlyArrivalOver7: earlyArrival ? earlyArrivalOver7 : 0,
+          earlyArrivalUnder7: earlyArrival ? earlyArrivalUnder7 : 0,
         }),
       });
       const data = await res.json();
@@ -228,7 +243,10 @@ export function EventPageClient() {
           : `Zapisano. Do zapłaty: ${paid}. Skopiuj dane przelewu poniżej.`,
       );
       setNotes("");
-      await qc.invalidateQueries({ queryKey: ["event"] });
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["event"] }),
+        qc.invalidateQueries({ queryKey: ["family"] }),
+      ]);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -262,7 +280,7 @@ export function EventPageClient() {
             <li>
               <span>Zapisy</span>
               <strong>
-                {stats.guestTotal} / {stats.capacity ?? event.capacity} osób
+                {stats.guestTotal} / {stats.capacity ?? event.capacity} miejsc
                 {typeof stats.spotsLeft === "number"
                   ? ` · wolne ${stats.spotsLeft}`
                   : ""}
@@ -274,6 +292,11 @@ export function EventPageClient() {
               Organizacja: {event.organizers.join(" · ")}
             </p>
           )}
+          <p className="event-organizers">
+            {storage === "neon"
+              ? "Liczba zapisanych jest liczona na żywo z bazy (200 miejsc)."
+              : "Lokalny zapis — na produkcji zapisy idą do bazy Neon."}
+          </p>
         </header>
 
         {event.amenities?.length > 0 && (
@@ -292,6 +315,43 @@ export function EventPageClient() {
             </ul>
           </section>
         )}
+
+        {photos && (photos.email || photos.driveUrl) ? (
+          <section className="event-section" id="zdjecia">
+            <h2>Prześlij zdjęcia rodzinne</h2>
+            <p className="event-section__lead">
+              Zdjęcia pokażemy na imprezie. Wyślij je mailem albo wstaw do
+              wspólnego folderu.
+            </p>
+            <ul className="event-photos">
+              {photos.email ? (
+                <li>
+                  <strong>E-mail</strong>
+                  <a href={`mailto:${photos.email}`}>{photos.email}</a>
+                  <button
+                    type="button"
+                    className="btn btn-secondary transfer-copy"
+                    onClick={() => copyText("email", photos.email)}
+                  >
+                    {copied === "email" ? "Skopiowano" : "Kopiuj adres"}
+                  </button>
+                </li>
+              ) : null}
+              {photos.driveUrl ? (
+                <li>
+                  <strong>Folder Google Drive</strong>
+                  <a
+                    href={photos.driveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Wstaw zdjęcia tutaj
+                  </a>
+                </li>
+              ) : null}
+            </ul>
+          </section>
+        ) : null}
 
         {event.schedule?.length > 0 && (
           <section className="event-section">
@@ -316,8 +376,8 @@ export function EventPageClient() {
         <section className="event-section" id="zapisz">
           <h2>Zapisz się i policz opłatę</h2>
           <p className="event-section__lead">
-            {formatPln(price)} od osoby dorosłej i dziecka 3–12 lat. Dzieci do
-            lat 3 — bez opłaty.
+            {formatPln(price)} od osoby dorosłej i dziecka 3–12 lat — w cenie
+            nocleg, impreza i śniadanie. Dzieci do lat 3 — bez opłaty.
           </p>
 
           <form className="change-form" onSubmit={submit}>
@@ -397,6 +457,45 @@ export function EventPageClient() {
               />
             </div>
 
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={earlyArrival}
+                onChange={(e) => {
+                  const on = e.target.checked;
+                  setEarlyArrival(on);
+                  if (on) {
+                    setEarlyArrivalOver7((n) => (n > 0 ? n : adults));
+                  } else {
+                    setEarlyArrivalOver7(0);
+                    setEarlyArrivalUnder7(0);
+                  }
+                }}
+              />
+              Przyjazd dzień wcześniej (+{EARLY_ARRIVAL_OVER_7_PLN} zł / os.,
+              do 7 lat {EARLY_ARRIVAL_UNDER_7_PLN} zł, do 3 lat za darmo)
+            </label>
+            {earlyArrival ? (
+              <div className="guest-steppers" role="group" aria-label="Wcześniejszy przyjazd">
+                <Stepper
+                  label="Osoby 7 lat i więcej"
+                  hint={`+${formatPln(EARLY_ARRIVAL_OVER_7_PLN)} / os.`}
+                  value={earlyArrivalOver7}
+                  min={0}
+                  max={20}
+                  onChange={setEarlyArrivalOver7}
+                />
+                <Stepper
+                  label="Dzieci 3–6 lat"
+                  hint={`+${formatPln(EARLY_ARRIVAL_UNDER_7_PLN)} / os.`}
+                  value={earlyArrivalUnder7}
+                  min={0}
+                  max={20}
+                  onChange={setEarlyArrivalUnder7}
+                />
+              </div>
+            ) : null}
+
             <label className="field-block">
               Uwagi (alergie, dojazd, preferencje)
               <textarea
@@ -453,6 +552,14 @@ export function EventPageClient() {
               <span>Płatne miejsca</span>
               <strong>{paying}</strong>
             </div>
+            {earlyArrival ? (
+              <div>
+                <span>Dopłata wcześniej</span>
+                <strong>
+                  {formatPln(amount - paying * price)}
+                </strong>
+              </div>
+            ) : null}
             <div className="pay-summary__total">
               <span>Do zapłaty</span>
               <strong>{formatPln(amount)}</strong>
@@ -545,6 +652,7 @@ export function EventPageClient() {
                       ? ` · ${formatPln(r.amountPln)}`
                       : ""}
                     {r.willTransfer ? " · przelew" : ""}
+                    {r.earlyArrival ? " · dzień wcześniej" : ""}
                   </span>
                 </li>
               ))}

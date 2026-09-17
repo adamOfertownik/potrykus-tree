@@ -18,6 +18,8 @@
   --font-body-stack: var(--font-body), "Segoe UI", system-ui, sans-serif;
   --text-scale: 1;
   --touch: 2.75rem; /* ~44px at 16px — senior-friendly tap target */
+  --app-header-h: 3.25rem;
+  --attending: #e67a22;
 }
 
 @theme inline {
@@ -62,6 +64,14 @@ body {
 html.is-scroll-locked,
 html.is-scroll-locked body {
   overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+/* Tree canvas owns pan/zoom. Without this, Android Chrome treats a
+   downward drag as pull-to-refresh and reloads the page. */
+html.is-tree-pan,
+html.is-tree-pan body {
+  overflow: hidden;
   overscroll-behavior: none;
 }
 
@@ -515,6 +525,7 @@ textarea:focus-visible {
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 
 .app-shell--immersive .app-main {
@@ -551,6 +562,23 @@ textarea:focus-visible {
   margin-bottom: 1rem;
   position: relative;
   z-index: 80;
+}
+
+.toolbar--list {
+  position: sticky;
+  top: var(--app-header-h, 3.25rem);
+  z-index: 90;
+  align-items: stretch;
+  margin: -0.35rem 0 0.85rem;
+  padding: 0.45rem 0 0.55rem;
+  background: color-mix(in srgb, var(--bg) 88%, var(--panel));
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 18px color-mix(in srgb, var(--bg) 55%, transparent);
+}
+
+.toolbar--list .person-search {
+  flex: 1 1 100%;
+  max-width: none;
 }
 
 .toolbar--tree {
@@ -596,6 +624,27 @@ textarea:focus-visible {
 
 .person-search--overlay .person-search__top {
   display: none;
+}
+
+.person-search--overlay .person-search__top:has(.person-search__who) {
+  display: flex;
+  margin: 0 0 0.28rem;
+  padding: 0.2rem 0.45rem;
+  width: 100%;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+}
+
+.person-search--overlay .person-search__label {
+  display: none;
+}
+
+.person-search--overlay .person-search__who {
+  max-width: 100%;
+  text-align: left;
+  font-size: 0.75rem;
+  padding: 0.1rem 0.15rem;
 }
 
 .person-search--overlay .person-search__field,
@@ -736,6 +785,23 @@ textarea:focus-visible {
   line-height: 1;
   cursor: pointer;
   padding: 0.25rem 0.45rem;
+}
+
+.person-search__float {
+  position: fixed;
+  z-index: 2100;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.person-search__float .person-search__results,
+.person-search__float .person-search__empty {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  max-height: none;
 }
 
 .person-search__results {
@@ -905,6 +971,8 @@ textarea:focus-visible {
     rgb(28, 36, 29);
   position: relative;
   z-index: 0;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .family-chart-wrap {
@@ -913,7 +981,8 @@ textarea:focus-visible {
   min-height: 0;
   overflow: hidden;
   z-index: 0;
-  touch-action: manipulation;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .family-chart-host.f3 {
@@ -923,6 +992,8 @@ textarea:focus-visible {
   overflow: hidden !important;
   position: relative;
   z-index: 0;
+  touch-action: none;
+  overscroll-behavior: none;
   /* family-chart defaults: dark canvas, dusty male/female cards, white type */
   --background-color: rgb(28, 36, 29);
   --text-color: #fff;
@@ -938,6 +1009,8 @@ textarea:focus-visible {
   overflow: hidden !important;
   max-width: 100%;
   max-height: 100%;
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 /* Library injects an empty top bar — don't let it eat taps */
@@ -950,6 +1023,20 @@ textarea:focus-visible {
 .family-chart-host .card {
   color: var(--text-color, #fff);
   font-size: var(--f3-card-font, 13px) !important;
+}
+
+.family-chart-host .card_cont.is-attending .card,
+.family-chart-host .card_cont.is-attending .card-inner,
+.family-chart-host .card_cont.is-attending .card-rect {
+  outline: 3px solid var(--attending);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--attending) 32%, transparent);
+}
+
+.family-chart-host g.card_cont.is-attending .card-outline,
+.family-chart-host g.card_cont.is-attending .card-body-rect {
+  stroke: var(--attending);
+  stroke-width: 4px;
 }
 
 .family-chart-host .card_cont.is-chart-highlight .card,
@@ -987,6 +1074,13 @@ textarea:focus-visible {
 
 .family-chart-host .card_cont--addable {
   overflow: visible !important;
+  z-index: 1;
+}
+
+.family-chart-host .card_cont--addable:hover,
+.family-chart-host .card_cont--addable:focus-within,
+.family-chart-host .card_cont--plus-top {
+  z-index: 80;
 }
 
 .family-chart-host .card-inner.card-image-rect {
@@ -1086,7 +1180,7 @@ textarea:focus-visible {
   position: absolute;
   top: -14px;
   left: 50%;
-  z-index: 7;
+  z-index: 100;
   display: grid;
   place-items: center;
   width: 30px;
@@ -1103,6 +1197,9 @@ textarea:focus-visible {
   box-shadow: 0 2px 10px color-mix(in srgb, var(--accent) 35%, transparent);
   transform: translateX(-50%);
   cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  isolation: isolate;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease,
@@ -1191,6 +1288,20 @@ textarea:focus-visible {
   backdrop-filter: blur(4px);
 }
 
+.attending-legend {
+  pointer-events: auto;
+  align-self: center;
+  padding: 0.32rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: #9a4b12;
+  background: color-mix(in srgb, var(--attending) 18%, white);
+  border: 1px solid color-mix(in srgb, var(--attending) 50%, white);
+  border-radius: 999px;
+  max-width: 16rem;
+  line-height: 1.25;
+}
+
 .tree-wind {
   position: absolute;
   inset: 0;
@@ -1272,9 +1383,17 @@ textarea:focus-visible {
   }
 }
 
+.only-narrow {
+  display: none;
+}
+
 @media (max-width: 720px) {
   .only-wide {
     display: none;
+  }
+
+  .only-narrow {
+    display: inline;
   }
 }
 
@@ -1568,6 +1687,28 @@ textarea:focus-visible {
   padding: 0.65rem 0.35rem 1.5rem;
 }
 
+.genealogy-section {
+  list-style: none;
+  margin: 1.25rem 0.35rem 0.65rem;
+  padding: 0.85rem 0.95rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  background: color-mix(in srgb, var(--accent) 5%, white);
+  border-radius: 12px;
+}
+
+.genealogy-section h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+  color: var(--accent-strong);
+}
+
+.genealogy-section p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
 .genealogy-item {
   --depth: 0;
   --guide: 1.35rem;
@@ -1584,6 +1725,28 @@ textarea:focus-visible {
 .genealogy-item.is-highlight {
   background: color-mix(in srgb, var(--accent) 12%, white);
   outline: 1px solid color-mix(in srgb, var(--accent) 35%, white);
+}
+
+.genealogy-item.is-attending .genealogy-content {
+  outline: 2px solid var(--attending);
+  outline-offset: 1px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--attending) 8%, white);
+}
+
+.attending-pill {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #9a4b12;
+  background: color-mix(in srgb, var(--attending) 18%, white);
+  border: 1px solid color-mix(in srgb, var(--attending) 45%, white);
+  border-radius: 999px;
+  vertical-align: middle;
 }
 
 .genealogy-item.is-spouse {
@@ -1804,6 +1967,18 @@ textarea:focus-visible {
   letter-spacing: -0.02em;
 }
 
+.attending-banner {
+  display: inline-block;
+  margin: 0.15rem 0 0.4rem;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #9a4b12;
+  background: color-mix(in srgb, var(--attending) 16%, white);
+  border: 2px solid var(--attending);
+  border-radius: 999px;
+}
+
 .person-detail__maiden,
 .person-detail__dates,
 .person-detail__phone,
@@ -1941,6 +2116,12 @@ textarea:focus-visible {
   padding: 1rem;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+}
+
+.modal-backdrop--who {
+  place-items: start center;
+  align-content: start;
+  padding-top: max(0.5rem, env(safe-area-inset-top));
 }
 
 .modal-card {
@@ -2533,9 +2714,42 @@ textarea:focus-visible {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: white;
-  max-height: 220px;
+  max-height: min(38dvh, 220px);
   overflow: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.who-matches__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.who-matches__dates {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.who-confirm {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 6%, white);
+}
+
+.who-confirm__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 750;
+}
+
+.who-confirm__meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
 }
 
 .who-matches button,
@@ -2775,6 +2989,41 @@ textarea:focus-visible {
   color: var(--ink-soft);
   font-size: 0.9rem;
   line-height: 1.4;
+}
+
+.event-photos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.event-photos li {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem 0.95rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--attending) 10%, white), white);
+  border: 1px solid color-mix(in srgb, var(--attending) 28%, var(--line));
+  border-radius: 14px;
+}
+
+.event-photos strong {
+  font-size: 1rem;
+  color: var(--accent-strong);
+}
+
+.event-photos a {
+  color: var(--accent);
+  font-weight: 650;
+  word-break: break-all;
+  text-decoration: underline;
+}
+
+.event-photos .transfer-copy {
+  justify-self: start;
+  margin-top: 0.15rem;
 }
 
 .event-schedule {
@@ -3077,8 +3326,50 @@ textarea:focus-visible {
   }
 
   .tree-page__chrome {
-    right: 0.65rem;
-    max-width: calc(100% - 1.3rem);
+    top: 0.4rem;
+    left: 0.45rem;
+    right: 0.45rem;
+    max-width: none;
+    gap: 0.3rem;
+  }
+
+  .tree-focus-bar {
+    width: 100%;
+    padding: 0.28rem 0.5rem;
+    gap: 0.3rem;
+  }
+
+  .tree-focus-bar p {
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tree-focus-bar .btn {
+    min-height: 1.9rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .modal-backdrop--who {
+    padding: max(0.35rem, env(safe-area-inset-top)) 0.55rem 0.55rem;
+  }
+
+  .modal-card--who {
+    width: 100%;
+    max-height: min(72dvh, 520px);
+    padding: 0.8rem 0.8rem 0.75rem;
+    border-radius: 14px;
+  }
+
+  .modal-card--who .modal-card__head h2 {
+    font-size: 1.12rem;
+  }
+
+  .modal-card--who .modal-card__head p {
+    margin: 0.2rem 0 0.55rem;
+    font-size: 0.82rem;
   }
 
   .family-chart-tools {

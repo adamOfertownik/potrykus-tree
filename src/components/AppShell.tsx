@@ -39,6 +39,8 @@ function AppShellInner({
   const [pdfBusy, setPdfBusy] = useState<"list" | "a0" | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const shellRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
 
   const rootId = exportRootId || metaRootId || "";
 
@@ -51,9 +53,32 @@ function AppShellInner({
   }, []);
 
   useEffect(() => {
+    const header = headerRef.current;
+    const shell = shellRef.current;
+    if (!header || !shell) return;
+    const apply = () => {
+      shell.style.setProperty(
+        "--app-header-h",
+        `${Math.round(header.getBoundingClientRect().height)}px`,
+      );
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(header);
+    return () => ro.disconnect();
+  }, [pathname, scale]);
+
+  useEffect(() => {
     const id = window.setTimeout(() => resetPageScrollLockIfIdle(), 0);
     return () => window.clearTimeout(id);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!immersive) return;
+    const html = document.documentElement;
+    html.classList.add("is-tree-pan");
+    return () => html.classList.remove("is-tree-pan");
+  }, [immersive]);
 
   const downloadList = async () => {
     if (!people.length || !rootId) return;
@@ -84,9 +109,12 @@ function AppShellInner({
   };
 
   return (
-    <div className={`app-shell${immersive ? " app-shell--immersive" : ""}`}>
+    <div
+      className={`app-shell${immersive ? " app-shell--immersive" : ""}`}
+      ref={shellRef}
+    >
       <PrototypeBanner />
-      <header className="app-header">
+      <header className="app-header" ref={headerRef}>
         <div className="app-header__bar">
           <div className="app-header__brand">
             <Link href="/drzewo" className="brand-link">
