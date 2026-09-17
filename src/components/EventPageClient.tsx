@@ -544,12 +544,6 @@ export function EventPageClient() {
           </p>
         </header>
 
-        <MeetingBranchPanel
-          people={people}
-          attendingPersonIds={family.data.attendingPersonIds ?? []}
-          showButton
-        />
-
         {event.amenities?.length > 0 && (
           <section className="event-section">
             <h2>Na miejscu</h2>
@@ -1056,6 +1050,11 @@ export function EventPageClient() {
             <p className="event-footnote">{event.contactNote}</p>
           )}
         </section>
+
+        <MeetingBranchPanel
+          people={people}
+          attendingPersonIds={family.data.attendingPersonIds ?? []}
+        />
       </article>
     </AppShell>
   );

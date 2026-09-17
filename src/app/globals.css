@@ -4068,6 +4068,70 @@ button.person-card {
   display: block;
 }
 
+.meeting-branch-counts em {
+  font-style: normal;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.stats-kpis,
+.stats-list,
+.stats-rank,
+.stats-people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stats-kpis {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+}
+
+.stats-kpis li,
+.stats-list li,
+.stats-rank li,
+.stats-people li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.55rem 0.7rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.stats-kpis li {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.stats-kpis span,
+.stats-list span,
+.stats-rank span,
+.stats-people span {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.stats-two {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 800px) {
+  .stats-two {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.stats-page .stats-two .event-section {
+  margin: 0;
+}
+
 .event-footnote {
   margin: 0.85rem 0 0;
   font-size: 0.82rem;
