@@ -261,6 +261,11 @@ export const adminAttendSchema = z
     message: "Podaj osobę albo zgłoszenie.",
   });
 
+export const adminRsvpPaidSchema = z.object({
+  rsvpId: z.string().trim().min(1).max(120),
+  paid: z.boolean(),
+});
+
 export const adminPersonWriteSchema = z.object({
   action: z.enum(["update", "create", "delete", "graph"]),
   personId: z.string().trim().min(1).max(120).optional(),

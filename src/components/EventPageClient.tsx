@@ -35,6 +35,8 @@ type EventApi = {
     capacity?: number;
     spotsLeft?: number;
     amountTotal?: number;
+    paidCount?: number;
+    paidTotal?: number;
   };
   rsvps: {
     id: string;
@@ -46,7 +48,8 @@ type EventApi = {
     children3to12?: number;
     childrenUnder3?: number;
     amountPln?: number;
-    willTransfer: boolean;
+    willTransfer?: boolean;
+    paid?: boolean;
     earlyArrival?: boolean;
     coveredPersonIds?: string[];
     source?: "form" | "admin";
@@ -222,6 +225,7 @@ export function EventPageClient() {
   const [success, setSuccess] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [cancelId, setCancelId] = useState<string | null>(null);
+  const [paidBusyId, setPaidBusyId] = useState<string | null>(null);
 
   const people = family.data?.people ?? [];
 
@@ -412,8 +416,10 @@ export function EventPageClient() {
       const paid = formatPln(data.amountPln ?? amount);
       setSuccess(
         data.warning
-          ? `${data.warning} Kwota: ${paid}. Tytuł: ${transferTitle}`
-          : `Zapisano. Do zapłaty: ${paid}. W tytule przelewu koniecznie „IMPREZA RODZINNA”.`,
+          ? `${data.warning} Kwota: ${paid}.`
+          : willTransfer
+            ? `Zapisano. Do zapłaty: ${paid}. W tytule przelewu koniecznie „IMPREZA RODZINNA”.`
+            : `Zapisano. Do zapłaty gotówką na miejscu: ${paid}.`,
       );
       setNotes("");
       await Promise.all([
@@ -424,6 +430,25 @@ export function EventPageClient() {
       setError((err as Error).message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const markPaid = async (id: string, paid: boolean) => {
+    setPaidBusyId(id);
+    setError(null);
+    try {
+      const res = await fetch("/api/event/paid", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rsvpId: id, paid }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd");
+      await qc.invalidateQueries({ queryKey: ["event"] });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setPaidBusyId(null);
     }
   };
 
@@ -771,14 +796,30 @@ export function EventPageClient() {
               />
             </label>
 
-            <label className="check-row">
-              <input
-                type="checkbox"
-                checked={willTransfer}
-                onChange={(e) => setWillTransfer(e.target.checked)}
-              />
-              Zapłacę przelewem według danych poniżej
-            </label>
+            <fieldset className="event-pay-method">
+              <legend>Jak zapłacisz?</legend>
+              <p className="empty-hint">
+                To tylko informacja dla organizatorów — zapis i tak przejdzie.
+              </p>
+              <label className="check-row">
+                <input
+                  type="radio"
+                  name="pay-method"
+                  checked={willTransfer}
+                  onChange={() => setWillTransfer(true)}
+                />
+                Przelewem
+              </label>
+              <label className="check-row">
+                <input
+                  type="radio"
+                  name="pay-method"
+                  checked={!willTransfer}
+                  onChange={() => setWillTransfer(false)}
+                />
+                Gotówką na miejscu
+              </label>
+            </fieldset>
 
             {error && (
               <p className="banner-error" role="alert">
@@ -912,8 +953,15 @@ export function EventPageClient() {
           <h2>Lista zapisanych ({rsvps.length})</h2>
           {isAdmin && (
             <p className="event-section__lead">
-              Jesteś administratorem — możesz też oznaczać zapisy na liście
-              rodziny i przy osobie.
+              Jesteś administratorem — widać sposób płatności i możesz
+              oznaczyć, kto już zapłacił.
+              {typeof stats.paidCount === "number"
+                ? ` Zapłacono: ${stats.paidCount} / ${rsvps.length}${
+                    typeof stats.paidTotal === "number"
+                      ? ` (${formatPln(stats.paidTotal)})`
+                      : ""
+                  }.`
+                : ""}
             </p>
           )}
           {rsvps.length === 0 ? (
@@ -936,23 +984,42 @@ export function EventPageClient() {
                         {typeof r.amountPln === "number" && r.amountPln > 0
                           ? ` · ${formatPln(r.amountPln)}`
                           : ""}
-                        {r.willTransfer ? " · przelew" : ""}
                         {r.earlyArrival ? " · dzień wcześniej" : ""}
                         {r.source === "admin" ? " · admin" : ""}
                       </span>
+                      {isAdmin && (
+                        <span>
+                          {r.willTransfer ? "przelew" : "gotówka"}
+                          {r.paid ? " · zapłacono" : " · niezapłacone"}
+                        </span>
+                      )}
                       {covered.length > 0 && (
                         <span>Za: {covered.join(", ")}</span>
                       )}
                     </div>
                     {isAdmin && (
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        disabled={cancelId === r.id}
-                        onClick={() => cancelRsvp(r.id)}
-                      >
-                        {cancelId === r.id ? "Usuwam…" : "Usuń zapis"}
-                      </button>
+                      <div className="rsvp-list__admin">
+                        <button
+                          type="button"
+                          className={`btn ${r.paid ? "btn-secondary" : "btn-primary"}`}
+                          disabled={paidBusyId === r.id}
+                          onClick={() => markPaid(r.id, !r.paid)}
+                        >
+                          {paidBusyId === r.id
+                            ? "Zapisuję…"
+                            : r.paid
+                              ? "Cofnij zapłatę"
+                              : "Oznacz zapłatę"}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          disabled={cancelId === r.id}
+                          onClick={() => cancelRsvp(r.id)}
+                        >
+                          {cancelId === r.id ? "Usuwam…" : "Usuń zapis"}
+                        </button>
+                      </div>
                     )}
                   </li>
                 );

@@ -62,6 +62,8 @@ export interface EventRsvp {
   amountPln: number;
   notes?: string;
   willTransfer: boolean;
+  /** Admin-only: marked as paid (transfer or cash received) */
+  paid?: boolean;
   earlyArrival?: boolean;
   earlyArrivalOver7?: number;
   earlyArrivalUnder7?: number;

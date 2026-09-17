@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isSessionValid } from "@/lib/auth";
+import { getAdminSession, isSessionValid } from "@/lib/auth";
 import { appendRsvp, readEvent, readRsvps } from "@/lib/event";
 import { isActiveRsvp } from "@/lib/eventAttending";
 import { amountDuePln, totalGuests } from "@/lib/eventPricing";
@@ -15,12 +15,20 @@ export async function GET() {
     return NextResponse.json({ error: "Brak dostępu." }, { status: 401 });
   }
 
-  const [event, rsvps] = await Promise.all([readEvent(), readRsvps()]);
+  const [event, rsvps, admin] = await Promise.all([
+    readEvent(),
+    readRsvps(),
+    getAdminSession(),
+  ]);
   const active = rsvps.filter(isActiveRsvp);
   const guestTotal = active.reduce((sum, r) => sum + (r.guests || 1), 0);
   const spotsLeft = Math.max(0, event.capacity - guestTotal);
   const amountTotal = active.reduce((sum, r) => sum + (r.amountPln || 0), 0);
+  const paidTotal = active
+    .filter((r) => r.paid)
+    .reduce((sum, r) => sum + (r.amountPln || 0), 0);
   const mode = storageMode();
+  const isAdmin = Boolean(admin);
 
   return NextResponse.json({
     storage: mode,
@@ -31,6 +39,12 @@ export async function GET() {
       capacity: event.capacity,
       spotsLeft,
       amountTotal,
+      ...(isAdmin
+        ? {
+            paidCount: active.filter((r) => r.paid).length,
+            paidTotal,
+          }
+        : {}),
     },
     rsvps: active.map((r) => ({
       id: r.id,
@@ -42,10 +56,12 @@ export async function GET() {
       children3to12: r.children3to12,
       childrenUnder3: r.childrenUnder3,
       amountPln: r.amountPln,
-      willTransfer: r.willTransfer,
       earlyArrival: r.earlyArrival,
       coveredPersonIds: r.coveredPersonIds ?? [],
       source: r.source ?? "form",
+      ...(isAdmin
+        ? { willTransfer: r.willTransfer, paid: Boolean(r.paid) }
+        : {}),
     })),
   });
 }

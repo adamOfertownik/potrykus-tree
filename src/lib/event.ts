@@ -21,6 +21,7 @@ const RSVP_PATH = path.join(DATA_DIR, "event-rsvps.json");
 const EARLY_NOTE_PREFIX = "Wczesny przyjazd:";
 const PEOPLE_NOTE_PREFIX = "Osoby:";
 const ADMIN_NOTE_MARKER = "Źródło: admin";
+const PAID_NOTE_MARKER = "Zapłacono";
 
 export async function readEvent(): Promise<FamilyEvent> {
   const raw = await readFile(EVENT_PATH, "utf-8");
@@ -106,7 +107,8 @@ function stripStructuredNotes(notes?: string): string | undefined {
       (line) =>
         !line.startsWith(EARLY_NOTE_PREFIX) &&
         !line.startsWith(PEOPLE_NOTE_PREFIX) &&
-        line.trim() !== ADMIN_NOTE_MARKER,
+        line.trim() !== ADMIN_NOTE_MARKER &&
+        line.trim() !== PAID_NOTE_MARKER,
     )
     .join("\n")
     .trim();
@@ -130,6 +132,7 @@ function composeNotes(rsvp: EventRsvp, includeEarlyInNotes: boolean): string | n
   const covered = [...new Set(rsvp.coveredPersonIds ?? [])].filter(Boolean);
   if (covered.length) parts.push(`${PEOPLE_NOTE_PREFIX} ${covered.join(",")}`);
   if (rsvp.source === "admin") parts.push(ADMIN_NOTE_MARKER);
+  if (rsvp.paid) parts.push(PAID_NOTE_MARKER);
   const userNotes = stripStructuredNotes(rsvp.notes);
   if (userNotes) parts.push(userNotes);
   return parts.length ? parts.join("\n") : null;
@@ -147,6 +150,9 @@ function normalizeRsvp(r: EventRsvp): EventRsvp {
   const source =
     r.source ??
     (r.notes?.includes(ADMIN_NOTE_MARKER) ? "admin" : "form");
+  const paid =
+    r.paid === true ||
+    Boolean(r.notes?.split("\n").some((line) => line.trim() === PAID_NOTE_MARKER));
   return {
     ...r,
     adults,
@@ -159,6 +165,7 @@ function normalizeRsvp(r: EventRsvp): EventRsvp {
     earlyArrivalUnder7: r.earlyArrivalUnder7 ?? parsed.earlyArrivalUnder7,
     coveredPersonIds: covered,
     source,
+    paid,
     notes: stripStructuredNotes(r.notes) ?? parsed.notes,
   };
 }
@@ -192,6 +199,7 @@ type Row = {
   amount_pln: number | null;
   notes: string | null;
   will_transfer: boolean;
+  paid?: boolean | null;
   early_arrival?: boolean | null;
   early_arrival_over_7?: number | null;
   early_arrival_under_7?: number | null;
@@ -206,6 +214,13 @@ function rowToRsvp(row: Row): EventRsvp {
   const earlyFromCol = row.early_arrival != null;
   const covered = parseCoveredIds(row.notes || undefined);
   const source = row.notes?.includes(ADMIN_NOTE_MARKER) ? "admin" : "form";
+  const paid =
+    row.paid === true ||
+    Boolean(
+      row.notes
+        ?.split("\n")
+        .some((line) => line.trim() === PAID_NOTE_MARKER),
+    );
   return {
     id: row.id,
     createdAt:
@@ -231,6 +246,7 @@ function rowToRsvp(row: Row): EventRsvp {
       : parsed.earlyArrivalUnder7,
     coveredPersonIds: covered,
     source,
+    paid,
     status: row.status as EventRsvp["status"],
   };
 }
@@ -637,4 +653,14 @@ export async function setPersonAttendance(opts: {
   }
 
   return { cancelledIds };
+}
+
+export async function setRsvpPaid(
+  id: string,
+  paid: boolean,
+): Promise<EventRsvp | null> {
+  const existing = await readRsvps();
+  const rsvp = existing.find((r) => r.id === id);
+  if (!rsvp || rsvp.status === "cancelled") return null;
+  return updateRsvp({ ...rsvp, paid });
 }

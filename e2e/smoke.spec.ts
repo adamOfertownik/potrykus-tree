@@ -335,6 +335,9 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
     page.getByText(/Za kogo jeszcze płacisz\? Rodzina/),
   ).toBeVisible();
   await expect(page.getByText(/IMPREZA RODZINNA, dorosłych-/)).toBeVisible();
+  await expect(page.getByText("Jak zapłacisz?")).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Przelewem" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Gotówką na miejscu" })).toBeVisible();
   await ctx.close();
 });
 
