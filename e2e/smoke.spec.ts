@@ -200,10 +200,23 @@ test("returning to full tree keeps the highlighted person", async ({
   await expect(page.locator(".is-chart-highlight").first()).toBeVisible({
     timeout: 10_000,
   });
-  const keptBox = await page.locator(".is-chart-highlight").first().boundingBox();
-  expect(keptBox, "highlighted card should stay readable").toBeTruthy();
-  expect(keptBox!.width).toBeGreaterThan(40);
-  expect(keptBox!.height).toBeGreaterThan(20);
+  await expect
+    .poll(
+      async () => {
+        const box = await page.locator(".is-chart-highlight").first().boundingBox();
+        if (!box) return false;
+        const view = page.viewportSize();
+        const height = view?.height ?? 720;
+        return (
+          box.width > 40 &&
+          box.height > 20 &&
+          box.y > -40 &&
+          box.y + box.height < height + 40
+        );
+      },
+      { timeout: 10_000 },
+    )
+    .toBeTruthy();
   await ctx.close();
 });
 
