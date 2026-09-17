@@ -153,9 +153,9 @@ test("add-child form includes death date", async ({ browser }) => {
     );
   });
   const page = await ctx.newPage();
-  await page.goto("/drzewo");
-  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
-  await page.locator("#htmlSvg .card_cont").first().click();
+  await page.goto("/lista");
+  await page.waitForSelector(".genealogy-add", { timeout: 45000 });
+  await page.locator(".genealogy-add").first().click();
   await page.getByRole("button", { name: "Dziecko" }).click();
   await page.getByRole("tab", { name: "Nowa osoba" }).click();
   await expect(page.getByText("Data zgonu (opcjonalnie)")).toBeVisible();
