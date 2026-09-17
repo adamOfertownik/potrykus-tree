@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { GuestTicketSteppers } from "@/components/GuestTicketSteppers";
+import { AdminMeetingLineage, rsvpLineageHint } from "@/components/AdminMeetingLineage";
 import type { Person } from "@/types/family";
 import { displayName } from "@/lib/db-client";
 import { householdSuggestions } from "@/lib/eventAttending";
@@ -376,6 +377,7 @@ export function AdminEventPayPanel({
 
   return (
     <div className="admin-pay">
+      <AdminMeetingLineage people={people} rsvps={eventQ.data?.rsvps ?? []} />
       <section className="admin-pay__add">
         <h2>Dodaj kto zapłacił</h2>
         <p className="empty-hint">
@@ -542,7 +544,9 @@ export function AdminEventPayPanel({
           <p className="empty-hint">Brak zgłoszeń w tym filtrze.</p>
         ) : (
           <ul className="admin-pay-cards">
-            {visible.map((r) => (
+            {visible.map((r) => {
+              const hint = rsvpLineageHint(r, people);
+              return (
               <li key={r.id} className={r.paid ? "is-paid" : undefined}>
                 <div>
                   <strong>{r.fullName}</strong>
@@ -557,6 +561,7 @@ export function AdminEventPayPanel({
                     {r.willTransfer ? "przelew" : "gotówka"}
                     {r.source === "admin" ? " · wpis admina" : ""}
                   </p>
+                  {hint ? <p>{hint}</p> : null}
                   {editingId === r.id ? (
                     <PayCardEditor
                       rsvp={r}
@@ -592,7 +597,8 @@ export function AdminEventPayPanel({
                   </button>
                 </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </section>

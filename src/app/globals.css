@@ -4606,6 +4606,106 @@ button.person-card {
   gap: 1.5rem;
 }
 
+.admin-pay__lineage {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.admin-lineage__total {
+  margin: 0;
+  font-weight: 600;
+}
+
+.admin-lineage__highlights {
+  display: grid;
+  gap: 0.6rem;
+}
+
+@media (min-width: 640px) {
+  .admin-lineage__highlights {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.admin-lineage__card {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.admin-lineage__card h3,
+.admin-lineage__sub {
+  margin: 0 0 0.15rem;
+  font-size: 1rem;
+}
+
+.admin-lineage__card p {
+  margin: 0.15rem 0 0;
+}
+
+.admin-lineage__card.is-helena,
+.admin-lineage__branches li.is-helena {
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}
+
+.admin-lineage__card.is-wladek,
+.admin-lineage__branches li.is-wladek {
+  background: #fff6e8;
+  border-color: color-mix(in srgb, #d97706 35%, var(--line));
+}
+
+.admin-lineage__branches {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.admin-lineage__branches li {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.admin-lineage__tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.admin-lineage__names {
+  margin-top: 0.25rem;
+}
+
+.admin-lineage__names summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.admin-lineage__names p {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+}
+
+.admin-lineage__other {
+  margin-top: 0.2rem;
+}
+
 @media (min-width: 960px) {
   .admin-pay {
     grid-template-columns: minmax(16rem, 0.9fr) minmax(20rem, 1.2fr);

@@ -40,7 +40,12 @@ export function householdSuggestions(
 
 /** Map RSVPs onto tree people: matching person_id, otherwise exact full name. */
 export function resolveAttendingPersonIds(
-  rsvps: EventRsvp[],
+  rsvps: Array<{
+    status?: string;
+    personId?: string;
+    coveredPersonIds?: string[];
+    fullName: string;
+  }>,
   people: { id: string; firstName: string; lastName: string }[],
 ): string[] {
   const active = rsvps.filter((r) => r.status !== "cancelled");
