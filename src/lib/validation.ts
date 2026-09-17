@@ -266,6 +266,13 @@ export const adminRsvpPaidSchema = z.object({
   paid: z.boolean(),
 });
 
+const adminTicketFields = {
+  adults: z.coerce.number().int().min(0).max(20).optional(),
+  children3to12: z.coerce.number().int().min(0).max(20).optional(),
+  childrenUnder3: z.coerce.number().int().min(0).max(20).optional(),
+  amountPln: z.coerce.number().int().min(0).max(100000).optional(),
+};
+
 export const adminEventWriteSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("paid"),
@@ -278,6 +285,14 @@ export const adminEventWriteSchema = z.discriminatedUnion("action", [
     coveredPersonIds: z.array(z.string().trim().min(1).max(120)).max(20),
     willTransfer: z.boolean().default(false),
     paid: z.boolean().default(true),
+    ...adminTicketFields,
+  }),
+  z.object({
+    action: z.literal("update"),
+    rsvpId: z.string().trim().min(1).max(120),
+    willTransfer: z.boolean().optional(),
+    paid: z.boolean().optional(),
+    ...adminTicketFields,
   }),
 ]);
 

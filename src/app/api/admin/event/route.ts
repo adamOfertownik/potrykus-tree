@@ -6,9 +6,10 @@ import {
   readEvent,
   readRsvps,
   setRsvpPaid,
+  updateAdminPayment,
 } from "@/lib/event";
 import { isActiveRsvp } from "@/lib/eventAttending";
-import { formatPln } from "@/lib/eventPricing";
+import { formatPln, ticketSummary } from "@/lib/eventPricing";
 import { adminEventWriteSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,8 @@ export async function GET() {
       title: event.title,
       dateLabel: event.dateLabel,
       capacity: event.capacity,
+      pricePerPersonPln: event.pricePerPersonPln,
+      priceUnder7Pln: event.priceUnder7Pln ?? 120,
     },
     stats: {
       rsvpCount: active.length,
@@ -44,6 +47,14 @@ export async function GET() {
       fullName: r.fullName,
       personId: r.personId,
       guests: r.guests,
+      adults: r.adults,
+      children3to12: r.children3to12,
+      childrenUnder3: r.childrenUnder3,
+      ticketLabel: ticketSummary({
+        adults: r.adults,
+        children3to12: r.children3to12,
+        childrenUnder3: r.childrenUnder3,
+      }),
       amountPln: r.amountPln,
       amountLabel: formatPln(r.amountPln || 0),
       willTransfer: r.willTransfer,
@@ -95,7 +106,19 @@ export async function POST(request: Request) {
         willTransfer: body.willTransfer,
         paid: body.paid,
         people: db.people,
+        adults: body.adults,
+        children3to12: body.children3to12,
+        childrenUnder3: body.childrenUnder3,
+        amountPln: body.amountPln,
       });
+    } else if (parsed.data.action === "update") {
+      const saved = await updateAdminPayment(parsed.data);
+      if (!saved) {
+        return NextResponse.json(
+          { error: "Nie znaleziono zgłoszenia." },
+          { status: 404 },
+        );
+      }
     }
     return GET();
   } catch (err) {

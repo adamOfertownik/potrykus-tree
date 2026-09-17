@@ -102,3 +102,11 @@ export function breakdownFromAgeGroups(
   const childrenUnder3 = groups.filter((g) => g === "under3").length;
   return { adults, children3to12, childrenUnder3 };
 }
+
+export function ticketSummary(b: GuestBreakdown): string {
+  const parts: string[] = [];
+  if (b.adults) parts.push(`${b.adults}× 7+`);
+  if (b.children3to12) parts.push(`${b.children3to12}× do lat 7`);
+  if (b.childrenUnder3) parts.push(`${b.childrenUnder3}× do lat 3`);
+  return parts.join(" · ") || "brak biletów";
+}

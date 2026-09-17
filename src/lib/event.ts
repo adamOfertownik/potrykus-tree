@@ -667,6 +667,38 @@ export async function setRsvpPaid(
   return updateRsvp({ ...rsvp, paid });
 }
 
+function ticketsFromCovered(
+  coveredIds: string[],
+  people: Person[],
+): GuestBreakdown {
+  const byId = new Map(people.map((p) => [p.id, p]));
+  return breakdownFromAgeGroups(
+    coveredIds.map((id) => ageGroupFromBirth(byId.get(id)?.birthDate)),
+  );
+}
+
+function paymentTickets(
+  event: Awaited<ReturnType<typeof readEvent>>,
+  breakdown: GuestBreakdown,
+  amountOverride?: number,
+) {
+  const guests = totalGuests(breakdown);
+  if (guests < 1) {
+    throw new Error("Wybierz przynajmniej jeden bilet.");
+  }
+  const computed = amountDuePln(
+    breakdown,
+    event.pricePerPersonPln,
+    null,
+    event.priceUnder7Pln,
+  );
+  return {
+    ...breakdown,
+    guests,
+    amountPln: amountOverride != null ? amountOverride : computed,
+  };
+}
+
 export async function createAdminPayment(opts: {
   fullName: string;
   personId?: string;
@@ -674,6 +706,10 @@ export async function createAdminPayment(opts: {
   willTransfer: boolean;
   paid: boolean;
   people: Person[];
+  adults?: number;
+  children3to12?: number;
+  childrenUnder3?: number;
+  amountPln?: number;
 }): Promise<EventRsvp> {
   const event = await readEvent();
   const byId = new Map(opts.people.map((p) => [p.id, p]));
@@ -684,29 +720,64 @@ export async function createAdminPayment(opts: {
   if (covered.length < 1) {
     throw new Error("Wybierz, za kogo jest wpłata.");
   }
-  const groups = covered.map((id) => ageGroupFromBirth(byId.get(id)?.birthDate));
-  const breakdown = breakdownFromAgeGroups(groups);
-  const guests = totalGuests(breakdown);
-  const amountPln = amountDuePln(
-    breakdown,
-    event.pricePerPersonPln,
-    null,
-    event.priceUnder7Pln,
-  );
+  const inferred = ticketsFromCovered(covered, opts.people);
+  const hasTicketOverride =
+    opts.adults != null ||
+    opts.children3to12 != null ||
+    opts.childrenUnder3 != null;
+  const breakdown: GuestBreakdown = hasTicketOverride
+    ? {
+        adults: opts.adults ?? 0,
+        children3to12: opts.children3to12 ?? 0,
+        childrenUnder3: opts.childrenUnder3 ?? 0,
+      }
+    : inferred;
+  const priced = paymentTickets(event, breakdown, opts.amountPln);
   return appendRsvp({
     id: `rsvp-${Date.now()}`,
     createdAt: new Date().toISOString(),
     fullName: opts.fullName,
     personId: opts.personId,
-    guests,
-    adults: breakdown.adults,
-    children3to12: breakdown.children3to12,
-    childrenUnder3: breakdown.childrenUnder3,
-    amountPln,
+    guests: priced.guests,
+    adults: priced.adults,
+    children3to12: priced.children3to12,
+    childrenUnder3: priced.childrenUnder3,
+    amountPln: priced.amountPln,
     willTransfer: opts.willTransfer,
     paid: opts.paid,
     coveredPersonIds: covered,
     source: "admin",
     status: "new",
+  });
+}
+
+export async function updateAdminPayment(opts: {
+  rsvpId: string;
+  adults?: number;
+  children3to12?: number;
+  childrenUnder3?: number;
+  amountPln?: number;
+  willTransfer?: boolean;
+  paid?: boolean;
+}): Promise<EventRsvp | null> {
+  const existing = await readRsvps();
+  const rsvp = existing.find((r) => r.id === opts.rsvpId);
+  if (!rsvp || rsvp.status === "cancelled") return null;
+  const event = await readEvent();
+  const breakdown: GuestBreakdown = {
+    adults: opts.adults ?? rsvp.adults,
+    children3to12: opts.children3to12 ?? rsvp.children3to12,
+    childrenUnder3: opts.childrenUnder3 ?? rsvp.childrenUnder3,
+  };
+  const priced = paymentTickets(event, breakdown, opts.amountPln);
+  return updateRsvp({
+    ...rsvp,
+    guests: priced.guests,
+    adults: priced.adults,
+    children3to12: priced.children3to12,
+    childrenUnder3: priced.childrenUnder3,
+    amountPln: priced.amountPln,
+    willTransfer: opts.willTransfer ?? rsvp.willTransfer,
+    paid: opts.paid ?? rsvp.paid,
   });
 }

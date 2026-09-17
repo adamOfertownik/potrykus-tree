@@ -4499,10 +4499,26 @@ textarea:focus-visible {
   margin-top: 0.75rem;
 }
 
-.admin-pay__cover {
+.admin-pay__cover,
+.admin-pay__tickets {
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--line);
   border-radius: 12px;
+}
+
+.admin-pay__tickets .guest-steppers {
+  margin-bottom: 0.35rem;
+}
+
+.admin-pay__edit {
+  margin-top: 0.75rem;
+}
+
+.admin-pay-cards__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
 }
 
 .admin-pay__filters {
