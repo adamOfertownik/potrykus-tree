@@ -59,13 +59,22 @@ function walkToChildOfRoot(
   return null;
 }
 
+const BRANCH_NAMES: Record<string, { short: string; label: string }> = {
+  P062: { short: "Rozalia", label: "od babci Rozalii" },
+  P064: { short: "Jan", label: "od dziadka Jana" },
+  P072: { short: "Franciszek", label: "od dziadka Franciszka" },
+  [HELENA_BRANCH_ID]: { short: "Helena", label: "od babci Heleny" },
+  P213: { short: "Bronisław", label: "od dziadka Bronisława" },
+  P217: { short: "Antoni", label: "od dziadka Antoniego" },
+  P240: { short: "Stanisław", label: "od dziadka Stanisława" },
+  P255: { short: "Józef", label: "od dziadka Józefa" },
+  [WLADEK_BRANCH_ID]: { short: "Władek", label: "od dziadka Władka" },
+  P298: { short: "Walerian", label: "od dziadka Waleriana" },
+};
+
 function branchNames(head: Person): { short: string; label: string } {
-  if (head.id === HELENA_BRANCH_ID) {
-    return { short: "Helena", label: "od babci Heleny" };
-  }
-  if (head.id === WLADEK_BRANCH_ID) {
-    return { short: "Władek", label: "od dziadka Władka" };
-  }
+  const known = BRANCH_NAMES[head.id];
+  if (known) return known;
   const first = head.firstName.trim() || "NN";
   if (head.gender === "female") {
     return { short: first, label: `od babci ${first}` };
@@ -176,9 +185,7 @@ export function groupAttendingByMeetingBranch(
   const restHeads = heads
     .filter((h) => !featuredOrder.includes(h.id))
     .map((h) => byKey.get(`branch:${h.id}`))
-    .filter((row): row is MeetingBranch =>
-      row !== undefined && row.personIds.length > 0,
-    );
+    .filter((row): row is MeetingBranch => row !== undefined);
   const root = byKey.get("root");
   const outside = byKey.get("outside");
   const extra = [root, outside].filter(

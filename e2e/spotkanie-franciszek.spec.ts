@@ -39,8 +39,12 @@ test("spotkanie counts Helena and Władek and opens Franciszek's tree", async ({
   await expect(page.getByTestId("meeting-from-franciszek")).toBeVisible({
     timeout: 20_000,
   });
-  await expect(page.getByText("od babci Heleny")).toBeVisible();
-  await expect(page.getByText("od dziadka Władka")).toBeVisible();
+  await expect(
+    page.getByTestId("meeting-branch-count").filter({ hasText: /Heleny/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByTestId("meeting-branch-count").filter({ hasText: /Władka/ }),
+  ).toBeVisible();
   const button = page.getByTestId("spotkanie-od-franciszka");
   await expect(button).toBeVisible();
   await expect(button).toHaveAttribute("href", "/drzewo?root=P060");

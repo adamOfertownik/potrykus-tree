@@ -33,12 +33,14 @@ export function MeetingBranchPanel({
           Na spotkaniu {plPeople(total)} od Franciszka
         </p>
         <ul className="meeting-branch-chips">
-          {branches.map((branch) => (
-            <li key={branch.key}>
-              <span>{branch.short}</span>
-              <strong>{branch.personIds.length}</strong>
-            </li>
-          ))}
+          {branches
+            .filter((branch) => branch.featured || branch.personIds.length > 0)
+            .map((branch) => (
+              <li key={branch.key}>
+                <span>{branch.short}</span>
+                <strong>{branch.personIds.length}</strong>
+              </li>
+            ))}
         </ul>
       </div>
     );
