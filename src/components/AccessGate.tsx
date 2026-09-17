@@ -80,13 +80,16 @@ export function AccessGate({ afterUnlockHref = "/" }: Props) {
           </p>
         )}
         <footer className="gate-footer">
-          Twórca: <strong>Adam Lieske</strong>
-          <span className="gate-footer__sep">·</span>
-          <a href="/regulamin">Regulamin</a>
-          <span className="gate-footer__sep">·</span>
-          <a href="/polityka-prywatnosci">Prywatność</a>
-          <span className="gate-footer__sep">·</span>
-          <a href="/login">Logowanie administratora</a>
+          <p>
+            Twórca: <strong>Adam Lieske</strong>
+          </p>
+          <p>
+            <a href="/regulamin">Regulamin</a>
+            <span className="gate-footer__sep">·</span>
+            <a href="/polityka-prywatnosci">Prywatność</a>
+            <span className="gate-footer__sep">·</span>
+            <a href="/login">Logowanie administratora</a>
+          </p>
         </footer>
       </section>
     </main>
