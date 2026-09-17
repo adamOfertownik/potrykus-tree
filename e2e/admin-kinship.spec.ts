@@ -14,6 +14,7 @@ async function adminCookie() {
     role: "admin",
     adminId: "00000000-0000-0000-0000-000000000001",
     email: "tester@example.com",
+    adminRole: "admin",
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

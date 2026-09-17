@@ -1,6 +1,6 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
-import { getAdminSession, isSessionValid } from "@/lib/auth";
+import { getAdminSession, isFamilyEditor, isSessionValid } from "@/lib/auth";
 import { displayName, readFamilyDb, toFamilyPayload, writeFamilyDb } from "@/lib/db";
 import { appendSubmission } from "@/lib/submissions";
 import { deleteBlobUrl } from "@/lib/blobPhotos";
@@ -15,7 +15,8 @@ import { clientIp, rateLimit } from "@/lib/rateLimit";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const admin = await getAdminSession();
+  const session = await getAdminSession();
+  const admin = isFamilyEditor(session) ? session : null;
   const unlocked = await isSessionValid();
   if (!unlocked && !admin) {
     return NextResponse.json({ error: "Brak dostępu." }, { status: 401 });
@@ -161,7 +162,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const adminEarly = await getAdminSession();
+  const sessionEarly = await getAdminSession();
+  const adminEarly = isFamilyEditor(sessionEarly) ? sessionEarly : null;
   const unlocked = await isSessionValid();
   if (!unlocked && !adminEarly) {
     return NextResponse.json({ error: "Brak dostępu." }, { status: 401 });
@@ -190,7 +192,8 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const admin = adminEarly ?? (await getAdminSession());
+    const session = adminEarly ?? (await getAdminSession());
+    const admin = isFamilyEditor(session) ? session : null;
     if (admin) {
       const previousUrl = person.photoUrl;
       const next = patchPerson(db, personId, { photoUrl: "" });

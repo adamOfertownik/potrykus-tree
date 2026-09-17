@@ -51,22 +51,32 @@ function SubmissionKinship({
   );
 }
 
-function AdminPanel({ email }: { email: string }) {
+function AdminPanel({
+  email,
+  adminRole,
+}: {
+  email: string;
+  adminRole: "admin" | "pay";
+}) {
   const logout = useAdminLogout();
   const qc = useQueryClient();
   const searchParams = useSearchParams();
   const focusPersonId = searchParams.get("osoba");
   const startTab = searchParams.get("tab");
+  const payOnly = adminRole === "pay";
   const [people, setPeople] = useState<Person[]>([]);
   const [tab, setTab] = useState<Tab>(() =>
-    focusPersonId
-      ? "people"
-      : startTab === "platnosci"
-        ? "pay"
-        : startTab === "uzytkownicy"
-          ? "users"
-          : "queue",
+    payOnly
+      ? "pay"
+      : focusPersonId
+        ? "people"
+        : startTab === "platnosci"
+          ? "pay"
+          : startTab === "uzytkownicy"
+            ? "users"
+            : "queue",
   );
+  const visibleTab = payOnly ? "pay" : tab;
   const [items, setItems] = useState<AdminSubmission[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -86,6 +96,14 @@ function AdminPanel({ email }: { email: string }) {
     setBusy(true);
     setError(null);
     try {
+      if (payOnly) {
+        const familyRes = await fetch("/api/admin/family");
+        const familyData = await familyRes.json();
+        if (!familyRes.ok) throw new Error(familyData.error || "Błąd");
+        setPeople((familyData as FamilyPayload).people);
+        qc.setQueryData(["family"], familyData);
+        return;
+      }
       const res = await fetch("/api/admin/submissions");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd");
@@ -181,8 +199,17 @@ function AdminPanel({ email }: { email: string }) {
       <header className="admin-page__intro">
         <h1>Panel admina</h1>
         <p>
-          Zalogowany jako <strong>{email}</strong>. Sugestie rodziny są tu
-          widoczne — reszta użytkowników ich nie widzi.
+          {payOnly ? (
+            <>
+              Zalogowana jako <strong>{email}</strong>. Tu zaznaczasz, kto
+              wpłacił na spotkanie — drzewa i zgłoszeń to konto nie zmienia.
+            </>
+          ) : (
+            <>
+              Zalogowany jako <strong>{email}</strong>. Sugestie rodziny są tu
+              widoczne — reszta użytkowników ich nie widzi.
+            </>
+          )}
         </p>
         <div className="admin-page__toolbar">
           <Link href="/drzewo" className="btn btn-secondary">
@@ -202,12 +229,13 @@ function AdminPanel({ email }: { email: string }) {
             Wyloguj
           </button>
         </div>
+        {payOnly ? null : (
         <div className="admin-tabs" role="tablist" aria-label="Panel admina">
           <button
             type="button"
             role="tab"
-            aria-selected={tab === "queue"}
-            className={tab === "queue" ? "is-active" : undefined}
+            aria-selected={visibleTab === "queue"}
+            className={visibleTab === "queue" ? "is-active" : undefined}
             onClick={() => setTab("queue")}
           >
             Zgłoszenia
@@ -215,8 +243,8 @@ function AdminPanel({ email }: { email: string }) {
           <button
             type="button"
             role="tab"
-            aria-selected={tab === "people"}
-            className={tab === "people" ? "is-active" : undefined}
+            aria-selected={visibleTab === "people"}
+            className={visibleTab === "people" ? "is-active" : undefined}
             onClick={() => setTab("people")}
           >
             Osoby
@@ -224,8 +252,8 @@ function AdminPanel({ email }: { email: string }) {
           <button
             type="button"
             role="tab"
-            aria-selected={tab === "pay"}
-            className={tab === "pay" ? "is-active" : undefined}
+            aria-selected={visibleTab === "pay"}
+            className={visibleTab === "pay" ? "is-active" : undefined}
             onClick={() => setTab("pay")}
           >
             Płatności
@@ -233,13 +261,14 @@ function AdminPanel({ email }: { email: string }) {
           <button
             type="button"
             role="tab"
-            aria-selected={tab === "users"}
-            className={tab === "users" ? "is-active" : undefined}
+            aria-selected={visibleTab === "users"}
+            className={visibleTab === "users" ? "is-active" : undefined}
             onClick={() => setTab("users")}
           >
             Użytkownicy
           </button>
         </div>
+        )}
       </header>
 
       {error && (
@@ -253,19 +282,19 @@ function AdminPanel({ email }: { email: string }) {
         </p>
       )}
 
-      {tab === "pay" ? (
+      {visibleTab === "pay" ? (
         <AdminEventPayPanel
           people={people}
           onError={setError}
           onSuccess={setSuccess}
         />
-      ) : tab === "users" ? (
+      ) : visibleTab === "users" ? (
         <AdminUsersPanel
           currentEmail={email}
           onError={setError}
           onSuccess={setSuccess}
         />
-      ) : tab === "queue" ? (
+      ) : visibleTab === "queue" ? (
         <>
           <ul className="admin-metrics">
             {(
@@ -1060,7 +1089,10 @@ export function AdminPageClient() {
 
   return (
     <main className="page-shell page-shell--admin">
-      <AdminPanel email={auth.data.email} />
+      <AdminPanel
+        email={auth.data.email}
+        adminRole={auth.data.adminRole === "pay" ? "pay" : "admin"}
+      />
     </main>
   );
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession, isAdminSessionValid } from "@/lib/auth";
+import { getAdminSession, isFamilyEditor } from "@/lib/auth";
 import {
   getSubmissionById,
   readSubmissions,
@@ -20,8 +20,15 @@ import {
 import { deleteBlobUrl, isPendingPhotoUrl } from "@/lib/blobPhotos";
 
 export async function GET() {
-  if (!(await isAdminSessionValid())) {
+  const admin = await getAdminSession();
+  if (!admin) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
+  }
+  if (!isFamilyEditor(admin)) {
+    return NextResponse.json(
+      { error: "To konto może tylko oznaczać wpłaty." },
+      { status: 403 },
+    );
   }
   const db = await readFamilyDb();
   const submissions = await readSubmissions();
@@ -45,6 +52,12 @@ export async function PATCH(request: Request) {
   const admin = await getAdminSession();
   if (!admin) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
+  }
+  if (!isFamilyEditor(admin)) {
+    return NextResponse.json(
+      { error: "To konto może tylko oznaczać wpłaty." },
+      { status: 403 },
+    );
   }
 
   const parsed = patchSchema.safeParse(await request.json());

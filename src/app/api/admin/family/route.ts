@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth";
+import { getAdminSession, isFamilyEditor } from "@/lib/auth";
 import { readFamilyDb, toFamilyPayload, writeFamilyDb } from "@/lib/db";
 import {
   addStandalonePerson,
@@ -27,6 +27,12 @@ export async function POST(request: Request) {
   const admin = await getAdminSession();
   if (!admin) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
+  }
+  if (!isFamilyEditor(admin)) {
+    return NextResponse.json(
+      { error: "To konto może tylko oznaczać wpłaty." },
+      { status: 403 },
+    );
   }
 
   const parsed = adminPersonWriteSchema.safeParse(await request.json());

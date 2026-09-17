@@ -3,6 +3,14 @@ import { compare } from "bcryptjs";
 import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 import { readConfig } from "@/lib/db";
+import {
+  deleteReservedAdmins,
+  findAdminById,
+  parseAdminRole,
+  type AdminRole,
+} from "@/lib/adminUsers";
+import { isReservedAdminEmail } from "@/lib/validation";
+import { hasDb } from "@/lib/sql";
 
 const SESSION_TTL = "30d";
 const ADMIN_COOKIE = "potrykus_admin_session";
@@ -28,9 +36,15 @@ export async function createSessionToken(): Promise<string> {
 export async function createAdminSessionToken(admin: {
   id: string;
   email: string;
+  role?: AdminRole;
 }): Promise<string> {
   const config = await readConfig();
-  return new SignJWT({ role: "admin", adminId: admin.id, email: admin.email })
+  return new SignJWT({
+    role: "admin",
+    adminId: admin.id,
+    email: admin.email,
+    adminRole: admin.role ?? "admin",
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(SESSION_TTL)
@@ -53,7 +67,12 @@ export async function isSessionValid(): Promise<boolean> {
 export type AdminSession = {
   adminId: string;
   email: string;
+  adminRole: AdminRole;
 };
+
+export function isFamilyEditor(session: AdminSession | null): boolean {
+  return session?.adminRole === "admin";
+}
 
 export async function getAdminSession(): Promise<AdminSession | null> {
   try {
@@ -65,9 +84,28 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     if (payload.role !== "admin" || typeof payload.adminId !== "string") {
       return null;
     }
+    const jwtEmail = typeof payload.email === "string" ? payload.email : "";
+    const jwtRole = parseAdminRole(
+      typeof payload.adminRole === "string" ? payload.adminRole : "admin",
+    );
+
+    if (!hasDb()) {
+      return {
+        adminId: payload.adminId,
+        email: jwtEmail,
+        adminRole: jwtRole,
+      };
+    }
+
+    const live = await findAdminById(payload.adminId);
+    if (!live || isReservedAdminEmail(live.email)) {
+      if (live) await deleteReservedAdmins();
+      return null;
+    }
     return {
-      adminId: payload.adminId,
-      email: typeof payload.email === "string" ? payload.email : "",
+      adminId: live.id,
+      email: live.email,
+      adminRole: live.role,
     };
   } catch {
     return null;

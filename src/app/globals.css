@@ -5012,6 +5012,26 @@ button.person-card {
   font-size: 0.9rem;
 }
 
+.admin-users__role {
+  border: 0;
+  margin: 0 0 0.8rem;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.admin-users__role-tag {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
 .admin-users__you {
   display: inline-block;
   margin-left: 0.45rem;

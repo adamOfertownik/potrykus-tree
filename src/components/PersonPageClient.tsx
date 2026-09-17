@@ -33,7 +33,8 @@ function PersonInner({
   const { identity, promptIdentity } = useIdentity();
   const admin = useAdminAuthStatus();
   const adminReady = !admin.isPending;
-  const isAdmin = Boolean(admin.data?.loggedIn);
+  const isAdmin =
+    Boolean(admin.data?.loggedIn) && admin.data?.adminRole !== "pay";
   const router = useRouter();
   const qc = useQueryClient();
   const [relsOpen, setRelsOpen] = useState(false);
@@ -152,7 +153,7 @@ function PersonInner({
       ) : null}
 
       <header className="person-detail__header">
-        <PersonPhotoControl person={person} size="lg" mode={admin.data?.loggedIn ? "admin" : "suggest"} />
+        <PersonPhotoControl person={person} size="lg" mode={isAdmin ? "admin" : "suggest"} />
         <div>
           <h1 id="person-heading" tabIndex={-1}>
             {displayName(person, people)}

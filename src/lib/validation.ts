@@ -297,20 +297,51 @@ export const adminEventWriteSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
+export function isReservedAdminEmail(email: string): boolean {
+  const normalized = email.trim().toLowerCase();
+  const at = normalized.lastIndexOf("@");
+  if (at <= 0) return true;
+  const local = normalized.slice(0, at);
+  const domain = normalized.slice(at + 1);
+  if (local.startsWith("crud.")) return true;
+  if (
+    domain === "example.com" ||
+    domain === "example.org" ||
+    domain === "example.net"
+  ) {
+    return true;
+  }
+  return (
+    domain === "localhost" ||
+    domain.endsWith(".invalid") ||
+    domain.endsWith(".test") ||
+    domain.endsWith(".localhost")
+  );
+}
+
 const adminEmail = z
   .email("Podaj prawidłowy e-mail.")
   .trim()
   .max(160)
-  .toLowerCase();
+  .toLowerCase()
+  .refine((email) => !isReservedAdminEmail(email), {
+    message:
+      "Ten adres jest zarezerwowany na testy — podaj prawdziwy e-mail osoby.",
+  });
 
 const adminPassword = z
   .string()
   .min(8, "Hasło musi mieć co najmniej 8 znaków.")
   .max(200);
 
+export const adminRoleSchema = z.enum(["admin", "pay"], {
+  message: "Wybierz pełny dostęp albo tylko wpłaty.",
+});
+
 export const adminUserCreateSchema = z.object({
   email: adminEmail,
   password: adminPassword,
+  role: adminRoleSchema.optional().default("pay"),
 });
 
 export const adminUserPasswordSchema = z.object({

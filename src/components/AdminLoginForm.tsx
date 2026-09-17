@@ -28,8 +28,8 @@ export function AdminLoginForm({
         <p className="gate-brand">Drzewo Potrykus</p>
         <h1 className="gate-title">Logowanie</h1>
         <p className="gate-lead">
-          Konto administratora do przeglądania i zatwierdzania zgłoszeń od
-          rodziny.
+          Konto do zgłoszeń, drzewa albo — dla cioci — do zaznaczania kto
+          wpłacił na spotkanie.
         </p>
         <form
           className="gate-form"
@@ -38,8 +38,12 @@ export function AdminLoginForm({
             login.mutate(
               { email, password },
               {
-                onSuccess: () => {
-                  router.push(nextHref);
+                onSuccess: (data) => {
+                  const dest =
+                    data.adminRole === "pay" && nextHref.startsWith("/admin")
+                      ? "/admin?tab=platnosci"
+                      : nextHref;
+                  router.push(dest);
                   router.refresh();
                 },
               },

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession, isSessionValid } from "@/lib/auth";
+import { getAdminSession, isFamilyEditor, isSessionValid } from "@/lib/auth";
 import { readFamilyDb, toFamilyPayload, writeFamilyDb } from "@/lib/db";
 import {
   applyGraphMutations,
@@ -62,6 +62,7 @@ export async function POST(request: Request) {
   }
 
   const admin = await getAdminSession();
+  const editor = isFamilyEditor(admin) ? admin : null;
   if (!admin) {
     const limited = rateLimit(`mutate:${clientIp(request)}`, 20, 10 * 60 * 1000);
     if (!limited.ok) {
@@ -89,8 +90,8 @@ export async function POST(request: Request) {
     const db = await readFamilyDb();
     const result = applyGraphMutations(db, edits);
 
-    if (admin) {
-      await writeFamilyDb(result.db, admin.adminId);
+    if (editor) {
+      await writeFamilyDb(result.db, editor.adminId);
       return NextResponse.json({
         ok: true,
         applied: true,

@@ -59,7 +59,9 @@ export function GraphEditWizard({
   const qc = useQueryClient();
   const admin = useAdminAuthStatus();
   const draft = useOptionalDraftGraph();
-  const useDrafts = Boolean(draft) && admin.data?.loggedIn === false;
+  const canEditTree =
+    Boolean(admin.data?.loggedIn) && admin.data?.adminRole !== "pay";
+  const useDrafts = Boolean(draft) && !canEditTree;
   const [step, setStep] = useState<"pick" | "confirm">("pick");
   const [mode, setMode] = useState<Mode>("existing");
   const [query, setQuery] = useState("");
@@ -470,7 +472,7 @@ export function GraphEditWizard({
               )}
             </ul>
             <p className="graph-edit__note">
-              {admin.data?.loggedIn
+              {canEditTree
                 ? "Jesteś adminem — zmiana zapisze się od razu w drzewie."
                 : "Osoba pojawi się od razu na szaro. Możesz dodać dzieci i wnuki, a potem wysłać wszystko razem do admina."}
             </p>
@@ -517,7 +519,7 @@ export function GraphEditWizard({
               >
                 {busy
                   ? "Zapisuję…"
-                  : admin.data?.loggedIn
+                  : canEditTree
                     ? "Potwierdź i zapisz"
                     : "Dodaj roboczo"}
               </button>

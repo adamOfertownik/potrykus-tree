@@ -51,7 +51,11 @@ export async function POST(request: Request) {
 
     await touchAdminLogin(admin.id);
     const token = await createAdminSessionToken(admin);
-    const response = NextResponse.json({ ok: true, email: admin.email });
+    const response = NextResponse.json({
+      ok: true,
+      email: admin.email,
+      adminRole: admin.role,
+    });
     await attachAdminSessionCookie(response, token);
     return response;
   } catch {

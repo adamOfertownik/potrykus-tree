@@ -69,10 +69,11 @@ export function useAdminAuthStatus() {
   return useQuery({
     queryKey: ["admin-auth-status"],
     queryFn: () =>
-      fetchJson<{ loggedIn: boolean; email: string | null }>(
-        "/api/auth/admin/status",
-        { cache: "no-store" },
-      ),
+      fetchJson<{
+        loggedIn: boolean;
+        email: string | null;
+        adminRole: "admin" | "pay" | null;
+      }>("/api/auth/admin/status", { cache: "no-store" }),
   });
 }
 
@@ -80,11 +81,14 @@ export function useAdminLogin() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: { email: string; password: string }) =>
-      fetchJson<{ ok: boolean; email: string }>("/api/auth/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
-      }),
+      fetchJson<{ ok: boolean; email: string; adminRole?: "admin" | "pay" }>(
+        "/api/auth/admin/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
+        },
+      ),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ["admin-auth-status"] });
     },
@@ -100,7 +104,11 @@ export function useAdminLogout() {
         cache: "no-store",
       }),
     onSuccess: () => {
-      qc.setQueryData(["admin-auth-status"], { loggedIn: false, email: null });
+      qc.setQueryData(["admin-auth-status"], {
+        loggedIn: false,
+        email: null,
+        adminRole: null,
+      });
       window.location.assign("/login");
     },
   });

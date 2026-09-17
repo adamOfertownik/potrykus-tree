@@ -13,7 +13,8 @@ async function adminCookie() {
   const token = await new SignJWT({
     role: "admin",
     adminId: "00000000-0000-0000-0000-000000000001",
-    email: "tester@example.com",
+  email: "tester@example.com",
+    adminRole: "admin",
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -57,7 +58,8 @@ test("Użytkownicy tab shows create form and no forgot-password", async ({
   );
   await expect(page.getByRole("heading", { name: "Nowe konto" })).toBeVisible();
   await expect(page.getByText(/Hasło zapisujemy jako skrót/)).toBeVisible();
-  await expect(page.getByText(/Przypomnienia hasła nie ma/)).toBeVisible();
+  await expect(page.getByText(/Przekaż dane osobiście/)).toBeVisible();
+  await expect(page.getByText("Tylko wpłaty (ciocia)")).toBeVisible();
   await expect(page.getByLabel("E-mail")).toBeVisible();
   await expect(page.getByLabel("Hasło", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Powtórz hasło")).toBeVisible();
@@ -67,12 +69,23 @@ test("Użytkownicy tab shows create form and no forgot-password", async ({
   await expect(page.getByText("Przypomnij hasło")).toHaveCount(0);
 
   const create = await page.request.post("/api/admin/users", {
-    data: { email: "ciocia@example.com", password: "krotkie" },
+    data: { email: "ciocia@poczta.pl", password: "krotkie" },
   });
   expect(create.status()).toBe(400);
   const body = await create.json();
   expect(JSON.stringify(body)).not.toMatch(/password_hash|passwordHash/);
   expect(body.error).toMatch(/8 znaków/);
+
+  const reserved = await page.request.post("/api/admin/users", {
+    data: {
+      email: "crud.verify@potrykus.invalid",
+      password: "haslotestowe",
+    },
+  });
+  expect(reserved.status()).toBe(400);
+  const reservedBody = await reserved.json();
+  expect(JSON.stringify(reservedBody)).not.toMatch(/password_hash|passwordHash/);
+  expect(reservedBody.error).toMatch(/zarezerwowany na testy/);
 
   await page.getByRole("tab", { name: "Zgłoszenia" }).click();
   await expect(page.getByRole("tab", { name: "Zgłoszenia" })).toHaveAttribute(

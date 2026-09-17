@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth";
+import { getAdminSession, isFamilyEditor } from "@/lib/auth";
 import {
   AdminUserError,
   createAdmin,
@@ -24,11 +24,19 @@ function errorResponse(err: unknown) {
   );
 }
 
+function requireFamilyEditor() {
+  return NextResponse.json(
+    { error: "To konto może tylko oznaczać wpłaty." },
+    { status: 403 },
+  );
+}
+
 export async function GET() {
   const admin = await getAdminSession();
   if (!admin) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
   }
+  if (!isFamilyEditor(admin)) return requireFamilyEditor();
   if (!hasDb()) {
     return NextResponse.json(
       { error: "Baza danych jest niedostępna." },
@@ -44,6 +52,7 @@ export async function POST(request: Request) {
   if (!admin) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
   }
+  if (!isFamilyEditor(admin)) return requireFamilyEditor();
 
   const parsed = adminUserCreateSchema.safeParse(await request.json());
   if (!parsed.success) {
@@ -54,7 +63,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const user = await createAdmin(parsed.data.email, parsed.data.password);
+    const user = await createAdmin(
+      parsed.data.email,
+      parsed.data.password,
+      parsed.data.role,
+    );
     return NextResponse.json({ ok: true, user });
   } catch (err) {
     return errorResponse(err);
@@ -66,6 +79,7 @@ export async function PATCH(request: Request) {
   if (!admin) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
   }
+  if (!isFamilyEditor(admin)) return requireFamilyEditor();
 
   const parsed = adminUserPasswordSchema.safeParse(await request.json());
   if (!parsed.success) {
@@ -88,6 +102,7 @@ export async function DELETE(request: Request) {
   if (!admin) {
     return NextResponse.json({ error: "Brak uprawnień admina." }, { status: 401 });
   }
+  if (!isFamilyEditor(admin)) return requireFamilyEditor();
 
   const parsed = adminUserDeleteSchema.safeParse(await request.json());
   if (!parsed.success) {

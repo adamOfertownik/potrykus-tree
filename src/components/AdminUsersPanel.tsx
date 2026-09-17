@@ -2,9 +2,12 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 
+type AdminRole = "admin" | "pay";
+
 type AdminUserPublic = {
   id: string;
   email: string;
+  role: AdminRole;
   createdAt: string;
   lastLoginAt: string | null;
 };
@@ -43,6 +46,7 @@ export function AdminUsersPanel({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [role, setRole] = useState<AdminRole>("pay");
   const [pwFor, setPwFor] = useState<string | null>(null);
   const [newPw, setNewPw] = useState("");
   const [newPw2, setNewPw2] = useState("");
@@ -82,7 +86,7 @@ export function AdminUsersPanel({
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd");
@@ -90,7 +94,12 @@ export function AdminUsersPanel({
       setEmail("");
       setPassword("");
       setPassword2("");
-      onSuccess(`Dodano konto ${data.user.email}. Przekaż hasło osobiście.`);
+      setRole("pay");
+      onSuccess(
+        data.user.role === "pay"
+          ? `Dodano konto wpłat ${data.user.email}. Ciocia loguje się na stronie Logowanie i w panelu widzi tylko płatności — tam oznacza, kto wpłacił.`
+          : `Dodano konto ${data.user.email}. Przekaż hasło osobiście.`,
+      );
     } catch (err) {
       onError((err as Error).message);
     } finally {
@@ -152,10 +161,11 @@ export function AdminUsersPanel({
       <section>
         <h2>Nowe konto</h2>
         <p className="admin-users__hint">
-          Hasło zapisujemy jako skrót (bcrypt), nie w jawnej postaci. Na razie
-          może być łatwe — minimum 8 znaków. Przypomnienia hasła nie ma, bo nie
-          mamy jeszcze wysyłki e-maili: przekaż dane do logowania cioci
-          osobiście.
+          Hasło zapisujemy jako skrót (bcrypt), nie w jawnej postaci. Minimum 8
+          znaków. Dla cioci wybierz „Tylko wpłaty”: zaloguje się tym e-mailem i
+          hasłem, a w panelu zaznaczy kto jej wpłacił. Przypomnienia hasła nie
+          ma — przekaż dane osobiście. Kont testowych (np. @potrykus.invalid)
+          nie zakładamy i usuwamy je z bazy.
         </p>
         <form className="change-form admin-users__form" onSubmit={create}>
           <label className="field-block">
@@ -190,6 +200,27 @@ export function AdminUsersPanel({
               required
             />
           </label>
+          <fieldset className="admin-users__role">
+            <legend>Uprawnienia</legend>
+            <label className="check-row">
+              <input
+                type="radio"
+                name="new-admin-role"
+                checked={role === "pay"}
+                onChange={() => setRole("pay")}
+              />
+              Tylko wpłaty (ciocia)
+            </label>
+            <label className="check-row">
+              <input
+                type="radio"
+                name="new-admin-role"
+                checked={role === "admin"}
+                onChange={() => setRole("admin")}
+              />
+              Pełny administrator (zgłoszenia, drzewo, konta)
+            </label>
+          </fieldset>
           <button type="submit" className="btn btn-primary" disabled={busy}>
             {busy ? "Zapisuję…" : "Dodaj administratora"}
           </button>
@@ -214,6 +245,9 @@ export function AdminUsersPanel({
                   <div>
                     <strong>{user.email}</strong>
                     {isYou ? <span className="admin-users__you">To Ty</span> : null}
+                    <span className="admin-users__role-tag">
+                      {user.role === "pay" ? "Tylko wpłaty" : "Pełny dostęp"}
+                    </span>
                     <p>
                       Dodane {formatWhen(user.createdAt)}. Ostatnie logowanie:{" "}
                       {formatWhen(user.lastLoginAt)}.

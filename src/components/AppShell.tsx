@@ -33,7 +33,8 @@ function AppShellInner({
   const logout = useLogout();
   const adminAuth = useAdminAuthStatus();
   const adminLogout = useAdminLogout();
-  const isAdmin = Boolean(adminAuth.data?.loggedIn);
+  const isStaff = Boolean(adminAuth.data?.loggedIn);
+  const payOnly = adminAuth.data?.adminRole === "pay";
   const { scale, setScale } = useTextScale();
   const { identity, promptIdentity } = useIdentity();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -150,12 +151,12 @@ function AppShellInner({
           </nav>
 
           <div className="app-header__actions">
-            {isAdmin ? (
+            {isStaff ? (
               <Link
-                href="/admin"
+                href={payOnly ? "/admin?tab=platnosci" : "/admin"}
                 className={`app-header__login${pathname.startsWith("/admin") ? " is-active" : ""}`}
               >
-                Zgłoszenia
+                {payOnly ? "Wpłaty" : "Zgłoszenia"}
               </Link>
             ) : (
               <Link href="/login" className="app-header__login">
@@ -241,15 +242,15 @@ function AppShellInner({
                   {pdfBusy === "a0" ? "Generuję…" : "PDF graf (A0)"}
                 </button>
                 <div className="nav-menu__sep" />
-                {isAdmin ? (
+                {isStaff ? (
                   <>
                     <Link
-                      href="/admin"
+                      href={payOnly ? "/admin?tab=platnosci" : "/admin"}
                       role="menuitem"
                       className="nav-menu__link"
                       onClick={() => setMenuOpen(false)}
                     >
-                      Zatwierdzanie zgłoszeń
+                      {payOnly ? "Wpłaty na spotkanie" : "Zatwierdzanie zgłoszeń"}
                     </Link>
                     <button
                       type="button"
@@ -260,7 +261,7 @@ function AppShellInner({
                         adminLogout.mutate();
                       }}
                     >
-                      Wyloguj administratora
+                      {payOnly ? "Wyloguj" : "Wyloguj administratora"}
                     </button>
                     <div className="nav-menu__sep" />
                   </>

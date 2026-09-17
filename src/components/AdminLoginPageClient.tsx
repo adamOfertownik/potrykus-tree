@@ -14,9 +14,13 @@ export function AdminLoginPageClient() {
 
   useEffect(() => {
     if (auth.data?.loggedIn) {
-      router.replace(nextHref);
+      const dest =
+        auth.data.adminRole === "pay" && nextHref.startsWith("/admin")
+          ? "/admin?tab=platnosci"
+          : nextHref;
+      router.replace(dest);
     }
-  }, [auth.data?.loggedIn, nextHref, router]);
+  }, [auth.data?.loggedIn, auth.data?.adminRole, nextHref, router]);
 
   if (auth.isLoading || auth.data?.loggedIn) {
     return <div className="loading-screen">Ładowanie…</div>;
