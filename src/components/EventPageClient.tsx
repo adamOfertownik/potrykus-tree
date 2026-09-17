@@ -11,7 +11,6 @@ import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import { householdSuggestions } from "@/lib/eventAttending";
-import { attributeMeetingBranch } from "@/lib/meetingBranches";
 import {
   ageGroupFromBirth,
   amountDuePln,
@@ -991,11 +990,7 @@ export function EventPageClient() {
               Jesteś administratorem — widać sposób płatności i możesz
               oznaczyć, kto już zapłacił.
               {typeof stats.paidCount === "number"
-                ? ` Zapłacono: ${stats.paidCount} / ${rsvps.length}${
-                    typeof stats.paidTotal === "number"
-                      ? ` (${formatPln(stats.paidTotal)})`
-                      : ""
-                  }.`
+                ? ` Zapłacono: ${stats.paidCount} / ${rsvps.length}.`
                 : ""}
             </p>
           )}
@@ -1016,11 +1011,7 @@ export function EventPageClient() {
                       <strong>{r.fullName}</strong>
                       <span>
                         {r.guests} {r.guests === 1 ? "osoba" : "osób"}
-                        {typeof r.amountPln === "number" && r.amountPln > 0
-                          ? ` · ${formatPln(r.amountPln)}`
-                          : ""}
                         {r.earlyArrival ? " · dzień wcześniej" : ""}
-                        {r.source === "admin" ? " · admin" : ""}
                       </span>
                       {isAdmin && (
                         <span>
@@ -1031,11 +1022,6 @@ export function EventPageClient() {
                       {covered.length > 0 && (
                         <span>Za: {covered.join(", ")}</span>
                       )}
-                      {r.personId && byId.has(r.personId) ? (
-                        <span>
-                          {attributeMeetingBranch(r.personId, people).label}
-                        </span>
-                      ) : null}
                     </div>
                     {isAdmin && (
                       <div className="rsvp-list__admin">

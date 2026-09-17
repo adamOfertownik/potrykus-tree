@@ -128,6 +128,16 @@ export function meetingBranchLabel(personId: string, people: Person[]): string {
   return attributeMeetingBranch(personId, people).label;
 }
 
+/** Cała linia Franciszka w grupach babć/dziadków — same liczby, bez 150 imion. */
+export function groupFamilyByMeetingBranch(people: Person[]): MeetingBranch[] {
+  const ids = people
+    .filter((person) => attributeMeetingBranch(person.id, people).kind === "branch")
+    .map((person) => person.id);
+  return groupAttendingByMeetingBranch(people, ids).filter(
+    (branch) => branch.kind === "branch",
+  );
+}
+
 export function groupAttendingByMeetingBranch(
   people: Person[],
   attendingPersonIds: string[],
