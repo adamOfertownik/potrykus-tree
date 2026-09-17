@@ -6,6 +6,24 @@ export function getChildrenIds(people: Person[], personId: string): string[] {
     .map((p) => p.id);
 }
 
+/** Children of a person and of their listed spouses (union), stable order. */
+export function getUnionChildrenIds(
+  people: Person[],
+  personId: string,
+  spouseIds: string[] = [],
+): string[] {
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const id of [personId, ...spouseIds]) {
+    for (const childId of getChildrenIds(people, id)) {
+      if (seen.has(childId) || childId === personId) continue;
+      seen.add(childId);
+      ids.push(childId);
+    }
+  }
+  return ids;
+}
+
 export function getPersonMap(people: Person[]): Map<string, Person> {
   return new Map(people.map((p) => [p.id, p]));
 }
@@ -17,7 +35,7 @@ export interface TreeNode {
 }
 
 export type { ListEntry } from "@/lib/list";
-export { buildDescendantList } from "@/lib/list";
+export { buildCompleteFamilyList, buildDescendantList } from "@/lib/list";
 export { searchPeople } from "@/lib/search";
 
 /** Build a descendant tree starting from root (blood line through parentIds). */

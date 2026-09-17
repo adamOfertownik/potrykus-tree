@@ -45,6 +45,36 @@ test("search highlights without filtering tree", async ({ browser }) => {
   await ctx.close();
 });
 
+test("lista shows every person from the family API", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as { people: { id: string }[] };
+  const apiIds = [...new Set(payload.people.map((p) => p.id))].sort();
+  await page.goto("/lista");
+  await page.waitForSelector("[data-person-id]", { timeout: 45000 });
+  const listedIds = await page
+    .locator("[data-person-id]")
+    .evaluateAll((els) => [
+      ...new Set(
+        els
+          .map((el) => el.getAttribute("data-person-id"))
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ]);
+  listedIds.sort();
+  expect(listedIds).toEqual(apiIds);
+  await ctx.close();
+});
+
 test("kinship and birthdays pages load", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);

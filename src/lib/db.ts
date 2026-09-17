@@ -64,6 +64,33 @@ function opt(value: string | null | undefined): string | undefined {
   return value ? value : undefined;
 }
 
+function asIdList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => String(item).trim())
+      .filter(Boolean);
+  }
+  if (typeof value === "string" && value.trim()) {
+    const text = value.trim();
+    if (text.startsWith("[")) {
+      try {
+        return asIdList(JSON.parse(text) as unknown);
+      } catch {
+        /* fall through */
+      }
+    }
+    if (text.startsWith("{") && text.endsWith("}")) {
+      return text
+        .slice(1, -1)
+        .split(",")
+        .map((part) => part.replace(/^"|"$/g, "").trim())
+        .filter(Boolean);
+    }
+    return [text];
+  }
+  return [];
+}
+
 function toIso(value: string | Date): string {
   return typeof value === "string" ? value : value.toISOString();
 }
@@ -80,8 +107,17 @@ function rowToPerson(row: PersonRow): Person {
     photoUrl: opt(row.photo_url),
     phone: opt(row.phone),
     notes: opt(row.notes),
-    parentIds: row.parent_ids ?? [],
-    spouseIds: row.spouse_ids ?? [],
+    parentIds: asIdList(row.parent_ids),
+    spouseIds: asIdList(row.spouse_ids),
+  };
+}
+
+function normalizeStoredPerson(person: Person): Person {
+  return {
+    ...person,
+    parentIds: asIdList(person.parentIds),
+    spouseIds: asIdList(person.spouseIds),
+    gender: asGender(person.gender),
   };
 }
 
@@ -122,7 +158,7 @@ async function readFamilyFromNeon(): Promise<FamilyDatabase> {
     `) as PersonRow[];
 
     const meta = metaRows[0];
-    if (meta && peopleRows.length > 0) {
+    if (meta) {
       return {
         meta: {
           title: meta.title,
@@ -143,7 +179,10 @@ async function readFamilyFromNeon(): Promise<FamilyDatabase> {
       SELECT meta, people FROM family_tree WHERE id = 'current' LIMIT 1
     `) as { meta: FamilyDatabase["meta"]; people: Person[] }[];
     if (docs[0]?.people?.length) {
-      return { meta: docs[0].meta, people: docs[0].people };
+      return {
+        meta: docs[0].meta,
+        people: docs[0].people.map(normalizeStoredPerson),
+      };
     }
   } catch {
     /* older schema may only have data jsonb */
@@ -153,18 +192,20 @@ async function readFamilyFromNeon(): Promise<FamilyDatabase> {
     const docs = (await sql`
       SELECT data FROM family_tree WHERE id = 'current' LIMIT 1
     `) as { data: FamilyDatabase }[];
-    if (docs[0]?.data?.people?.length) return docs[0].data;
+    if (docs[0]?.data?.people?.length) {
+      const data = docs[0].data;
+      return {
+        ...data,
+        people: data.people.map(normalizeStoredPerson),
+      };
+    }
   } catch {
     /* ignore */
   }
 
-  const fromFile = await readFamilyFile();
-  try {
-    await writePeopleTables(fromFile);
-  } catch {
-    /* tables may not exist yet */
-  }
-  return fromFile;
+  throw new Error(
+    "Brak danych rodziny w Neon (family_meta / people / family_tree).",
+  );
 }
 
 async function writePeopleTables(
@@ -262,12 +303,7 @@ async function writeFamilyTreeDocument(
 
 export async function readFamilyDb(): Promise<FamilyDatabase> {
   if (!hasDb()) return readFamilyFile();
-  try {
-    return await readFamilyFromNeon();
-  } catch (err) {
-    if (isMissingFamilySchema(err)) return readFamilyFile();
-    throw err;
-  }
+  return readFamilyFromNeon();
 }
 
 export async function writeFamilyDb(

@@ -2,7 +2,7 @@
 
 import { jsPDF } from "jspdf";
 import type { Person } from "@/types/family";
-import { buildDescendantList } from "@/lib/list";
+import { buildCompleteFamilyList } from "@/lib/list";
 import { getChildrenIds, getPersonMap } from "@/lib/tree";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 
@@ -63,7 +63,7 @@ function personLine(
 
 function drawNestingRails(
   doc: jsPDF,
-  entry: ReturnType<typeof buildDescendantList>[number],
+  entry: ReturnType<typeof buildCompleteFamilyList>[number],
   x0: number,
   y: number,
   lineH: number,
@@ -107,7 +107,7 @@ async function exportHierarchicalPdf(
   title: string,
   format: PdfFormat,
 ) {
-  const entries = buildDescendantList(people, rootId);
+  const entries = buildCompleteFamilyList(people, rootId);
   const isA0 = format === "a0";
   const doc = new jsPDF({
     orientation: isA0 ? "landscape" : "portrait",
