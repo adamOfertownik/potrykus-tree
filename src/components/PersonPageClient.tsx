@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { AttendToggle } from "@/components/AttendToggle";
 import { AuthedPage } from "@/components/AuthedPage";
 import { AdminPersonRelsModal } from "@/components/AdminPersonRelsModal";
+import { Modal } from "@/components/Modal";
 import { PersonCard } from "@/components/PersonCard";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { useIdentity } from "@/components/IdentityProvider";
@@ -27,7 +30,12 @@ function PersonInner({
   const { identity } = useIdentity();
   const admin = useAdminAuthStatus();
   const isAdmin = Boolean(admin.data?.loggedIn);
+  const router = useRouter();
+  const qc = useQueryClient();
   const [relsOpen, setRelsOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const person = people.find((p) => p.id === id);
 
   if (!person) {
@@ -65,6 +73,27 @@ function PersonInner({
         getChildrenIds(people, person.id),
       )
     : [];
+
+  const removePerson = async () => {
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/admin/family", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", personId: person.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Nie udało się usunąć.");
+      if (data.family) qc.setQueryData(["family"], data.family);
+      setDeleteOpen(false);
+      router.replace("/drzewo");
+    } catch (e) {
+      setDeleteError((e as Error).message);
+    } finally {
+      setDeleteBusy(false);
+    }
+  };
 
   return (
     <article className="person-detail">
@@ -114,13 +143,26 @@ function PersonInner({
               </Link>
             )}
             {isAdmin ? (
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setRelsOpen(true)}
-              >
-                Edytuj powiązania
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setRelsOpen(true)}
+                >
+                  Edytuj powiązania
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  data-testid="admin-delete-person"
+                  onClick={() => {
+                    setDeleteError(null);
+                    setDeleteOpen(true);
+                  }}
+                >
+                  Usuń osobę
+                </button>
+              </>
             ) : null}
           </div>
         </div>
@@ -230,6 +272,43 @@ function PersonInner({
           people={people}
           onClose={() => setRelsOpen(false)}
         />
+      )}
+
+      {deleteOpen && isAdmin && (
+        <Modal
+          open
+          labelledBy="person-delete-title"
+          onClose={() => !deleteBusy && setDeleteOpen(false)}
+        >
+          <h2 id="person-delete-title">Usunąć {displayName(person)}?</h2>
+          <p>
+            Osoba zniknie z drzewa i z listy. Powiązania rodzic / partner /
+            dziecko zostaną odpięte. Tego nie da się cofnąć z tego okna.
+          </p>
+          {deleteError && (
+            <p className="gate-error" role="alert">
+              {deleteError}
+            </p>
+          )}
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn btn-danger"
+              disabled={deleteBusy}
+              onClick={() => void removePerson()}
+            >
+              {deleteBusy ? "Usuwam…" : "Usuń na stałe"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={deleteBusy}
+              onClick={() => setDeleteOpen(false)}
+            >
+              Anuluj
+            </button>
+          </div>
+        </Modal>
       )}
 
       <dl className="person-facts">
