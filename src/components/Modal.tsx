@@ -45,6 +45,11 @@ export function Modal({
   onCloseRef.current = onClose;
   compulsoryRef.current = compulsory;
   const ignoreBackdropUntil = useRef(0);
+  const wasOpen = useRef(false);
+  if (open && !wasOpen.current) {
+    ignoreBackdropUntil.current = performance.now() + 700;
+  }
+  wasOpen.current = open;
 
   const listFocusables = () => {
     const card = cardRef.current;
@@ -56,9 +61,6 @@ export function Modal({
 
   useEffect(() => {
     if (!open) return;
-    // Same tap that opened the modal still fires click on this backdrop
-    // (especially on phones). Ignore it or the overlay opens and closes at once.
-    ignoreBackdropUntil.current = performance.now() + 500;
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     const unlock = lockPageScroll();
 

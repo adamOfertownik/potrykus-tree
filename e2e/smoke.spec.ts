@@ -186,6 +186,7 @@ test("plus opens tree actions on the first tap", async ({ browser }) => {
       "potrykus_reporter_v1",
       JSON.stringify({ name: "Tester" }),
     );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
   });
   const page = await ctx.newPage();
   await page.setViewportSize({ width: 390, height: 844 });
