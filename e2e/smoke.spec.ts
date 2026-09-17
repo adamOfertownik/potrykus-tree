@@ -65,13 +65,20 @@ test("search finds a person typed last name first", async ({ browser }) => {
   );
   expect(marcin, "Marcin Kostrach must exist").toBeTruthy();
 
-  await page.goto("/drzewo");
-  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
-  const input = page.locator(".person-search input").first();
-  await input.fill("kostrach marcin");
-  await expect(
-    page.locator(".person-search__item").filter({ hasText: /Marcin/i }).first(),
-  ).toBeVisible({ timeout: 10_000 });
+  for (const path of ["/drzewo", "/lista"] as const) {
+    await page.goto(path);
+    if (path === "/drzewo") {
+      await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+    } else {
+      await page.waitForSelector("[data-person-id]", { timeout: 45000 });
+    }
+    const input = page.locator(".person-search input").first();
+    await input.fill("kostrach marcin");
+    await expect(
+      page.locator(".person-search__item").filter({ hasText: /Marcin/i }).first(),
+    ).toBeVisible({ timeout: 10_000 });
+    await input.fill("");
+  }
   await ctx.close();
 });
 

@@ -12,7 +12,7 @@ function normalize(text: string): string {
 export function searchPeople(people: Person[], query: string): Person[] {
   const q = normalize(query.trim());
   if (!q) return [];
-  const tokens = q.split(/\s+/).filter(Boolean);
+  const tokens = q.split(/[\s,;./]+/).filter(Boolean);
   return people
     .filter((p) => {
       const hay = normalize(
