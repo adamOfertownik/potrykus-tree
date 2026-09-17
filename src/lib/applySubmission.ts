@@ -3,6 +3,7 @@ import {
   addStandalonePerson,
   applyGraphMutations,
   patchPerson,
+  remapGraphMutationIds,
   summarizeMutationPreview,
   type GraphMutationInput,
 } from "@/lib/familyMutations";
@@ -187,20 +188,100 @@ export function previewSubmission(
   return { summary, diffs, photoBefore, photoAfter, autoApply, warnings };
 }
 
+export function selectSubmissionParts(
+  submission: ChangeSubmission,
+  opts: { graphEditIndexes?: number[]; correctionFields?: string[] },
+): ChangeSubmission {
+  const allEdits = submissionGraphEdits(submission);
+  const edits =
+    opts.graphEditIndexes != null
+      ? [...opts.graphEditIndexes]
+          .sort((a, b) => a - b)
+          .map((i) => allEdits[i])
+          .filter(Boolean)
+      : opts.correctionFields != null
+        ? []
+        : allEdits;
+  let correction = submission.correction;
+  if (opts.correctionFields != null) {
+    const next: PersonFieldPatch = {};
+    for (const field of opts.correctionFields) {
+      if (!correction || !(field in correction)) continue;
+      Object.assign(next, {
+        [field]: correction[field as keyof PersonFieldPatch],
+      });
+    }
+    correction = Object.keys(next).length ? next : undefined;
+  } else if (opts.graphEditIndexes != null) {
+    correction = undefined;
+  }
+  return {
+    ...submission,
+    graphEdit: edits[0],
+    graphEdits: edits.length > 1 ? edits : undefined,
+    correction,
+    photoUrl: opts.graphEditIndexes || opts.correctionFields
+      ? undefined
+      : submission.photoUrl,
+    photoAction: opts.graphEditIndexes || opts.correctionFields
+      ? undefined
+      : submission.photoAction,
+  };
+}
+
+export function leftoverSubmission(
+  submission: ChangeSubmission,
+  opts: {
+    dropGraphIndexes: number[];
+    dropFields: string[];
+    idMap?: Record<string, string>;
+  },
+): ChangeSubmission | null {
+  const allEdits = submissionGraphEdits(submission);
+  const dropEdits = new Set(opts.dropGraphIndexes);
+  const leftoverEdits = allEdits
+    .filter((_, i) => !dropEdits.has(i))
+    .map((edit) => {
+      if (!opts.idMap) return edit;
+      const mapped = remapGraphMutationIds(toMutationInput(edit), opts.idMap);
+      return { ...edit, ...mapped };
+    });
+
+  let correction = submission.correction;
+  if (correction && opts.dropFields.length) {
+    const next = { ...correction };
+    for (const field of opts.dropFields) {
+      delete next[field as keyof PersonFieldPatch];
+    }
+    correction = Object.keys(next).length ? next : undefined;
+  }
+
+  if (!leftoverEdits.length && !correction) return null;
+
+  return {
+    ...submission,
+    graphEdit: leftoverEdits[0],
+    graphEdits: leftoverEdits.length > 1 ? leftoverEdits : undefined,
+    correction,
+  };
+}
+
 export function applySubmission(
   source: FamilyDatabase,
   submission: ChangeSubmission,
-): { db: FamilyDatabase; summary: string; createdPersonId?: string } {
+): { db: FamilyDatabase; summary: string; createdPersonId?: string; idMap: Record<string, string> } {
   if (!canAutoApply(submission)) {
     return {
       db: source,
       summary: "Zgłoszenie oznaczone jako zaakceptowane (bez automatycznego zapisu drzewa).",
+      idMap: {},
     };
   }
 
   let db = cloneDb(source);
   let summary = submission.message || "Zastosowano zmianę.";
   let createdPersonId: string | undefined;
+  let idMap: Record<string, string> = {};
 
   const graphEdits = submissionGraphEdits(submission);
   if (graphEdits.length) {
@@ -211,6 +292,7 @@ export function applySubmission(
     db = result.db;
     summary = result.summary;
     createdPersonId = result.createdPeople.at(-1)?.id;
+    idMap = result.idMap;
   }
 
   if (submission.correction && submission.targetPersonId) {
@@ -279,5 +361,5 @@ export function applySubmission(
     summary = `Dodano ${displayName(created.person)} do drzewa.`;
   }
 
-  return { db, summary, createdPersonId };
+  return { db, summary, createdPersonId, idMap };
 }

@@ -20,6 +20,11 @@ type AdminSubmission = ChangeSubmission & { preview?: SubmissionPreview };
 type Tab = "queue" | "people" | "pay";
 type StatusFilter = ChangeSubmission["status"] | "all";
 
+function graphEditsOf(s: ChangeSubmission) {
+  if (s.graphEdits?.length) return s.graphEdits;
+  return s.graphEdit ? [s.graphEdit] : [];
+}
+
 function AdminPanel({ email }: { email: string }) {
   const logout = useAdminLogout();
   const qc = useQueryClient();
@@ -39,7 +44,10 @@ function AdminPanel({ email }: { email: string }) {
   const [confirm, setConfirm] = useState<{
     id: string;
     status: "accepted" | "rejected";
+    partial?: boolean;
   } | null>(null);
+  const [pickedEdits, setPickedEdits] = useState<number[]>([]);
+  const [pickedFields, setPickedFields] = useState<string[]>([]);
   const errorRef = useRef<HTMLDivElement>(null);
 
   const load = async () => {
@@ -81,10 +89,19 @@ function AdminPanel({ email }: { email: string }) {
     (s) => statusFilter === "all" || s.status === statusFilter,
   );
   const selected = items.find((s) => s.id === selectedId) ?? visible[0] ?? null;
+  const selectedEdits = selected ? graphEditsOf(selected) : [];
+  const selectedFieldDiffs =
+    selected && !selectedEdits.length ? (selected.preview?.diffs ?? []) : [];
+
+  useEffect(() => {
+    setPickedEdits([]);
+    setPickedFields([]);
+  }, [selected?.id]);
 
   const setStatus = async (
     id: string,
     status: ChangeSubmission["status"],
+    partial?: { graphEditIndexes?: number[]; correctionFields?: string[] },
   ) => {
     setBusy(true);
     setError(null);
@@ -93,7 +110,7 @@ function AdminPanel({ email }: { email: string }) {
       const res = await fetch("/api/admin/submissions", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, status }),
+        body: JSON.stringify({ id, status, ...partial }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Błąd");
@@ -104,12 +121,20 @@ function AdminPanel({ email }: { email: string }) {
         qc.setQueryData(["family"], data.family);
         setPeople(data.family.people);
       }
+      if (data.partial) {
+        setPickedEdits([]);
+        setPickedFields([]);
+      }
       setSuccess(
-        status === "accepted"
-          ? "Zaakceptowano i zapisano w drzewie."
-          : status === "rejected"
-            ? "Odrzucono zgłoszenie."
-            : "Oznaczono jako przejrzane.",
+        data.partial
+          ? status === "accepted"
+            ? "Zapisano zaznaczone. Reszta zostaje w kolejce."
+            : "Odrzucono zaznaczone. Reszta zostaje w kolejce."
+          : status === "accepted"
+            ? "Zaakceptowano i zapisano w drzewie."
+            : status === "rejected"
+              ? "Odrzucono zgłoszenie."
+              : "Oznaczono jako przejrzane.",
       );
     } catch (e) {
       setError((e as Error).message);
@@ -283,6 +308,7 @@ function AdminPanel({ email }: { email: string }) {
                     <caption>Podgląd zmian</caption>
                     <thead>
                       <tr>
+                        {selectedFieldDiffs.length > 1 ? <th>Wybierz</th> : null}
                         <th>Pole</th>
                         <th>Teraz</th>
                         <th>Propozycja</th>
@@ -291,6 +317,22 @@ function AdminPanel({ email }: { email: string }) {
                     <tbody>
                       {selected.preview.diffs.map((d) => (
                         <tr key={d.field}>
+                          {selectedFieldDiffs.length > 1 ? (
+                            <td>
+                              <input
+                                type="checkbox"
+                                checked={pickedFields.includes(d.field)}
+                                onChange={() =>
+                                  setPickedFields((cur) =>
+                                    cur.includes(d.field)
+                                      ? cur.filter((f) => f !== d.field)
+                                      : [...cur, d.field],
+                                  )
+                                }
+                                aria-label={`Zaznacz: ${d.label}`}
+                              />
+                            </td>
+                          ) : null}
                           <th scope="row">{d.label}</th>
                           <td>{d.before}</td>
                           <td>{d.after}</td>
@@ -324,19 +366,27 @@ function AdminPanel({ email }: { email: string }) {
                     </figure>
                   </div>
                 )}
-                {(selected.graphEdits?.length || selected.graphEdit) && (
+                {selectedEdits.length > 0 && (
                   <ul className="admin-graph-edits">
-                    {(selected.graphEdits?.length
-                      ? selected.graphEdits
-                      : selected.graphEdit
-                        ? [selected.graphEdit]
-                        : []
-                    ).map((edit, i) => (
+                    {selectedEdits.map((edit, i) => (
                       <li key={`${edit.op}-${edit.anchorPersonId}-${i}`}>
-                        {i + 1}. {edit.summary || edit.op}
-                        {edit.newPerson?.clientPersonId
-                          ? ` (roboczo: ${edit.newPerson.firstName} ${edit.newPerson.lastName})`
-                          : ""}
+                        <label className="check-row">
+                          <input
+                            type="checkbox"
+                            checked={pickedEdits.includes(i)}
+                            onChange={() =>
+                              setPickedEdits((cur) =>
+                                cur.includes(i)
+                                  ? cur.filter((n) => n !== i)
+                                  : [...cur, i],
+                              )
+                            }
+                          />
+                          {i + 1}. {edit.summary || edit.op}
+                          {edit.newPerson?.clientPersonId
+                            ? ` (roboczo: ${edit.newPerson.firstName} ${edit.newPerson.lastName})`
+                            : ""}
+                        </label>
                       </li>
                     ))}
                   </ul>
@@ -351,6 +401,38 @@ function AdminPanel({ email }: { email: string }) {
                     >
                       Przejrzane
                     </button>
+                    {(pickedEdits.length > 0 || pickedFields.length > 0) && (
+                      <>
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          disabled={busy}
+                          onClick={() =>
+                            setConfirm({
+                              id: selected.id,
+                              status: "accepted",
+                              partial: true,
+                            })
+                          }
+                        >
+                          Akceptuj zaznaczone
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          disabled={busy}
+                          onClick={() =>
+                            setConfirm({
+                              id: selected.id,
+                              status: "rejected",
+                              partial: true,
+                            })
+                          }
+                        >
+                          Odrzuć zaznaczone
+                        </button>
+                      </>
+                    )}
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -359,7 +441,7 @@ function AdminPanel({ email }: { email: string }) {
                         setConfirm({ id: selected.id, status: "accepted" })
                       }
                     >
-                      Akceptuj
+                      Akceptuj wszystko
                     </button>
                     <button
                       type="button"
@@ -369,7 +451,7 @@ function AdminPanel({ email }: { email: string }) {
                         setConfirm({ id: selected.id, status: "rejected" })
                       }
                     >
-                      Odrzuć
+                      Odrzuć wszystko
                     </button>
                   </div>
                 ) : (
@@ -401,10 +483,22 @@ function AdminPanel({ email }: { email: string }) {
           onClose={() => setConfirm(null)}
         >
           <h2 id="admin-confirm-title">
-            {confirm.status === "accepted" ? "Zaakceptować?" : "Odrzucić?"}
+            {confirm.partial
+              ? confirm.status === "accepted"
+                ? "Zaakceptować zaznaczone?"
+                : "Odrzucić zaznaczone?"
+              : confirm.status === "accepted"
+                ? "Zaakceptować wszystko?"
+                : "Odrzucić wszystko?"}
           </h2>
-          <p>{selected.preview?.summary || selected.message}</p>
-          {!selected.preview?.autoApply && confirm.status === "accepted" && (
+          <p>
+            {confirm.partial
+              ? confirm.status === "accepted"
+                ? "Tylko zaznaczone zmiany trafią na drzewo. Reszta zostanie w kolejce."
+                : "Zaznaczone zmiany znikną. Reszta zostanie w kolejce."
+              : selected.preview?.summary || selected.message}
+          </p>
+          {!selected.preview?.autoApply && confirm.status === "accepted" && !confirm.partial && (
             <p>
               To zgłoszenie nie zmieni drzewa automatycznie — tylko oznaczy
               status.
@@ -415,7 +509,22 @@ function AdminPanel({ email }: { email: string }) {
               type="button"
               className="btn btn-primary"
               disabled={busy}
-              onClick={() => setStatus(confirm.id, confirm.status)}
+              onClick={() =>
+                setStatus(
+                  confirm.id,
+                  confirm.status,
+                  confirm.partial
+                    ? {
+                        graphEditIndexes: pickedEdits.length
+                          ? pickedEdits
+                          : undefined,
+                        correctionFields: pickedFields.length
+                          ? pickedFields
+                          : undefined,
+                      }
+                    : undefined,
+                )
+              }
             >
               {confirm.status === "accepted" ? "Akceptuj i zapisz" : "Odrzuć"}
             </button>
