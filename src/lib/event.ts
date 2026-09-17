@@ -1,9 +1,16 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import type { EventRsvp, FamilyEvent } from "@/types/event";
+import { rsvpCoversPerson } from "@/lib/eventAttending";
 import {
+  amountDuePln,
+  breakdownFromAgeGroups,
   DEFAULT_EVENT_CAPACITY,
   DEFAULT_PRICE_PER_PERSON_PLN,
+  DEFAULT_PRICE_UNDER_7_PLN,
+  totalGuests,
+  type GuestAgeGroup,
+  type GuestBreakdown,
 } from "@/lib/eventPricing";
 import { getSql, hasDb } from "@/lib/sql";
 
@@ -12,6 +19,8 @@ const EVENT_PATH = path.join(DATA_DIR, "event.json");
 const RSVP_PATH = path.join(DATA_DIR, "event-rsvps.json");
 
 const EARLY_NOTE_PREFIX = "Wczesny przyjazd:";
+const PEOPLE_NOTE_PREFIX = "Osoby:";
+const ADMIN_NOTE_MARKER = "Źródło: admin";
 
 export async function readEvent(): Promise<FamilyEvent> {
   const raw = await readFile(EVENT_PATH, "utf-8");
@@ -20,6 +29,7 @@ export async function readEvent(): Promise<FamilyEvent> {
     ...parsed,
     pricePerPersonPln:
       parsed.pricePerPersonPln ?? DEFAULT_PRICE_PER_PERSON_PLN,
+    priceUnder7Pln: parsed.priceUnder7Pln ?? DEFAULT_PRICE_UNDER_7_PLN,
     registeredCount: parsed.registeredCount ?? 0,
     capacity: parsed.capacity ?? DEFAULT_EVENT_CAPACITY,
     amenities: parsed.amenities ?? [],
@@ -77,6 +87,32 @@ function parseEarlyArrivalNote(notes?: string): {
   };
 }
 
+function parseCoveredIds(notes?: string): string[] {
+  if (!notes) return [];
+  const line = notes.split("\n").find((l) => l.startsWith(PEOPLE_NOTE_PREFIX));
+  if (!line) return [];
+  return line
+    .slice(PEOPLE_NOTE_PREFIX.length)
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function stripStructuredNotes(notes?: string): string | undefined {
+  if (!notes) return undefined;
+  const rest = notes
+    .split("\n")
+    .filter(
+      (line) =>
+        !line.startsWith(EARLY_NOTE_PREFIX) &&
+        !line.startsWith(PEOPLE_NOTE_PREFIX) &&
+        line.trim() !== ADMIN_NOTE_MARKER,
+    )
+    .join("\n")
+    .trim();
+  return rest || undefined;
+}
+
 function composeNotes(rsvp: EventRsvp, includeEarlyInNotes: boolean): string | null {
   const parts: string[] = [];
   if (
@@ -91,7 +127,11 @@ function composeNotes(rsvp: EventRsvp, includeEarlyInNotes: boolean): string | n
       ),
     );
   }
-  if (rsvp.notes?.trim()) parts.push(rsvp.notes.trim());
+  const covered = [...new Set(rsvp.coveredPersonIds ?? [])].filter(Boolean);
+  if (covered.length) parts.push(`${PEOPLE_NOTE_PREFIX} ${covered.join(",")}`);
+  if (rsvp.source === "admin") parts.push(ADMIN_NOTE_MARKER);
+  const userNotes = stripStructuredNotes(rsvp.notes);
+  if (userNotes) parts.push(userNotes);
   return parts.length ? parts.join("\n") : null;
 }
 
@@ -101,6 +141,12 @@ function normalizeRsvp(r: EventRsvp): EventRsvp {
   const childrenUnder3 = r.childrenUnder3 ?? 0;
   const guests = r.guests ?? adults + children3to12 + childrenUnder3;
   const parsed = parseEarlyArrivalNote(r.notes);
+  const covered = r.coveredPersonIds?.length
+    ? r.coveredPersonIds
+    : parseCoveredIds(r.notes);
+  const source =
+    r.source ??
+    (r.notes?.includes(ADMIN_NOTE_MARKER) ? "admin" : "form");
   return {
     ...r,
     adults,
@@ -111,7 +157,9 @@ function normalizeRsvp(r: EventRsvp): EventRsvp {
     earlyArrival: r.earlyArrival ?? parsed.earlyArrival,
     earlyArrivalOver7: r.earlyArrivalOver7 ?? parsed.earlyArrivalOver7,
     earlyArrivalUnder7: r.earlyArrivalUnder7 ?? parsed.earlyArrivalUnder7,
-    notes: r.earlyArrival ? r.notes : parsed.notes,
+    coveredPersonIds: covered,
+    source,
+    notes: stripStructuredNotes(r.notes) ?? parsed.notes,
   };
 }
 
@@ -156,6 +204,8 @@ function rowToRsvp(row: Row): EventRsvp {
   const childrenUnder3 = row.children_under_3 ?? 0;
   const parsed = parseEarlyArrivalNote(row.notes || undefined);
   const earlyFromCol = row.early_arrival != null;
+  const covered = parseCoveredIds(row.notes || undefined);
+  const source = row.notes?.includes(ADMIN_NOTE_MARKER) ? "admin" : "form";
   return {
     id: row.id,
     createdAt:
@@ -170,7 +220,7 @@ function rowToRsvp(row: Row): EventRsvp {
     children3to12,
     childrenUnder3,
     amountPln: row.amount_pln ?? 0,
-    notes: earlyFromCol ? row.notes || undefined : parsed.notes,
+    notes: stripStructuredNotes(row.notes || undefined),
     willTransfer: row.will_transfer,
     earlyArrival: earlyFromCol ? Boolean(row.early_arrival) : parsed.earlyArrival,
     earlyArrivalOver7: earlyFromCol
@@ -179,6 +229,8 @@ function rowToRsvp(row: Row): EventRsvp {
     earlyArrivalUnder7: earlyFromCol
       ? row.early_arrival_under_7 ?? 0
       : parsed.earlyArrivalUnder7,
+    coveredPersonIds: covered,
+    source,
     status: row.status as EventRsvp["status"],
   };
 }
@@ -327,4 +379,262 @@ export async function appendRsvp(rsvp: EventRsvp): Promise<EventRsvp> {
       return rowToRsvp(rows[0]);
     }
   }
+}
+
+export async function cancelRsvp(id: string): Promise<EventRsvp | null> {
+  if (!hasDb()) {
+    const existing = await readFileRsvps();
+    const idx = existing.findIndex((r) => r.id === id);
+    if (idx < 0) return null;
+    existing[idx] = { ...existing[idx], status: "cancelled" };
+    await writeFileRsvps(existing);
+    return existing[idx];
+  }
+
+  const sql = getSql();
+  try {
+    const rows = (await sql`
+      UPDATE event_rsvps
+      SET status = 'cancelled'
+      WHERE id = ${id} AND status <> 'cancelled'
+      RETURNING id, created_at, full_name, person_id, phone, guests,
+                adults, children_3_12, children_under_3, amount_pln,
+                notes, will_transfer, early_arrival, early_arrival_over_7,
+                early_arrival_under_7, status
+    `) as Row[];
+    return rows[0] ? rowToRsvp(rows[0]) : null;
+  } catch {
+    try {
+      const rows = (await sql`
+        UPDATE event_rsvps
+        SET status = 'cancelled'
+        WHERE id = ${id} AND status <> 'cancelled'
+        RETURNING id, created_at, full_name, person_id, phone, guests,
+                  adults, children_3_12, children_under_3, amount_pln,
+                  notes, will_transfer, status
+      `) as Row[];
+      return rows[0] ? rowToRsvp(rows[0]) : null;
+    } catch {
+      const rows = (await sql`
+        UPDATE event_rsvps
+        SET status = 'cancelled'
+        WHERE id = ${id} AND status <> 'cancelled'
+        RETURNING id, created_at, full_name, person_id, phone, guests, notes,
+                  will_transfer, status
+      `) as Row[];
+      return rows[0] ? rowToRsvp(rows[0]) : null;
+    }
+  }
+}
+
+export async function updateRsvp(rsvp: EventRsvp): Promise<EventRsvp> {
+  const normalized = normalizeRsvp(rsvp);
+  if (!hasDb()) {
+    const existing = await readFileRsvps();
+    const idx = existing.findIndex((r) => r.id === normalized.id);
+    if (idx < 0) throw new Error("Brak zgłoszenia.");
+    existing[idx] = normalized;
+    await writeFileRsvps(existing);
+    return normalized;
+  }
+
+  const sql = getSql();
+  const earlyOver7 = normalized.earlyArrival
+    ? normalized.earlyArrivalOver7 ?? 0
+    : 0;
+  const earlyUnder7 = normalized.earlyArrival
+    ? normalized.earlyArrivalUnder7 ?? 0
+    : 0;
+  const notes = composeNotes(
+    {
+      ...normalized,
+      earlyArrivalOver7: earlyOver7,
+      earlyArrivalUnder7: earlyUnder7,
+    },
+    true,
+  );
+
+  try {
+    const rows = (await sql`
+      UPDATE event_rsvps SET
+        full_name = ${normalized.fullName},
+        person_id = ${normalized.personId ?? null},
+        phone = ${normalized.phone ?? null},
+        guests = ${normalized.guests},
+        adults = ${normalized.adults},
+        children_3_12 = ${normalized.children3to12},
+        children_under_3 = ${normalized.childrenUnder3},
+        amount_pln = ${normalized.amountPln},
+        notes = ${notes},
+        will_transfer = ${normalized.willTransfer},
+        early_arrival = ${Boolean(normalized.earlyArrival)},
+        early_arrival_over_7 = ${earlyOver7},
+        early_arrival_under_7 = ${earlyUnder7},
+        status = ${normalized.status}
+      WHERE id = ${normalized.id}
+      RETURNING id, created_at, full_name, person_id, phone, guests,
+                adults, children_3_12, children_under_3, amount_pln,
+                notes, will_transfer, early_arrival, early_arrival_over_7,
+                early_arrival_under_7, status
+    `) as Row[];
+    if (!rows[0]) throw new Error("Brak zgłoszenia.");
+    return rowToRsvp(rows[0]);
+  } catch (err) {
+    if (err instanceof Error && err.message === "Brak zgłoszenia.") throw err;
+    try {
+      const rows = (await sql`
+        UPDATE event_rsvps SET
+          full_name = ${normalized.fullName},
+          person_id = ${normalized.personId ?? null},
+          phone = ${normalized.phone ?? null},
+          guests = ${normalized.guests},
+          adults = ${normalized.adults},
+          children_3_12 = ${normalized.children3to12},
+          children_under_3 = ${normalized.childrenUnder3},
+          amount_pln = ${normalized.amountPln},
+          notes = ${notes},
+          will_transfer = ${normalized.willTransfer},
+          status = ${normalized.status}
+        WHERE id = ${normalized.id}
+        RETURNING id, created_at, full_name, person_id, phone, guests,
+                  adults, children_3_12, children_under_3, amount_pln,
+                  notes, will_transfer, status
+      `) as Row[];
+      if (!rows[0]) throw new Error("Brak zgłoszenia.");
+      return rowToRsvp(rows[0]);
+    } catch (inner) {
+      if (inner instanceof Error && inner.message === "Brak zgłoszenia.") {
+        throw inner;
+      }
+      const rows = (await sql`
+        UPDATE event_rsvps SET
+          full_name = ${normalized.fullName},
+          person_id = ${normalized.personId ?? null},
+          phone = ${normalized.phone ?? null},
+          guests = ${normalized.guests},
+          notes = ${notes},
+          will_transfer = ${normalized.willTransfer},
+          status = ${normalized.status}
+        WHERE id = ${normalized.id}
+        RETURNING id, created_at, full_name, person_id, phone, guests, notes,
+                  will_transfer, status
+      `) as Row[];
+      if (!rows[0]) throw new Error("Brak zgłoszenia.");
+      return rowToRsvp(rows[0]);
+    }
+  }
+}
+
+function decrementBreakdown(
+  rsvp: EventRsvp,
+  group: GuestAgeGroup,
+): GuestBreakdown {
+  let adults = rsvp.adults;
+  let children3to12 = rsvp.children3to12;
+  let childrenUnder3 = rsvp.childrenUnder3;
+  if (group === "over7" && adults > 0) adults -= 1;
+  else if (group === "under7" && children3to12 > 0) children3to12 -= 1;
+  else if (group === "under3" && childrenUnder3 > 0) childrenUnder3 -= 1;
+  else if (adults > 0) adults -= 1;
+  else if (children3to12 > 0) children3to12 -= 1;
+  else if (childrenUnder3 > 0) childrenUnder3 -= 1;
+  return { adults, children3to12, childrenUnder3 };
+}
+
+export async function setPersonAttendance(opts: {
+  personId: string;
+  attending: boolean;
+  fullName: string;
+  ageGroup?: GuestAgeGroup;
+}): Promise<{ already?: boolean; rsvp?: EventRsvp; cancelledIds: string[] }> {
+  const existing = await readRsvps();
+  const covering = existing.filter((r) => rsvpCoversPerson(r, opts.personId));
+
+  if (opts.attending) {
+    if (covering.length) return { already: true, cancelledIds: [] };
+    const event = await readEvent();
+    const breakdown = breakdownFromAgeGroups([opts.ageGroup ?? "over7"]);
+    const guests = totalGuests(breakdown);
+    const amountPln = amountDuePln(
+      breakdown,
+      event.pricePerPersonPln,
+      null,
+      event.priceUnder7Pln,
+    );
+    const draft: EventRsvp = {
+      id: `rsvp-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      fullName: opts.fullName,
+      personId: opts.personId,
+      guests,
+      adults: breakdown.adults,
+      children3to12: breakdown.children3to12,
+      childrenUnder3: breakdown.childrenUnder3,
+      amountPln,
+      willTransfer: false,
+      coveredPersonIds: [opts.personId],
+      source: "admin",
+      status: "new",
+    };
+    return { rsvp: await appendRsvp(draft), cancelledIds: [] };
+  }
+
+  const event = await readEvent();
+  const cancelledIds: string[] = [];
+  for (const rsvp of covering) {
+    const remaining = (rsvp.coveredPersonIds ?? []).filter(
+      (id) => id !== opts.personId,
+    );
+    const wasPayer = rsvp.personId === opts.personId;
+    const onlyThisPerson =
+      remaining.length === 0 && (wasPayer || !(rsvp.coveredPersonIds ?? []).length);
+
+    if (onlyThisPerson) {
+      const cancelled = await cancelRsvp(rsvp.id);
+      if (cancelled) cancelledIds.push(rsvp.id);
+      continue;
+    }
+
+    const nextBreakdown = decrementBreakdown(rsvp, opts.ageGroup ?? "over7");
+    const guests = totalGuests(nextBreakdown);
+    if (guests < 1) {
+      const cancelled = await cancelRsvp(rsvp.id);
+      if (cancelled) cancelledIds.push(rsvp.id);
+      continue;
+    }
+
+    const earlyOver7 = Math.min(
+      rsvp.earlyArrivalOver7 ?? 0,
+      nextBreakdown.adults,
+    );
+    const earlyUnder7 = Math.min(
+      rsvp.earlyArrivalUnder7 ?? 0,
+      nextBreakdown.children3to12,
+    );
+    const early = {
+      earlyArrival: Boolean(rsvp.earlyArrival) && earlyOver7 + earlyUnder7 > 0,
+      earlyArrivalOver7: earlyOver7,
+      earlyArrivalUnder7: earlyUnder7,
+    };
+    await updateRsvp({
+      ...rsvp,
+      personId: wasPayer ? remaining[0] : rsvp.personId,
+      guests,
+      adults: nextBreakdown.adults,
+      children3to12: nextBreakdown.children3to12,
+      childrenUnder3: nextBreakdown.childrenUnder3,
+      amountPln: amountDuePln(
+        nextBreakdown,
+        event.pricePerPersonPln,
+        early,
+        event.priceUnder7Pln,
+      ),
+      earlyArrival: early.earlyArrival,
+      earlyArrivalOver7: early.earlyArrivalOver7,
+      earlyArrivalUnder7: early.earlyArrivalUnder7,
+      coveredPersonIds: remaining,
+    });
+  }
+
+  return { cancelledIds };
 }

@@ -34,6 +34,8 @@ export interface FamilyEvent {
   description: string;
   organizers: string[];
   pricePerPersonPln: number;
+  /** Half-price for children aged 3–7 */
+  priceUnder7Pln?: number;
   /** Already registered outside the app (shown in stats) */
   registeredCount: number;
   /** Max people for the gathering */
@@ -63,6 +65,9 @@ export interface EventRsvp {
   earlyArrival?: boolean;
   earlyArrivalOver7?: number;
   earlyArrivalUnder7?: number;
+  /** Tree people this RSVP covers (payer + family) */
+  coveredPersonIds?: string[];
+  source?: "form" | "admin";
   status: "new" | "confirmed" | "cancelled" | "local_only";
 }
 
@@ -78,4 +83,5 @@ export interface RsvpPayload {
   earlyArrival?: boolean;
   earlyArrivalOver7?: number;
   earlyArrivalUnder7?: number;
+  coveredPersonIds?: string[];
 }

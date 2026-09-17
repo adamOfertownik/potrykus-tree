@@ -5,13 +5,14 @@
   "place": "Pensjonat Bałtycki Relax",
   "city": "Jastrzębia Góra",
   "address": "",
-  "description": "Rodzinne spotkanie potomków Potrykusa nad morzem. W cenie: nocleg, impreza i śniadanie. Zapisy z aplikacji trafiają do bazy — dzięki nim rezerwujemy miejsca.",
+  "description": "Cześć kochani. Podaję numer konta, na który proszę wpłacać pieniążki — koniecznie z tytułem „IMPREZA RODZINNA” oraz liczbą dorosłych i dzieci do lat 7, i za kogo. W cenie: sala, jedzenie, DJ, a dodatkowo bez dopłaty nocleg ze śniadaniem.",
   "organizers": [
     "Elżbieta Lieder",
     "Anna Leśniak",
     "Maria Lieske"
   ],
   "pricePerPersonPln": 240,
+  "priceUnder7Pln": 120,
   "registeredCount": 0,
   "capacity": 200,
   "photos": {
@@ -21,8 +22,13 @@
   "amenities": [
     {
       "id": "stay",
-      "title": "W cenie: nocleg, impreza, śniadanie",
-      "detail": "240 zł od osoby obejmuje zakwaterowanie, spotkanie i śniadanie. Dzieci do 3. roku życia — bez opłaty za imprezę."
+      "title": "W cenie: sala, jedzenie, DJ, nocleg i śniadanie",
+      "detail": "240 zł od osoby 7+ obejmuje salę, jedzenie i DJ-a. Nocleg ze śniadaniem — bez dopłaty."
+    },
+    {
+      "id": "kids",
+      "title": "Dzieci",
+      "detail": "Powyżej 7. roku życia — 240 zł (jak dorośli). Do lat 7 — 120 zł. Do lat 3 — 0 zł."
     },
     {
       "id": "early",
@@ -78,12 +84,12 @@
     }
   ],
   "transfer": {
-    "recipient": "Do uzupełnienia przez organizatorów",
-    "iban": "",
-    "bank": "",
-    "titleTemplate": "Spotkanie Potrykus – {name} – {guests} os.",
-    "amountHint": "240 zł od osoby (dorośli i dzieci 3–12 lat) — w cenie nocleg, impreza i śniadanie. Dzieci do 3. roku życia — bez opłaty. Przyjazd dzień wcześniej: +100 zł od osoby, do 7 lat 50 zł, do 3 lat za darmo.",
-    "notes": "Po wyborze liczby osób i ewentualnego wcześniejszego przyjazdu zobaczysz dokładną kwotę. Numer konta uzupełnimy w aplikacji, gdy organizatorzy go potwierdzą — wtedy wystarczy skopiować dane do przelewu."
+    "recipient": "CA Elżbieta Lieder",
+    "iban": "65194010764614212500010000",
+    "bank": "Credit Agricole",
+    "titleTemplate": "IMPREZA RODZINNA, dorosłych- {adults} dzieci do lat 7- {under7}. za: {name}",
+    "amountHint": "240 zł od osoby 7+ (dorośli i dzieci powyżej 7 lat). Dzieci do lat 7 — 120 zł. Dzieci do lat 3 — 0 zł. W tytule przelewu koniecznie „IMPREZA RODZINNA”.",
+    "notes": "Koniecznie opisz, na co te pieniądze: IMPREZA RODZINNA, liczba dorosłych i dzieci do lat 7 oraz za kogo. Skopiuj dane poniżej do aplikacji bankowej."
   },
   "rsvpDeadline": "2026-09-15",
   "contactNote": "Pytania: grupa WhatsApp „Spotkanie rodziny Potrykus” albo zakładka Zgłoś."

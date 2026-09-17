@@ -1,7 +1,41 @@
 import type { EventRsvp } from "@/types/event";
+import type { Person } from "@/types/family";
 
 function normName(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+export function rsvpCoversPerson(rsvp: EventRsvp, personId: string): boolean {
+  if (rsvp.status === "cancelled") return false;
+  if (rsvp.personId === personId) return true;
+  return (rsvp.coveredPersonIds ?? []).includes(personId);
+}
+
+/** Spouse, children, parents and siblings — people you often pay for. */
+export function householdSuggestions(
+  personId: string,
+  people: Person[],
+): Person[] {
+  const byId = new Map(people.map((p) => [p.id, p]));
+  const person = byId.get(personId);
+  if (!person) return [];
+  const ids: string[] = [];
+  const add = (id?: string) => {
+    if (!id || id === personId || !byId.has(id) || ids.includes(id)) return;
+    ids.push(id);
+  };
+  for (const id of person.spouseIds) add(id);
+  for (const p of people) {
+    if (p.parentIds.includes(personId)) add(p.id);
+  }
+  for (const id of person.parentIds) add(id);
+  if (person.parentIds.length) {
+    for (const p of people) {
+      if (p.id === personId) continue;
+      if (p.parentIds.some((pid) => person.parentIds.includes(pid))) add(p.id);
+    }
+  }
+  return ids.map((id) => byId.get(id)!);
 }
 
 /** Map RSVPs onto tree people: matching person_id, otherwise exact full name. */
@@ -23,6 +57,9 @@ export function resolveAttendingPersonIds(
   for (const rsvp of active) {
     if (rsvp.personId && knownIds.has(rsvp.personId)) {
       attending.add(rsvp.personId);
+    }
+    for (const id of rsvp.coveredPersonIds ?? []) {
+      if (knownIds.has(id)) attending.add(id);
     }
     const nameIds = byName.get(normName(rsvp.fullName));
     if (nameIds) {

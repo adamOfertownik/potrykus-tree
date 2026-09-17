@@ -156,6 +156,7 @@ export const rsvpPayloadSchema = z
     earlyArrival: z.boolean().optional().default(false),
     earlyArrivalOver7: z.coerce.number().int().min(0).max(20).optional().default(0),
     earlyArrivalUnder7: z.coerce.number().int().min(0).max(20).optional().default(0),
+    coveredPersonIds: z.array(z.string().trim().min(1).max(120)).max(20).optional(),
   })
   .superRefine((v, ctx) => {
     const children3 = v.children3to12 ?? 0;
@@ -203,7 +204,19 @@ export const rsvpPayloadSchema = z
       earlyArrival: Boolean(v.earlyArrival),
       earlyArrivalOver7: v.earlyArrival ? (v.earlyArrivalOver7 ?? 0) : 0,
       earlyArrivalUnder7: v.earlyArrival ? (v.earlyArrivalUnder7 ?? 0) : 0,
+      coveredPersonIds: [...new Set(v.coveredPersonIds ?? [])],
     };
+  });
+
+export const adminAttendSchema = z
+  .object({
+    personId: z.string().trim().min(1).max(120).optional(),
+    rsvpId: z.string().trim().min(1).max(120).optional(),
+    attending: z.boolean(),
+    fullName: z.string().trim().min(1).max(160).optional(),
+  })
+  .refine((v) => Boolean(v.personId || v.rsvpId), {
+    message: "Podaj osobę albo zgłoszenie.",
   });
 
 export const adminPersonWriteSchema = z.object({

@@ -224,9 +224,13 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
     timeout: 20000,
   });
   await expect(page.getByText(/240\s*zł/).first()).toBeVisible();
+  await expect(page.getByText(/120\s*zł/).first()).toBeVisible();
   await expect(page.getByText(/\/ 200 miejsc/)).toBeVisible();
+  await expect(page.getByText(/Elżbieta Lieder/)).toBeVisible();
+  await expect(page.getByText(/65 1940 1076 4614 2125 0001 0000/)).toBeVisible();
+  await expect(page.getByText(/IMPREZA RODZINNA/).first()).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Prześlij zdjęcia rodzinne" }),
+    page.getByRole("heading", { name: "Zdjęcia rodziców" }),
   ).toBeVisible();
   await expect(page.getByText("maciej.lieder@gmail.com")).toBeVisible();
   await expect(
@@ -234,6 +238,15 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
   ).toHaveAttribute("href", /drive\.google\.com/);
   await expect(page.getByText("Od 14:00 możliwe zakwaterowanie.")).toBeVisible();
   await expect(page.getByText("Serwis szynki pieczonej")).toBeVisible();
+
+  const payerSearch = page.locator("#zapisz input").first();
+  await payerSearch.fill("Adam Lieske");
+  await page.getByRole("button", { name: /Adam Lieske/ }).first().click();
+  await expect(page.getByText(/Płatnik:\s*Adam Lieske/)).toBeVisible();
+  await expect(
+    page.getByText(/Za kogo jeszcze płacisz\? Rodzina/),
+  ).toBeVisible();
+  await expect(page.getByText(/IMPREZA RODZINNA, dorosłych-/)).toBeVisible();
   await ctx.close();
 });
 

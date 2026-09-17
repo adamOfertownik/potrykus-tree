@@ -3,6 +3,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { AttendToggle } from "@/components/AttendToggle";
 import { AuthedPage } from "@/components/AuthedPage";
 import { GraphEditHost } from "@/components/GraphEditHost";
 import { PersonSearch } from "@/components/PersonSearch";
@@ -97,6 +98,7 @@ function ListInner({
             „1.”), nie kolejny numer z bazy. PDF pobierzesz z menu u góry.
             Plus przy osobie dodaje dziecko, partnera albo przenosi gałąź.
             Pomarańczowa ramka oznacza zapis na spotkanie rodzinne.
+            Administrator może zaznaczyć zapis przyciskiem „zapisz”.
           </p>
         </header>
 
@@ -200,6 +202,12 @@ function ListInner({
                     >
                       +
                     </button>
+                    <AttendToggle
+                      personId={entry.person.id}
+                      fullName={displayName(entry.person, people)}
+                      attending={isAttending}
+                      compact
+                    />
                     <button
                       type="button"
                       className="genealogy-focus"

@@ -7,6 +7,8 @@ import { storageMode } from "@/lib/sql";
 import { rsvpPayloadSchema } from "@/lib/validation";
 import type { EventRsvp } from "@/types/event";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const unlocked = await isSessionValid();
   if (!unlocked) {
@@ -42,6 +44,8 @@ export async function GET() {
       amountPln: r.amountPln,
       willTransfer: r.willTransfer,
       earlyArrival: r.earlyArrival,
+      coveredPersonIds: r.coveredPersonIds ?? [],
+      source: r.source ?? "form",
     })),
   });
 }
@@ -88,7 +92,18 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     }
-    const amountPln = amountDuePln(breakdown, event.pricePerPersonPln, early);
+    const amountPln = amountDuePln(
+      breakdown,
+      event.pricePerPersonPln,
+      early,
+      event.priceUnder7Pln,
+    );
+    const coveredPersonIds = [
+      ...new Set([
+        ...(body.coveredPersonIds ?? []),
+        ...(body.personId ? [body.personId] : []),
+      ]),
+    ];
 
     const draft: EventRsvp = {
       id: `rsvp-${Date.now()}`,
@@ -106,6 +121,8 @@ export async function POST(request: Request) {
       earlyArrival: body.earlyArrival,
       earlyArrivalOver7: body.earlyArrivalOver7,
       earlyArrivalUnder7: body.earlyArrivalUnder7,
+      coveredPersonIds,
+      source: "form",
       status: "new",
     };
 
@@ -118,6 +135,8 @@ export async function POST(request: Request) {
       id: saved.id,
       amountPln: saved.amountPln,
       guests: saved.guests,
+      transferTitleHint:
+        `IMPREZA RODZINNA, dorosłych- ${body.adults} dzieci do lat 7- ${body.children3to12}.`,
       warning:
         mode === "file"
           ? "Zapisano lokalnie (brak DATABASE_URL). Na produkcji ustaw Neon."

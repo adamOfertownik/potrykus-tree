@@ -1967,6 +1967,11 @@ textarea:focus-visible {
   letter-spacing: -0.02em;
 }
 
+.person-detail__header .attend-toggle {
+  display: block;
+  margin: 0.35rem 0 0.5rem;
+}
+
 .attending-banner {
   display: inline-block;
   margin: 0.15rem 0 0.4rem;
@@ -3076,6 +3081,144 @@ textarea:focus-visible {
   line-height: 1.4;
 }
 
+.event-party {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.25rem 0 1rem;
+}
+
+.event-party__lead {
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.event-party__member {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.event-party__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.event-party__remove {
+  flex-shrink: 0;
+  padding: 0.25rem 0.65rem;
+  min-height: 2rem;
+  font-size: 0.78rem;
+}
+
+.event-party__ages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.event-party__ages label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  background: white;
+  cursor: pointer;
+}
+
+.event-party__ages label.is-on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, white);
+  color: var(--accent-strong);
+}
+
+.event-party__ages input {
+  width: auto;
+  margin: 0;
+}
+
+.event-suggest {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+}
+
+.event-suggest label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.65rem;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.event-suggest input {
+  width: auto;
+}
+
+.event-person-field {
+  margin-bottom: 0.75rem;
+}
+
+.event-transfer-must {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--attending) 14%, white);
+  border: 1px solid color-mix(in srgb, var(--attending) 40%, var(--line));
+  color: #7a3b0e;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.attend-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.attend-toggle__err {
+  font-size: 0.72rem;
+  color: #9a1f1f;
+  max-width: 8rem;
+}
+
+.genealogy-attend {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  min-height: var(--touch);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.genealogy-attend.is-on {
+  border-color: var(--attending);
+  color: #9a4b12;
+  background: color-mix(in srgb, var(--attending) 16%, white);
+}
+
+.genealogy-attend:hover,
+.genealogy-attend:focus-visible {
+  border-color: var(--attending);
+  color: #9a4b12;
+}
+
 .guest-steppers {
   display: grid;
   gap: 0.55rem;
@@ -3264,6 +3407,7 @@ textarea:focus-visible {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 0.35rem 1rem;
   padding: 0.55rem 0.7rem;
   background: var(--bg);
@@ -3271,8 +3415,14 @@ textarea:focus-visible {
   font-size: 0.92rem;
 }
 
+.rsvp-list li > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
 .rsvp-list span {
   color: var(--ink-soft);
+  display: block;
 }
 
 .event-footnote {
