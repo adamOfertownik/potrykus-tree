@@ -178,6 +178,28 @@ test("default tree shows Ludwik without focusing his father", async ({
   await ctx.close();
 });
 
+test("plus opens tree actions on the first tap", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
+  });
+  const page = await ctx.newPage();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  const plus = page.getByTestId("chart-card-plus").first();
+  await expect(plus).toBeVisible({ timeout: 15_000 });
+  await plus.click({ force: true });
+  await expect(page.getByText("Buduj drzewo")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Dziecko" })).toBeVisible();
+  await ctx.close();
+});
+
 test("returning to full tree keeps the highlighted person", async ({
   browser,
 }) => {
