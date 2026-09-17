@@ -1096,15 +1096,68 @@ textarea:focus-visible {
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
+.family-chart-host .card_cont.is-chart-highlight.is-attending .card,
+.family-chart-host .card_cont.is-chart-highlight.is-attending .card-inner,
+.family-chart-host .card_cont.is-chart-highlight.is-attending .card-rect {
+  outline: none;
+  box-shadow: none;
+}
+
+.family-chart-host div.card_cont.is-chart-highlight.is-attending .card {
+  overflow: visible !important;
+}
+
+.family-chart-host div.card_cont.is-chart-highlight.is-attending .card::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 10px;
+  padding: 3px;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 3;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 25%, #5ee0b0) 0 11px,
+    var(--attending) 11px 22px
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-clip: content-box, border-box;
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-clip: content-box, border-box;
+  mask-composite: exclude;
+}
+
 .family-chart-host .card_cont.is-chart-highlight {
   animation: chart-highlight-pulse 1.4s ease-out 3;
   z-index: 2;
+}
+
+.family-chart-host .card_cont.is-chart-highlight.is-attending {
+  animation-name: chart-highlight-attend-pulse;
 }
 
 .family-chart-host g.card_cont.is-chart-highlight .card-outline,
 .family-chart-host g.card_cont.is-chart-highlight .card-body-rect {
   stroke: var(--accent-strong);
   stroke-width: 4px;
+}
+
+.family-chart-host g.card_cont.is-chart-highlight.is-attending .card-body-rect {
+  stroke: var(--attending);
+  stroke-width: 5px;
+  stroke-dasharray: none;
+}
+
+.family-chart-host g.card_cont.is-chart-highlight.is-attending .card-outline {
+  stroke: color-mix(in srgb, var(--accent) 35%, #5ee0b0);
+  stroke-width: 5px;
+  stroke-dasharray: 8 8;
 }
 
 @keyframes chart-highlight-pulse {
@@ -1118,6 +1171,20 @@ textarea:focus-visible {
   }
   100% {
     filter: drop-shadow(0 0 0 color-mix(in srgb, var(--accent) 0%, transparent));
+  }
+}
+
+@keyframes chart-highlight-attend-pulse {
+  0% {
+    filter: drop-shadow(0 0 0 color-mix(in srgb, var(--attending) 70%, transparent));
+  }
+  50% {
+    filter: drop-shadow(
+      0 0 14px color-mix(in srgb, var(--attending) 55%, var(--accent))
+    );
+  }
+  100% {
+    filter: drop-shadow(0 0 0 color-mix(in srgb, var(--attending) 0%, transparent));
   }
 }
 
@@ -1797,6 +1864,11 @@ textarea:focus-visible {
   outline-offset: 1px;
   border-radius: 10px;
   background: color-mix(in srgb, var(--attending) 8%, white);
+}
+
+.genealogy-item.is-highlight.is-attending .genealogy-content {
+  outline: 2px dashed color-mix(in srgb, var(--accent) 35%, #5ee0b0);
+  box-shadow: 0 0 0 2px var(--attending);
 }
 
 .genealogy-item.is-pending .genealogy-content {
