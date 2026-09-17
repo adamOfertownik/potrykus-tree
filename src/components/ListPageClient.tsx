@@ -70,7 +70,7 @@ function ListInner({
 
   return (
     <>
-      <section className="toolbar">
+      <section className="toolbar toolbar--list">
         <PersonSearch
           people={people}
           placeholder="Szukaj na liście…"

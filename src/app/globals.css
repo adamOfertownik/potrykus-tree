@@ -18,6 +18,7 @@
   --font-body-stack: var(--font-body), "Segoe UI", system-ui, sans-serif;
   --text-scale: 1;
   --touch: 2.75rem; /* ~44px at 16px — senior-friendly tap target */
+  --app-header-h: 3.25rem;
 }
 
 @theme inline {
@@ -551,6 +552,23 @@ textarea:focus-visible {
   margin-bottom: 1rem;
   position: relative;
   z-index: 80;
+}
+
+.toolbar--list {
+  position: sticky;
+  top: var(--app-header-h, 3.25rem);
+  z-index: 90;
+  align-items: stretch;
+  margin: -0.35rem 0 0.85rem;
+  padding: 0.45rem 0 0.55rem;
+  background: color-mix(in srgb, var(--bg) 88%, var(--panel));
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 18px color-mix(in srgb, var(--bg) 55%, transparent);
+}
+
+.toolbar--list .person-search {
+  flex: 1 1 100%;
+  max-width: none;
 }
 
 .toolbar--tree {
