@@ -132,6 +132,7 @@ function AppShellInner({
               [
                 ["/drzewo", "Drzewo"],
                 ["/lista", "Lista"],
+                ["/statystyki", "Statystyki"],
                 ["/urodziny", "Urodziny"],
                 ["/spotkanie", "Spotkanie"],
                 ["/zglos", "Zgłoś"],

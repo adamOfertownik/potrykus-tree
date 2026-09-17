@@ -4,103 +4,11 @@ import Link from "next/link";
 import {
   groupAttendingByMeetingBranch,
   groupFamilyByMeetingBranch,
-  MEETING_TREE_HREF,
   namedPeopleOnBranch,
   plPeople,
   type MeetingBranch,
 } from "@/lib/meetingBranches";
 import type { Person } from "@/types/family";
-
-export function MeetingBranchPanel({
-  people,
-  attendingPersonIds,
-  variant = "page",
-  showButton = false,
-}: {
-  people: Person[];
-  attendingPersonIds: string[];
-  variant?: "page" | "bar";
-  showButton?: boolean;
-}) {
-  const family = groupFamilyByMeetingBranch(people);
-  const going = groupAttendingByMeetingBranch(people, attendingPersonIds);
-  const totalGoing = attendingPersonIds.filter((id) =>
-    people.some((p) => p.id === id),
-  ).length;
-
-  if (variant === "bar") {
-    return (
-      <div className="meeting-branch-bar" data-testid="meeting-branch-bar">
-        <p className="meeting-branch-bar__lead">
-          Na spotkaniu {plPeople(totalGoing)} od Franciszka
-        </p>
-        <ul className="meeting-branch-chips">
-          {going
-            .filter((branch) => branch.featured || branch.personIds.length > 0)
-            .map((branch) => (
-              <li key={branch.key}>
-                <span>{branch.short}</span>
-                <strong>{branch.personIds.length}</strong>
-              </li>
-            ))}
-        </ul>
-      </div>
-    );
-  }
-
-  const goingNamed = going.filter((branch) => branch.personIds.length > 0);
-
-  return (
-    <section
-      className="event-section meeting-from-root"
-      data-testid="meeting-from-franciszek"
-    >
-      <h2>Główne spotkanie od Franciszka</h2>
-      <p className="event-section__lead">
-        Rodzinę i zapisy grupujemy od babci albo dziadka — bez listy stu
-        pięćdziesięciu imion.
-      </p>
-      {showButton ? (
-        <Link
-          href={MEETING_TREE_HREF}
-          className="btn btn-primary meeting-franciszek-btn"
-          data-testid="spotkanie-od-franciszka"
-        >
-          Spotkanie od Franciszka
-        </Link>
-      ) : null}
-
-      <h3 className="meeting-subhead">Rodzina od Franciszka</h3>
-      <p className="event-section__lead">
-        Ile osób jest w której gałęzi. Imion tu nie wypisujemy.
-      </p>
-      <ul className="meeting-branch-counts" data-testid="meeting-family-groups">
-        {family.map((branch) => (
-          <li
-            key={branch.key}
-            className={branch.featured ? "is-featured" : undefined}
-            data-testid="meeting-branch-count"
-            data-branch={branch.short}
-          >
-            <span>{branch.label}</span>
-            <strong>{plPeople(branch.personIds.length)}</strong>
-          </li>
-        ))}
-      </ul>
-
-      <h3 className="meeting-subhead">Kto będzie — od kogo</h3>
-      {goingNamed.length === 0 ? (
-        <p className="empty-hint">Nikt z drzewa nie jest jeszcze zapisany.</p>
-      ) : (
-        <div className="meeting-branch-people" data-testid="meeting-going-groups">
-          {goingNamed.map((branch) => (
-            <BranchPeople key={branch.key} branch={branch} people={people} />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
 
 function BranchPeople({
   branch,
@@ -126,5 +34,88 @@ function BranchPeople({
         ))}
       </ul>
     </div>
+  );
+}
+
+/** Na drzewie Franciszka — krótkie chipy kto idzie. */
+export function MeetingBranchPanel({
+  people,
+  attendingPersonIds,
+  variant = "going",
+}: {
+  people: Person[];
+  attendingPersonIds: string[];
+  variant?: "going" | "bar";
+}) {
+  const going = groupAttendingByMeetingBranch(people, attendingPersonIds);
+  const family = groupFamilyByMeetingBranch(people);
+  const treeByKey = new Map(family.map((row) => [row.key, row.personIds.length]));
+  const totalGoing = attendingPersonIds.filter((id) =>
+    people.some((p) => p.id === id),
+  ).length;
+  const ratio = (branch: MeetingBranch) =>
+    `${branch.personIds.length} / ${treeByKey.get(branch.key) ?? branch.personIds.length}`;
+
+  if (variant === "bar") {
+    return (
+      <div className="meeting-branch-bar" data-testid="meeting-branch-bar">
+        <p className="meeting-branch-bar__lead">
+          Na spotkaniu {plPeople(totalGoing)} od Franciszka
+          <span className="meeting-branch-bar__hint"> · zapisani / w drzewie</span>
+        </p>
+        <ul className="meeting-branch-chips">
+          {going
+            .filter((branch) => branch.kind === "branch")
+            .map((branch) => (
+              <li
+                key={branch.key}
+                className={branch.featured ? "is-featured" : undefined}
+              >
+                <span>{branch.short}</span>
+                <strong>{ratio(branch)}</strong>
+              </li>
+            ))}
+        </ul>
+      </div>
+    );
+  }
+
+  const goingNamed = going.filter((branch) => branch.personIds.length > 0);
+  const goingCounts = going.filter((branch) => branch.kind === "branch");
+
+  return (
+    <section
+      className="event-section meeting-from-root"
+      data-testid="meeting-from-franciszek"
+    >
+      <h2>Zapisy od kogo</h2>
+      <p className="event-section__lead">
+        Zapisani z drzewa / ile osób jest w tej gałęzi Franciszka. Pełne
+        statystyki rodu są na stronie{" "}
+        <Link href="/statystyki">Statystyki rodzin</Link>.
+      </p>
+      <ul className="meeting-branch-counts" data-testid="meeting-going-counts">
+        {goingCounts.map((branch) => (
+          <li
+            key={branch.key}
+            className={branch.featured ? "is-featured" : undefined}
+            data-testid="meeting-going-count"
+            data-branch={branch.short}
+          >
+            <span>{branch.label}</span>
+            <strong>{ratio(branch)}</strong>
+          </li>
+        ))}
+      </ul>
+      {goingNamed.length === 0 ? (
+        <p className="empty-hint">Nikt z drzewa nie jest jeszcze zapisany.</p>
+      ) : (
+        <div className="meeting-branch-people" data-testid="meeting-going-groups">
+          {goingNamed.map((branch) => (
+            <BranchPeople key={branch.key} branch={branch} people={people} />
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
