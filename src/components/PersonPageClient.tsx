@@ -71,15 +71,7 @@ function PersonInner({
       <header className="person-detail__header">
         <PersonPhotoControl person={person} size="lg" mode={admin.data?.loggedIn ? "admin" : "suggest"} />
         <div>
-          <h1 className="person-detail__name">
-            {displayName(person, people)}
-            {isAdmin ? (
-              <PencilButton
-                label={`Edytuj powiązania: ${displayName(person)}`}
-                onClick={() => setRelsOpen(true)}
-              />
-            ) : null}
-          </h1>
+          <h1>{displayName(person, people)}</h1>
           {attendingPersonIds.includes(person.id) && (
             <p className="attending-banner">Na spotkaniu rodzinnym</p>
           )}
