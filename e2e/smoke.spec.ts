@@ -253,6 +253,34 @@ test("kinship tree from B highlights the person on the full tree", async ({
   await ctx.close();
 });
 
+test("person card hides delete unless admin", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as {
+    people: { id: string; firstName: string; lastName: string }[];
+  };
+  const maja =
+    payload.people.find(
+      (p) => p.firstName === "Maja" && /hallmann/i.test(p.lastName),
+    ) ?? payload.people[0];
+  expect(maja, "a person to open").toBeTruthy();
+  await page.goto(`/osoba/${encodeURIComponent(maja!.id)}`);
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible({
+    timeout: 20000,
+  });
+  await expect(page.getByTestId("admin-delete-person")).toHaveCount(0);
+  await ctx.close();
+});
+
 test("kinship and birthdays pages load", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);
