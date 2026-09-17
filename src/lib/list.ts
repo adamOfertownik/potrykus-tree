@@ -1,4 +1,5 @@
 import type { Person } from "@/types/family";
+import { displayName } from "@/lib/db-client";
 import { findApexPersonId, getPersonMap, getUnionChildrenIds } from "@/lib/tree";
 
 export interface ListEntry {
@@ -97,21 +98,29 @@ function hasKnownParent(person: Person, ids: Set<string>): boolean {
   return person.parentIds.some((id) => ids.has(id));
 }
 
+function resolveStartId(people: Person[], preferredRootId?: string): string {
+  if (preferredRootId && people.some((p) => p.id === preferredRootId)) {
+    return preferredRootId;
+  }
+  return people[0]!.id;
+}
+
+export type FamilyForest = {
+  apexId: string;
+  main: ListEntry[];
+  branches: ListEntry[][];
+};
+
 /**
- * Full family list from the same Neon people as the tree.
- * One main trunk from the genealogical apex (generation 1 = oldest ancestor),
- * then leftover people who are in the database but not linked to that trunk.
+ * Main trunk from the genealogical apex, then each leftover tree whose people
+ * have no parent link into that trunk. Does not invent parent assignments.
  */
-export function buildCompleteFamilyList(
+export function buildFamilyForest(
   people: Person[],
   preferredRootId?: string,
-): ListEntry[] {
-  if (!people.length) return [];
-  const startId =
-    preferredRootId && people.some((p) => p.id === preferredRootId)
-      ? preferredRootId
-      : people[0]!.id;
-  const apexId = findApexPersonId(people, startId);
+): FamilyForest {
+  if (!people.length) return { apexId: "", main: [], branches: [] };
+  const apexId = findApexPersonId(people, resolveStartId(people, preferredRootId));
   const visited = new Set<string>();
   const main = buildDescendantList(people, apexId, 1, 0, visited);
   const shown = new Set(main.map((e) => e.person.id));
@@ -122,7 +131,7 @@ export function buildCompleteFamilyList(
     .filter((p) => !hasKnownParent(p, leftoverIds))
     .sort(comparePeople);
 
-  const detached: ListEntry[] = [];
+  const branches: ListEntry[][] = [];
   for (const person of leftoverRoots) {
     if (shown.has(person.id)) continue;
     const branch = buildDescendantList(people, person.id, 1, 0, visited);
@@ -130,7 +139,7 @@ export function buildCompleteFamilyList(
       entry.detached = true;
       shown.add(entry.person.id);
     }
-    detached.push(...branch);
+    if (branch.length) branches.push(branch);
   }
 
   const stillMissing = people.filter((p) => !shown.has(p.id)).sort(comparePeople);
@@ -140,10 +149,85 @@ export function buildCompleteFamilyList(
       entry.detached = true;
       shown.add(entry.person.id);
     }
-    detached.push(...branch);
+    if (branch.length) branches.push(branch);
   }
 
-  return [...main, ...detached];
+  return { apexId, main, branches };
+}
+
+export type FamilyTreeChoice = {
+  id: string;
+  label: string;
+  detached: boolean;
+  personCount: number;
+};
+
+function uniquePersonCount(entries: ListEntry[]): number {
+  return new Set(entries.map((entry) => entry.person.id)).size;
+}
+
+/** Select options for the graph: main trunk plus each leftover tree. */
+export function getFamilyTreeChoices(
+  people: Person[],
+  preferredRootId?: string,
+): FamilyTreeChoice[] {
+  if (!people.length) return [];
+  const forest = buildFamilyForest(people, preferredRootId);
+  const apex = people.find((p) => p.id === forest.apexId);
+  const choices: FamilyTreeChoice[] = [
+    {
+      id: forest.apexId,
+      label: `Główne drzewo — ${apex ? displayName(apex, people) : "pień"}`,
+      detached: false,
+      personCount: uniquePersonCount(forest.main),
+    },
+  ];
+  for (const branch of forest.branches) {
+    const root = branch[0]?.person;
+    if (!root) continue;
+    const personCount = uniquePersonCount(branch);
+    choices.push({
+      id: root.id,
+      label: `${displayName(root, people)} · ${personCount} os.`,
+      detached: true,
+      personCount,
+    });
+  }
+  return choices;
+}
+
+/** Which listed tree (main or leftover) contains this person. */
+export function treeChoiceForPerson(
+  people: Person[],
+  personId: string,
+  preferredRootId?: string,
+): FamilyTreeChoice | null {
+  if (!people.length || !people.some((p) => p.id === personId)) return null;
+  const forest = buildFamilyForest(people, preferredRootId);
+  const choices = getFamilyTreeChoices(people, preferredRootId);
+  if (forest.main.some((entry) => entry.person.id === personId)) {
+    return choices.find((choice) => !choice.detached) ?? choices[0] ?? null;
+  }
+  for (const branch of forest.branches) {
+    if (branch.some((entry) => entry.person.id === personId)) {
+      const rootId = branch[0]?.person.id;
+      return choices.find((choice) => choice.id === rootId) ?? null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Full family list from the same Neon people as the tree.
+ * One main trunk from the genealogical apex (generation 1 = oldest ancestor),
+ * then leftover people who are in the database but not linked to that trunk.
+ */
+export function buildCompleteFamilyList(
+  people: Person[],
+  preferredRootId?: string,
+): ListEntry[] {
+  const forest = buildFamilyForest(people, preferredRootId);
+  return [...forest.main, ...forest.branches.flat()];
 }
 
 /** True when the person sits on the apex trunk (including spouses), not in leftovers. */
@@ -153,11 +237,7 @@ export function isOnMainFamilyTree(
   preferredRootId?: string,
 ): boolean {
   if (!people.length || !people.some((p) => p.id === personId)) return false;
-  const startId =
-    preferredRootId && people.some((p) => p.id === preferredRootId)
-      ? preferredRootId
-      : people[0]!.id;
-  const apexId = findApexPersonId(people, startId);
-  const main = buildDescendantList(people, apexId, 1, 0, new Set());
-  return main.some((entry) => entry.person.id === personId);
+  return buildFamilyForest(people, preferredRootId).main.some(
+    (entry) => entry.person.id === personId,
+  );
 }

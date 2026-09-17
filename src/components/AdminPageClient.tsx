@@ -7,8 +7,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { ChangeSubmission, SubmissionPreview } from "@/types/submissions";
 import type { FamilyPayload, Person } from "@/types/family";
 import { useAdminAuthStatus, useAdminLogout } from "@/lib/hooks";
-import { KIND_LABELS, STATUS_LABELS, genderLabel } from "@/lib/submissionLabels";
-import { displayName, formatPolishDate } from "@/lib/db-client";
+import {
+  GRAPH_OP_LABELS,
+  KIND_LABELS,
+  PERSON_FIELD_LABELS,
+  STATUS_LABELS,
+  genderLabel,
+} from "@/lib/submissionLabels";
+import { displayName, formatPolishDate, formatPolishDateTime } from "@/lib/db-client";
 import { searchPeople } from "@/lib/search";
 import { describeSubmissionKinship } from "@/lib/submissionKinship";
 import { getChildrenIds } from "@/lib/tree";
@@ -20,13 +26,158 @@ import { AdminEventPayPanel } from "@/components/AdminEventPayPanel";
 import { AdminUsersPanel } from "@/components/AdminUsersPanel";
 import type { AdminUserRole } from "@/types/admin";
 
-type AdminSubmission = ChangeSubmission & { preview?: SubmissionPreview };
+type AdminSubmission = ChangeSubmission & {
+  preview?: SubmissionPreview;
+  reviewedByEmail?: string;
+};
 type Tab = "queue" | "people" | "pay" | "users";
 type StatusFilter = ChangeSubmission["status"] | "all";
 
 function graphEditsOf(s: ChangeSubmission) {
   if (s.graphEdits?.length) return s.graphEdits;
   return s.graphEdit ? [s.graphEdit] : [];
+}
+
+function personLabel(people: Person[], id?: string, fallback?: string) {
+  if (!id) return fallback || "—";
+  const person = people.find((p) => p.id === id);
+  return person ? displayName(person, people) : fallback || id;
+}
+
+function AdminKnownFacts({
+  submission,
+  people,
+}: {
+  submission: AdminSubmission;
+  people: Person[];
+}) {
+  const reporter = submission.reporterPersonId
+    ? people.find((p) => p.id === submission.reporterPersonId)
+    : null;
+  const edits = graphEditsOf(submission);
+  const snapshots = submission.before ?? [];
+  return (
+    <section className="admin-known" data-testid="admin-submission-known">
+      <h3>Znane szczegóły</h3>
+      <dl>
+        <dt>Zgłoszono</dt>
+        <dd>{formatPolishDateTime(submission.createdAt) || "—"}</dd>
+        <dt>Rozpatrzono</dt>
+        <dd>
+          {formatPolishDateTime(submission.reviewedAt) || "jeszcze nie"}
+          {submission.reviewedByEmail ? ` · ${submission.reviewedByEmail}` : ""}
+        </dd>
+        <dt>Zgłaszający</dt>
+        <dd>
+          {reporter ? (
+            <Link href={`/osoba/${encodeURIComponent(reporter.id)}`}>
+              {displayName(reporter, people)}
+            </Link>
+          ) : (
+            submission.reporterName
+          )}
+          {submission.reporterPhone ? ` · ${submission.reporterPhone}` : ""}
+        </dd>
+        {submission.targetPersonId ? (
+          <>
+            <dt>Dotyczy</dt>
+            <dd>
+              <Link href={`/osoba/${encodeURIComponent(submission.targetPersonId)}`}>
+                {submission.targetPersonName ||
+                  personLabel(people, submission.targetPersonId)}
+              </Link>
+            </dd>
+          </>
+        ) : null}
+      </dl>
+      {submission.self && (
+        <p>
+          Osoba z formularza: {submission.self.firstName} {submission.self.lastName}
+          {submission.self.maidenName ? ` (z d. ${submission.self.maidenName})` : ""}
+          {submission.self.birthDate
+            ? ` · ur. ${formatPolishDate(submission.self.birthDate)}`
+            : ""}
+          {submission.self.gender ? ` · ${genderLabel(submission.self.gender)}` : ""}
+        </p>
+      )}
+      {submission.relatives && submission.relatives.length > 0 && (
+        <ul className="admin-known__list">
+          {submission.relatives.map((relative, index) => (
+            <li key={`${relative.firstName}-${relative.lastName}-${index}`}>
+              {relative.relation}: {relative.firstName} {relative.lastName}
+              {relative.birthDate
+                ? ` · ur. ${formatPolishDate(relative.birthDate)}`
+                : ""}
+              {relative.notes ? ` · ${relative.notes}` : ""}
+            </li>
+          ))}
+        </ul>
+      )}
+      {edits.length > 0 && (
+        <ul className="admin-known__list" data-testid="admin-known-edits">
+          {edits.map((edit, index) => (
+            <li key={`${edit.op}-${edit.anchorPersonId}-${index}`}>
+              <strong>{GRAPH_OP_LABELS[edit.op] || edit.op}</strong>
+              {edit.summary ? ` — ${edit.summary}` : ""}
+              <span>
+                {" "}
+                Kotwica: {personLabel(people, edit.anchorPersonId)}
+                {edit.relatedPersonId
+                  ? ` · druga osoba: ${personLabel(people, edit.relatedPersonId)}`
+                  : ""}
+                {edit.secondParentId
+                  ? ` · drugi rodzic: ${personLabel(people, edit.secondParentId)}`
+                  : ""}
+              </span>
+              {edit.newPerson && (
+                <span>
+                  {" "}
+                  Nowa osoba: {edit.newPerson.firstName} {edit.newPerson.lastName}
+                  {edit.newPerson.birthDate
+                    ? ` · ur. ${formatPolishDate(edit.newPerson.birthDate)}`
+                    : ""}
+                  {edit.newPerson.clientPersonId
+                    ? ` (roboczo: ${edit.newPerson.clientPersonId})`
+                    : ""}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {snapshots.length > 0 && (
+        <details className="admin-known__snap">
+          <summary>Stan przed zmianą ({snapshots.length})</summary>
+          <ul className="admin-known__list">
+            {snapshots.map((snap) => (
+              <li key={snap.id}>
+                {displayName(snap, people)}
+                {snap.birthDate ? ` · ur. ${formatPolishDate(snap.birthDate)}` : ""}
+                {snap.parentIds.length
+                  ? ` · rodzice: ${snap.parentIds
+                      .map((id) => personLabel(people, id))
+                      .join(", ")}`
+                  : ""}
+                {snap.spouseIds.length
+                  ? ` · partnerzy: ${snap.spouseIds
+                      .map((id) => personLabel(people, id))
+                      .join(", ")}`
+                  : ""}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {submission.correction && (
+        <p>
+          Poprawka:{" "}
+          {Object.keys(submission.correction)
+            .map((field) => PERSON_FIELD_LABELS[field] || field)
+            .join(", ")}
+        </p>
+      )}
+    </section>
+  );
 }
 
 function SubmissionKinship({
@@ -374,6 +525,7 @@ function AdminPanel({
                   </p>
                 )}
                 <SubmissionKinship people={people} submission={selected} detail />
+                <AdminKnownFacts submission={selected} people={people} />
                 {selected.message && <p>{selected.message}</p>}
                 {selected.preview?.warnings.map((w) => (
                   <p key={w} className="banner-error" role="status">
@@ -445,7 +597,8 @@ function AdminPanel({
                     </figure>
                   </div>
                 )}
-                {selectedEdits.length > 0 && (
+                {selectedEdits.length > 0 &&
+                  (selected.status === "new" || selected.status === "reviewed") && (
                   <ul className="admin-graph-edits">
                     {selectedEdits.map((edit, i) => (
                       <li key={`${edit.op}-${edit.anchorPersonId}-${i}`}>
@@ -461,7 +614,7 @@ function AdminPanel({
                               )
                             }
                           />
-                          {i + 1}. {edit.summary || edit.op}
+                          {i + 1}. {edit.summary || GRAPH_OP_LABELS[edit.op] || edit.op}
                           {edit.newPerson?.clientPersonId
                             ? ` (roboczo: ${edit.newPerson.firstName} ${edit.newPerson.lastName})`
                             : ""}

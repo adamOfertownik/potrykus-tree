@@ -1,5 +1,14 @@
 import type { ChangeKind, ChangeSubmission } from "@/types/submissions";
 
+export const GRAPH_OP_LABELS: Record<
+  "add_child" | "link_spouse" | "reparent",
+  string
+> = {
+  add_child: "Dodanie dziecka",
+  link_spouse: "Powiązanie małżonka / partnera",
+  reparent: "Przepisanie rodziców",
+};
+
 export const KIND_LABELS: Record<ChangeKind, string> = {
   correction: "Poprawka danych",
   missing_person: "Brakująca osoba",

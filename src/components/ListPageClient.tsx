@@ -115,6 +115,11 @@ function ListInner({
             const isPending = Boolean(entry.person.pending);
             const showDetachedHead =
               Boolean(entry.detached) && !entries[index - 1]?.detached;
+            const startOfDetachedTree =
+              Boolean(entry.detached) &&
+              !entry.isSpouse &&
+              entry.depth === 0 &&
+              entry.generation === 1;
 
             return (
               <Fragment
@@ -126,7 +131,15 @@ function ListInner({
                   <p>
                     Są w bazie, ale nie mają wpisanego rodzica w głównym pniu
                     — dlatego numeracja pokoleń zaczyna się tu od nowa od 1.
+                    Każda taka gałąź to osobne drzewo, bez przypisania do
+                    głównej gałęzi.
                   </p>
+                </li>
+              )}
+              {startOfDetachedTree && (
+                <li className="genealogy-section genealogy-section--branch">
+                  <h3>{displayName(entry.person, people)}</h3>
+                  <p>Brak przypisania do głównej gałęzi.</p>
                 </li>
               )}
               <li

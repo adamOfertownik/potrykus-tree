@@ -665,6 +665,32 @@ textarea:focus-visible {
   backdrop-filter: blur(8px);
 }
 
+.tree-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.45rem 0.7rem;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.tree-switcher span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.tree-switcher select {
+  width: 100%;
+  min-height: var(--touch);
+  font-size: 1rem;
+}
+
 .tree-focus-bar {
   display: flex;
   flex-wrap: wrap;
@@ -2011,6 +2037,17 @@ button.person-card {
   font-size: 0.88rem;
   color: var(--ink-soft);
   line-height: 1.4;
+}
+
+.genealogy-section--branch {
+  margin-top: 0.75rem;
+  background: color-mix(in srgb, #c9862a 8%, white);
+}
+
+.genealogy-section--branch h3 {
+  margin: 0 0 0.2rem;
+  font-size: 1rem;
+  color: var(--ink);
 }
 
 .genealogy-item {
@@ -4259,6 +4296,20 @@ button.person-card {
     gap: 0.3rem;
   }
 
+  .tree-switcher {
+    padding: 0.28rem 0.5rem;
+  }
+
+  .tree-switcher span {
+    font-size: 0.68rem;
+  }
+
+  .tree-switcher select {
+    min-height: 2.1rem;
+    font-size: 0.92rem;
+    padding: 0.35rem 0.5rem;
+  }
+
   .tree-focus-bar {
     width: 100%;
     padding: 0.28rem 0.5rem;
@@ -4556,6 +4607,92 @@ button.person-card {
 .person-kinship__path li + li::before {
   content: "→ ";
   color: var(--ink-soft);
+}
+
+.person-history {
+  margin: 1rem 0;
+  padding: 0.9rem 1rem;
+  background: color-mix(in srgb, var(--panel) 80%, white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.person-history h2 {
+  margin: 0 0 0.45rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
+.person-history__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.person-history__when {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.person-history__headline {
+  margin: 0.15rem 0 0;
+  font-weight: 700;
+}
+
+.person-history__detail,
+.person-history__who,
+.person-history__note {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.admin-known {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.15rem;
+}
+
+.admin-known h3 {
+  margin: 0;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+}
+
+.admin-known dl {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 8.5rem) 1fr;
+  gap: 0.2rem 0.7rem;
+  margin: 0;
+}
+
+.admin-known dt {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.admin-known dd {
+  margin: 0;
+}
+
+.admin-known__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+}
+
+.admin-known__snap {
+  font-size: 0.9rem;
 }
 
 .admin-page {
