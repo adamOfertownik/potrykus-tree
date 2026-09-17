@@ -10,6 +10,7 @@ import { useAdminAuthStatus, useAdminLogout } from "@/lib/hooks";
 import { KIND_LABELS, STATUS_LABELS, genderLabel } from "@/lib/submissionLabels";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import { searchPeople } from "@/lib/search";
+import { describeSubmissionKinship } from "@/lib/submissionKinship";
 import { getChildrenIds } from "@/lib/tree";
 import { DateField } from "@/components/DateField";
 import { Modal } from "@/components/Modal";
@@ -25,6 +26,29 @@ type StatusFilter = ChangeSubmission["status"] | "all";
 function graphEditsOf(s: ChangeSubmission) {
   if (s.graphEdits?.length) return s.graphEdits;
   return s.graphEdit ? [s.graphEdit] : [];
+}
+
+function SubmissionKinship({
+  people,
+  submission,
+  detail = false,
+}: {
+  people: Person[];
+  submission: ChangeSubmission;
+  detail?: boolean;
+}) {
+  const kin = describeSubmissionKinship(people, submission);
+  if (!kin) return null;
+  const soft = kin.kind === "none" || kin.kind.startsWith("missing");
+  return (
+    <p
+      className={`admin-kinship${detail ? " admin-kinship--detail" : ""}${soft ? " admin-kinship--soft" : ""}`}
+      data-testid={detail ? "admin-submission-kinship-detail" : "admin-submission-kinship"}
+    >
+      {kin.sentence}
+      {detail && kin.reverse ? ` ${kin.reverse}` : ""}
+    </p>
+  );
 }
 
 function AdminPanel({ email }: { email: string }) {
@@ -298,6 +322,7 @@ function AdminPanel({ email }: { email: string }) {
                     {s.targetPersonName && (
                       <p className="empty-hint">Dotyczy: {s.targetPersonName}</p>
                     )}
+                    <SubmissionKinship people={people} submission={s} />
                   </button>
                 </li>
               ))}
@@ -320,6 +345,7 @@ function AdminPanel({ email }: { email: string }) {
                     </Link>
                   </p>
                 )}
+                <SubmissionKinship people={people} submission={selected} detail />
                 {selected.message && <p>{selected.message}</p>}
                 {selected.preview?.warnings.map((w) => (
                   <p key={w} className="banner-error" role="status">
