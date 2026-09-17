@@ -194,11 +194,61 @@ test("returning to full tree keeps the highlighted person", async ({
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
   await expect(page.getByTestId("full-tree-back")).toBeVisible();
   await page.getByTestId("full-tree-back").click();
+  await expect(page).toHaveURL(/[?&]hl=P016\b/);
   await expect(page.locator(".tree-focus-bar")).toContainText("Anna");
   await expect(page.locator(".tree-focus-bar")).not.toContainText("Widok wokół");
   await expect(page.locator(".is-chart-highlight").first()).toBeVisible({
     timeout: 10_000,
   });
+  const keptBox = await page.locator(".is-chart-highlight").first().boundingBox();
+  expect(keptBox, "highlighted card should stay readable").toBeTruthy();
+  expect(keptBox!.width).toBeGreaterThan(40);
+  expect(keptBox!.height).toBeGreaterThan(20);
+  await ctx.close();
+});
+
+test("full tree explains a person missing from the main trunk", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as {
+    people: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      parentIds?: string[];
+    }[];
+  };
+  const jadwiga = payload.people.find(
+    (p) =>
+      p.firstName === "Jadwiga" &&
+      /lewand/i.test(p.lastName) &&
+      (p.parentIds?.length ?? 0) === 0,
+  );
+  expect(jadwiga, "Jadwiga Lewandowska without parents must exist").toBeTruthy();
+
+  await page.goto(`/drzewo?root=${encodeURIComponent(jadwiga!.id)}`);
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.getByTestId("full-tree-back")).toBeVisible();
+  await expect(page.locator(".tree-focus-bar")).toContainText("Pozostałe osoby");
+  await page.getByTestId("full-tree-back").click();
+  await expect(page).toHaveURL(new RegExp(`[?&]hl=${jadwiga!.id}\\b`));
+  await expect(page.getByTestId("tree-off-trunk")).toBeVisible();
+  await expect(page.getByTestId("tree-off-trunk")).toContainText("Pozostałe osoby");
+  await expect(page.getByTestId("full-tree-back")).toHaveCount(0);
+  await page.getByTestId("show-off-trunk-branch").click();
+  await expect(page).toHaveURL(new RegExp(`[?&]root=${jadwiga!.id}\\b`));
+  await expect(page.getByTestId("full-tree-back")).toBeVisible();
   await ctx.close();
 });
 

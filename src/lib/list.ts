@@ -145,3 +145,19 @@ export function buildCompleteFamilyList(
 
   return [...main, ...detached];
 }
+
+/** True when the person sits on the apex trunk (including spouses), not in leftovers. */
+export function isOnMainFamilyTree(
+  people: Person[],
+  personId: string,
+  preferredRootId?: string,
+): boolean {
+  if (!people.length || !people.some((p) => p.id === personId)) return false;
+  const startId =
+    preferredRootId && people.some((p) => p.id === preferredRootId)
+      ? preferredRootId
+      : people[0]!.id;
+  const apexId = findApexPersonId(people, startId);
+  const main = buildDescendantList(people, apexId, 1, 0, new Set());
+  return main.some((entry) => entry.person.id === personId);
+}

@@ -621,7 +621,7 @@ textarea:focus-visible {
   align-items: flex-start;
   gap: 0.45rem;
   pointer-events: none;
-  max-width: min(420px, calc(100% - 6.5rem));
+  max-width: min(520px, calc(100% - 6.5rem));
 }
 
 .tree-page__chrome > * {
@@ -692,6 +692,22 @@ textarea:focus-visible {
 
 .tree-focus-bar--highlight {
   background: color-mix(in srgb, var(--accent) 6%, white);
+}
+
+.tree-focus-bar--detached {
+  flex-direction: column;
+  align-items: stretch;
+  background: color-mix(in srgb, #c9862a 10%, white);
+  border-color: color-mix(in srgb, #c9862a 40%, var(--line));
+}
+
+.tree-focus-bar__note,
+.tree-focus-bar--detached p {
+  flex: 1 1 100%;
+  white-space: normal;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--ink-soft);
 }
 
 .tree-focus-bar__actions {
@@ -3780,6 +3796,13 @@ textarea:focus-visible {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .tree-focus-bar__note,
+  .tree-focus-bar--detached p {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
   }
 
   .tree-focus-bar .btn {

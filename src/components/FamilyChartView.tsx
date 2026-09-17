@@ -374,12 +374,14 @@ export function FamilyChartView({
     chart.updateMainId(safeMain);
     // `initial: true` always fits the whole tree. A mid-tree ancestor like
     // Wincenty has ~400 cards and a 50k-px layout — fit shrinks cards to a
-    // few pixels and the canvas looks empty. Focused "widok wokół" must
-    // center the person at a readable zoom.
+    // few pixels and the canvas looks empty. Focused "widok wokół" and a
+    // kept highlight on the full tree must stay at a readable zoom.
+    const keepHighlight = highlightRef.current;
+    const fitWhole = overviewRef.current && !keepHighlight;
     try {
       chart.updateTree({
         initial: false,
-        tree_position: overviewRef.current ? "fit" : "main_to_middle",
+        tree_position: fitWhole ? "fit" : "main_to_middle",
       });
     } catch (err) {
       console.error("family-chart updateTree failed", err);
@@ -440,24 +442,31 @@ export function FamilyChartView({
   }, [scale]);
 
   // Explicit branch focus (deep link ?root=) — recenter the tree around a person.
-  // Returning to the family root keeps the current highlight and pans to that person.
+  // Returning to the family root keeps the current highlight and pans to that person
+  // at a readable zoom — never fit-to-window first, or the card becomes a speck.
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart || !mainId) return;
     chart.updateMainId(mainId);
     const keep = highlightRef.current;
     if (keep && keep !== mainId) {
-      chart.updateTree({ tree_position: "fit" });
+      try {
+        chart.updateTree({ tree_position: "main_to_middle" });
+      } catch (err) {
+        console.error("family-chart updateTree failed", err);
+        chart.updateTree({ tree_position: "main_to_middle" });
+      }
       const timer = window.setTimeout(() => {
         applyHighlight();
         applyAttending();
-        panToCard(keep);
+        const status = panToCard(keep);
+        if (status === "missing") onHighlightMissing?.(keep);
       }, 280);
       return () => window.clearTimeout(timer);
     }
     try {
       chart.updateTree({
-        tree_position: overview ? "fit" : "main_to_middle",
+        tree_position: overview && !keep ? "fit" : "main_to_middle",
       });
     } catch (err) {
       console.error("family-chart updateTree failed", err);
