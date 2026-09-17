@@ -45,6 +45,43 @@ test("search highlights without filtering tree", async ({ browser }) => {
   await ctx.close();
 });
 
+test("search finds a person typed last name first", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as {
+    people: { firstName: string; lastName: string }[];
+  };
+  const marcin = payload.people.find(
+    (p) => p.firstName === "Marcin" && p.lastName === "Kostrach",
+  );
+  expect(marcin, "Marcin Kostrach must exist").toBeTruthy();
+
+  for (const path of ["/drzewo", "/lista"] as const) {
+    await page.goto(path);
+    if (path === "/drzewo") {
+      await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+    } else {
+      await page.waitForSelector("[data-person-id]", { timeout: 45000 });
+    }
+    const input = page.locator(".person-search input").first();
+    await input.fill("kostrach marcin");
+    await expect(
+      page.locator(".person-search__item").filter({ hasText: /Marcin/i }).first(),
+    ).toBeVisible({ timeout: 10_000 });
+    await input.fill("");
+  }
+  await ctx.close();
+});
+
 test("lista shows every person from the family API", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);
