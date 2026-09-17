@@ -405,7 +405,7 @@ export function EventPageClient() {
       return;
     }
     if (totalGuests(tickets) < 1) {
-      setError("Wybierz bilety: ile osób 7+ i ile dzieci.");
+      setError("Wybierz bilety: ilu dorosłych i ile dzieci do 7 roku życia.");
       return;
     }
     setBusy(true);
@@ -563,11 +563,10 @@ export function EventPageClient() {
 
         {photos && (photos.email || photos.driveUrl) ? (
           <section className="event-section" id="zdjecia">
-            <h2>Zdjęcia rodziców</h2>
+            <h2>Zdjęcia rodziny</h2>
             <p className="event-section__lead">
-              Proszę przysyłać zdjęcia swoich rodziców z dokładnym opisem,{" "}
-              <strong>kto jest na zdjęciu</strong> i <strong>od kogo</strong>{" "}
-              pochodzi. Pokażemy je na imprezie.
+              Proszę przysyłać zdjęcia rodziny z dokładnym opisem,{" "}
+              <strong>kto jest na zdjęciu</strong>. Pokażemy je na imprezie.
             </p>
             <ul className="event-photos">
               {photos.email ? (
@@ -623,8 +622,8 @@ export function EventPageClient() {
           <h2>Zapisz się i policz opłatę</h2>
           <p className="event-section__lead">
             Wybierz siebie z drzewa (np. Adam Lieske), zaznacz za kogo płacisz,
-            a potem ile biletów: 7+ — {formatPln(price)}, do lat 7 —{" "}
-            {formatPln(priceUnder7)}, do lat 3 — 0 zł. Daty z drzewa
+            a potem ile biletów: dorośli — {formatPln(price)}, dzieci do 7 roku
+            życia — {formatPln(priceUnder7)}, do lat 3 — 0 zł. Daty z drzewa
             podpowiadają, ale nie blokują zapisu.
           </p>
 
@@ -734,7 +733,8 @@ export function EventPageClient() {
             <fieldset className="event-tickets">
               <legend>Bilety</legend>
               <p className="empty-hint">
-                Ile dorosłych i ile dzieci — zbiorczo, nie przy każdej osobie.
+                Ile dorosłych i ile dzieci do 7 roku życia — zbiorczo, nie przy
+                każdej osobie.
               </p>
               <GuestTicketSteppers
                 value={tickets}
@@ -843,7 +843,8 @@ export function EventPageClient() {
                   checked={!willTransfer}
                   onChange={() => setWillTransfer(false)}
                 />
-                Gotówką na miejscu
+                Gotówką do Marii Lieske (Mariola, Maryśka) z Domatówka, nr 694
+                467 731
               </label>
             </fieldset>
 
@@ -889,7 +890,7 @@ export function EventPageClient() {
               <strong>{guests}</strong>
             </div>
             <div>
-              <span>7+ / do 7 / do 3</span>
+              <span>dorośli / do 7 / do 3</span>
               <strong>
                 {breakdown.adults} / {breakdown.children3to12} /{" "}
                 {breakdown.childrenUnder3}

@@ -3878,6 +3878,14 @@ button.person-card {
   color: var(--ink-soft);
 }
 
+.event-pay-method .check-row {
+  align-items: flex-start;
+}
+
+.event-pay-method .check-row input {
+  margin-top: 0.2rem;
+}
+
 .rsvp-list__admin {
   display: flex;
   flex-wrap: wrap;

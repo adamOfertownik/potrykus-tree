@@ -431,7 +431,10 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
   await expect(page.getByText(/65 1940 1076 4614 2125 0001 0000/)).toBeVisible();
   await expect(page.getByText(/IMPREZA RODZINNA/).first()).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Zdjęcia rodziców" }),
+    page.getByRole("heading", { name: "Zdjęcia rodziny" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/zdjęcia rodziny z dokładnym opisem/),
   ).toBeVisible();
   await expect(page.getByText("maciej.lieder@gmail.com")).toBeVisible();
   await expect(
@@ -450,7 +453,11 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
   await expect(page.getByText(/IMPREZA RODZINNA, dorosłych-/)).toBeVisible();
   await expect(page.getByText("Jak zapłacisz?")).toBeVisible();
   await expect(page.getByRole("radio", { name: "Przelewem" })).toBeChecked();
-  await expect(page.getByRole("radio", { name: "Gotówką na miejscu" })).toBeVisible();
+  await expect(
+    page.getByRole("radio", { name: /Gotówką do Marii Lieske/ }),
+  ).toBeVisible();
+  await expect(page.getByText("Dorośli")).toBeVisible();
+  await expect(page.getByText("Dzieci do 7 roku życia")).toBeVisible();
   await ctx.close();
 });
 

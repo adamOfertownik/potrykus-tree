@@ -66,7 +66,7 @@ export function GuestTicketSteppers({
   return (
     <div className="guest-steppers">
       <Stepper
-        label="Bilety 7+"
+        label="Dorośli"
         hint={formatPln(pricePerPersonPln)}
         value={value.adults}
         min={0}
@@ -74,7 +74,7 @@ export function GuestTicketSteppers({
         onChange={(n) => set("adults", n)}
       />
       <Stepper
-        label="Dzieci do lat 7"
+        label="Dzieci do 7 roku życia"
         hint={formatPln(priceUnder7Pln)}
         value={value.children3to12}
         min={0}

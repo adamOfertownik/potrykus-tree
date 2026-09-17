@@ -23,12 +23,12 @@
     {
       "id": "stay",
       "title": "W cenie: sala, jedzenie, DJ, nocleg i śniadanie",
-      "detail": "240 zł od osoby 7+ obejmuje salę, jedzenie i DJ-a. Nocleg ze śniadaniem — bez dopłaty."
+      "detail": "240 zł od osoby dorosłej obejmuje salę, jedzenie i DJ-a. Nocleg ze śniadaniem — bez dopłaty."
     },
     {
       "id": "kids",
       "title": "Dzieci",
-      "detail": "Powyżej 7. roku życia — 240 zł (jak dorośli). Do lat 7 — 120 zł. Do lat 3 — 0 zł."
+      "detail": "Dorośli — 240 zł. Dzieci do 7 roku życia — 120 zł. Do lat 3 — 0 zł."
     },
     {
       "id": "early",
@@ -88,7 +88,7 @@
     "iban": "65194010764614212500010000",
     "bank": "Credit Agricole",
     "titleTemplate": "IMPREZA RODZINNA, dorosłych- {adults} dzieci do lat 7- {under7}. za: {name}",
-    "amountHint": "240 zł od osoby 7+ (dorośli i dzieci powyżej 7 lat). Dzieci do lat 7 — 120 zł. Dzieci do lat 3 — 0 zł. W tytule przelewu koniecznie „IMPREZA RODZINNA”.",
+    "amountHint": "240 zł od osoby dorosłej. Dzieci do 7 roku życia — 120 zł. Dzieci do lat 3 — 0 zł. W tytule przelewu koniecznie „IMPREZA RODZINNA”.",
     "notes": "Koniecznie opisz, na co te pieniądze: IMPREZA RODZINNA, liczba dorosłych i dzieci do lat 7 oraz za kogo. Skopiuj dane poniżej do aplikacji bankowej."
   },
   "rsvpDeadline": "2026-09-15",

@@ -105,8 +105,8 @@ export function breakdownFromAgeGroups(
 
 export function ticketSummary(b: GuestBreakdown): string {
   const parts: string[] = [];
-  if (b.adults) parts.push(`${b.adults}× 7+`);
-  if (b.children3to12) parts.push(`${b.children3to12}× do lat 7`);
+  if (b.adults) parts.push(`${b.adults}× dorośli`);
+  if (b.children3to12) parts.push(`${b.children3to12}× do 7 r.ż.`);
   if (b.childrenUnder3) parts.push(`${b.childrenUnder3}× do lat 3`);
   return parts.join(" · ") || "brak biletów";
 }
