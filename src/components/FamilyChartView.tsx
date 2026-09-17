@@ -50,12 +50,31 @@ function replaceBrokenChartPhoto(img: HTMLImageElement) {
   img.replaceWith(icon);
 }
 
+/** Extra px around the plus so a thumb still counts as a hit. */
+const PLUS_HIT_SLOP = 16;
+const PLUS_TAP_MOVE = 18;
+
 function plusButtonAt(host: HTMLElement, x: number, y: number): HTMLButtonElement | null {
   const pluses = host.querySelectorAll<HTMLButtonElement>(".chart-card-plus");
   let hit: HTMLButtonElement | null = null;
+  let best = Infinity;
   pluses.forEach((btn) => {
     const r = btn.getBoundingClientRect();
-    if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) hit = btn;
+    if (
+      x < r.left - PLUS_HIT_SLOP ||
+      x > r.right + PLUS_HIT_SLOP ||
+      y < r.top - PLUS_HIT_SLOP ||
+      y > r.bottom + PLUS_HIT_SLOP
+    ) {
+      return;
+    }
+    const dx = x - (r.left + r.right) / 2;
+    const dy = y - (r.top + r.bottom) / 2;
+    const dist = dx * dx + dy * dy;
+    if (dist < best) {
+      best = dist;
+      hit = btn;
+    }
   });
   return hit;
 }
@@ -354,16 +373,19 @@ export function FamilyChartView({
         btn.type = "button";
         btn.className = "chart-card-plus";
         btn.setAttribute("aria-label", "Dodaj powiązanie");
+        btn.setAttribute("data-testid", "chart-card-plus");
         btn.title = "Dodaj powiązanie";
         btn.textContent = "+";
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           e.preventDefault();
-          openPersonActions(id);
+          const personId = btn?.dataset.personId || id;
+          openPersonActions(personId);
         });
         this.classList.add("card_cont--addable");
         this.appendChild(btn);
       }
+      btn.dataset.personId = id;
 
       const photo = this.querySelector("img");
       if (photo) bindChartPhotoFallback(photo);
@@ -390,24 +412,56 @@ export function FamilyChartView({
     }
     chartRef.current = chart;
 
-    /** Neighbor cards sit in later stacking contexts and steal clicks from the plus. */
+    /** Neighbor cards sit in later stacking contexts and steal taps from the plus. */
+    let pendingPlus: HTMLButtonElement | null = null;
+    let pendingX = 0;
+    let pendingY = 0;
+    const stopZoom = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+    };
     const onPlusPointerDown = (e: PointerEvent) => {
       const hit = plusButtonAt(el, e.clientX, e.clientY);
       liftPlusCard(el, hit);
-      if (!hit) return;
-      if (e.target instanceof Element && hit.contains(e.target)) return;
-      e.preventDefault();
-      e.stopPropagation();
-      hit.click();
+      if (!hit) {
+        pendingPlus = null;
+        return;
+      }
+      pendingPlus = hit;
+      pendingX = e.clientX;
+      pendingY = e.clientY;
+      stopZoom(e);
     };
-    const onPlusPointerLeave = () => liftPlusCard(el, null);
-    el.addEventListener("pointerdown", onPlusPointerDown, true);
-    el.addEventListener("pointerleave", onPlusPointerLeave);
+    const onPlusPointerUp = (e: PointerEvent) => {
+      const hit = pendingPlus;
+      pendingPlus = null;
+      if (!hit?.isConnected) return;
+      const moved = Math.hypot(e.clientX - pendingX, e.clientY - pendingY);
+      if (moved > PLUS_TAP_MOVE) return;
+      stopZoom(e);
+      const personId = hit.dataset.personId;
+      if (personId) openPersonActions(personId);
+    };
+    const onPlusClickCapture = (e: MouseEvent) => {
+      if (!plusButtonAt(el, e.clientX, e.clientY)) return;
+      stopZoom(e);
+    };
+    const onPlusPointerCancel = () => {
+      pendingPlus = null;
+    };
+    const capture = { capture: true, passive: false } as const;
+    el.addEventListener("pointerdown", onPlusPointerDown, capture);
+    window.addEventListener("pointerup", onPlusPointerUp, capture);
+    window.addEventListener("pointercancel", onPlusPointerCancel, capture);
+    el.addEventListener("click", onPlusClickCapture, capture);
 
     return () => {
       window.clearTimeout(linkTimer);
-      el.removeEventListener("pointerdown", onPlusPointerDown, true);
-      el.removeEventListener("pointerleave", onPlusPointerLeave);
+      el.removeEventListener("pointerdown", onPlusPointerDown, capture);
+      window.removeEventListener("pointerup", onPlusPointerUp, capture);
+      window.removeEventListener("pointercancel", onPlusPointerCancel, capture);
+      el.removeEventListener("click", onPlusClickCapture, capture);
       chartRef.current = null;
       cardRef.current = null;
       el.innerHTML = "";
