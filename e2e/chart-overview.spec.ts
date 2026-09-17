@@ -46,7 +46,9 @@ test("zoomed-out tree shows branch headers and drilling into one", async ({
   const labels = page.getByTestId("chart-branch-label");
   await expect(labels.first()).toBeVisible({ timeout: 10_000 });
   await expect.poll(async () => labels.count()).toBeGreaterThan(1);
-  await expect(page.locator(".chart-gen-label").first()).toBeVisible();
+  const genLabel = page.locator(".chart-gen-label").first();
+  await expect(genLabel).toBeVisible();
+  await expect(genLabel).toHaveText(/^\d+$/);
   const clipped = await labels.evaluateAll((els) =>
     els
       .filter((el) => {

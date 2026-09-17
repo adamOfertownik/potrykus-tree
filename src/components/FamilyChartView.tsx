@@ -318,7 +318,7 @@ export function FamilyChartView({
         return;
       }
       const screenY = band.y * k + y;
-      if (genPlaced.some((prev) => Math.abs(prev - screenY) < 22)) {
+      if (genPlaced.some((prev) => Math.abs(prev - screenY) < 16)) {
         el.style.visibility = "hidden";
         return;
       }
@@ -877,8 +877,9 @@ export function FamilyChartView({
               key={band.key}
               className="chart-gen-label"
               data-gen-key={band.key}
+              title={band.label}
             >
-              {band.label}
+              {band.digit}
             </span>
           ))}
         </div>

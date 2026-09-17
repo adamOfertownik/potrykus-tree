@@ -25,6 +25,7 @@ export type GenerationBand = {
   key: string;
   y: number;
   label: string;
+  digit: string;
 };
 
 const MIN_BRANCH_WIDTH = 200;
@@ -216,17 +217,22 @@ export function pickGenerationBands(nodes: ChartTreeNode[]): GenerationBand[] {
   }
   return [...rows.entries()]
     .sort((a, b) => a[1].y - b[1].y)
-    .map(([, row]) => ({
-      key: `${row.ancestry ? "up" : "down"}-${row.depth}`,
-      y: row.y,
-      label: row.ancestry
+    .map(([, row]) => {
+      const digit = String(row.depth);
+      const label = row.ancestry
         ? row.depth === 0
           ? "Pień"
           : `Przodkowie ${row.depth}`
         : row.depth === 0
           ? "Pień"
-          : `Pokolenie ${row.depth}`,
-    }));
+          : `Pokolenie ${row.depth}`;
+      return {
+        key: `${row.ancestry ? "up" : "down"}-${row.depth}`,
+        y: row.y,
+        label,
+        digit,
+      };
+    });
 }
 
 export function overviewVisible(zoom: number): boolean {
