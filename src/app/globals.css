@@ -545,6 +545,18 @@ textarea:focus-visible {
   color: var(--ink-soft);
 }
 
+.app-footer__link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-strong);
+  font: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .loading-screen {
   min-height: 50dvh;
   display: grid;
@@ -2186,6 +2198,109 @@ textarea:focus-visible {
 .modal-actions--stack .btn {
   width: 100%;
   text-align: center;
+}
+
+.modal-card--pwa {
+  width: min(28rem, 100%);
+}
+
+.pwa-os-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+}
+
+.pwa-os-switch button {
+  min-height: var(--touch);
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.pwa-os-switch button.is-on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  color: var(--accent-strong);
+}
+
+.pwa-preview {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.pwa-preview li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem 0.8rem;
+  background: var(--bg);
+  border-radius: 12px;
+}
+
+.pwa-preview strong {
+  font-size: 1rem;
+}
+
+.pwa-preview span {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.pwa-step {
+  padding: 0.9rem 0.95rem;
+  margin: 0 0 1rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, white), white);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 14px;
+}
+
+.pwa-step__num {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.pwa-step h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+}
+
+.pwa-step p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  font-size: 1rem;
+}
+
+.pwa-guide__ok,
+.pwa-guide__warn {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  line-height: 1.4;
+}
+
+.pwa-guide__ok {
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  color: var(--accent-strong);
+}
+
+.pwa-guide__warn {
+  background: color-mix(in srgb, var(--attending) 14%, white);
+  border: 1px solid color-mix(in srgb, var(--attending) 35%, var(--line));
+  color: #7a3b0e;
 }
 
 .graph-person-backdrop {
