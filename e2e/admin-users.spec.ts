@@ -58,7 +58,7 @@ test("Użytkownicy tab shows create form and no forgot-password", async ({
   );
   await expect(page.getByRole("heading", { name: "Nowe konto" })).toBeVisible();
   await expect(page.getByText(/Hasło zapisujemy jako skrót/)).toBeVisible();
-  await expect(page.getByText(/Przekaż dane osobiście/)).toBeVisible();
+  await expect(page.getByText(/przekaż dane osobiście/i)).toBeVisible();
   await expect(page.getByText("Tylko wpłaty (ciocia)")).toBeVisible();
   await expect(page.getByLabel("E-mail")).toBeVisible();
   await expect(page.getByLabel("Hasło", { exact: true })).toBeVisible();
