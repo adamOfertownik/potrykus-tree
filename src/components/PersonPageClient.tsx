@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { AttendToggle } from "@/components/AttendToggle";
 import { AuthedPage } from "@/components/AuthedPage";
 import { PersonCard } from "@/components/PersonCard";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
@@ -59,6 +60,11 @@ function PersonInner({
           {attendingPersonIds.includes(person.id) && (
             <p className="attending-banner">Na spotkaniu rodzinnym</p>
           )}
+          <AttendToggle
+            personId={person.id}
+            fullName={displayName(person, people)}
+            attending={attendingPersonIds.includes(person.id)}
+          />
           {person.maidenName && (
             <p className="person-detail__maiden">
               Nazwisko rodowe: {person.maidenName}

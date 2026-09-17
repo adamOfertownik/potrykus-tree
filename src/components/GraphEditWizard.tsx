@@ -9,6 +9,10 @@ import {
   type GraphOp,
   type NewPersonInput,
 } from "@/lib/familyMutations";
+import {
+  nextDraftPersonId,
+  useOptionalDraftGraph,
+} from "@/components/DraftGraphProvider";
 import { loadReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
 import { useAdminAuthStatus } from "@/lib/hooks";
@@ -53,6 +57,8 @@ export function GraphEditWizard({
 }: Props) {
   const qc = useQueryClient();
   const admin = useAdminAuthStatus();
+  const draft = useOptionalDraftGraph();
+  const useDrafts = Boolean(draft) && admin.data?.loggedIn === false;
   const [step, setStep] = useState<"pick" | "confirm">("pick");
   const [mode, setMode] = useState<Mode>("existing");
   const [query, setQuery] = useState("");
@@ -141,12 +147,33 @@ export function GraphEditWizard({
     setBusy(true);
     setError(null);
     try {
+      const stagedInput = {
+        ...previewInput,
+        newPerson:
+          mode === "new"
+            ? {
+                ...newPerson,
+                clientPersonId: newPerson.clientPersonId || nextDraftPersonId(),
+              }
+            : undefined,
+      };
+
+      if (useDrafts && draft) {
+        const result = draft.stage(stagedInput, people);
+        onApplied?.({
+          summary: `${result.summary} Widać na szaro — dodaj kolejne osoby albo wyślij całość.`,
+          createdPersonId: result.createdPersonId,
+        });
+        handleClose();
+        return;
+      }
+
       const reporter = loadReporter();
       const res = await fetch("/api/family/mutate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...previewInput,
+          ...stagedInput,
           reporterName: reporter?.name || "Edycja grafu",
           reporterPersonId: reporter?.personId,
         }),
@@ -446,7 +473,7 @@ export function GraphEditWizard({
             <p className="graph-edit__note">
               {admin.data?.loggedIn
                 ? "Jesteś adminem — zmiana zapisze się od razu w drzewie."
-                : "To jest sugestia dla admina. Drzewo zmieni się dopiero po akceptacji."}
+                : "Osoba pojawi się od razu na szaro. Możesz dodać dzieci i wnuki, a potem wysłać wszystko razem do admina."}
             </p>
           </div>
         )}
@@ -493,7 +520,7 @@ export function GraphEditWizard({
                   ? "Zapisuję…"
                   : admin.data?.loggedIn
                     ? "Potwierdź i zapisz"
-                    : "Wyślij sugestię"}
+                    : "Dodaj roboczo"}
               </button>
               <button
                 type="button"

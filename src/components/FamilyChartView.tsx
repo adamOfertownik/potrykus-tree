@@ -6,6 +6,7 @@ import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
+import { separateChartLinks } from "@/lib/chartLinks";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { GraphEditHost } from "@/components/GraphEditHost";
 import { TreeWind } from "@/components/TreeWind";
@@ -32,9 +33,9 @@ const SCALE_LAYOUT: Record<
   TextScaleId,
   { w: number; h: number; xSpace: number; ySpace: number; font: number }
 > = {
-  normal: { w: 220, h: 78, xSpace: 250, ySpace: 250, font: 13 },
-  large: { w: 260, h: 96, xSpace: 300, ySpace: 290, font: 16 },
-  xlarge: { w: 300, h: 112, xSpace: 350, ySpace: 330, font: 18 },
+  normal: { w: 220, h: 78, xSpace: 270, ySpace: 300, font: 13 },
+  large: { w: 260, h: 96, xSpace: 320, ySpace: 340, font: 16 },
+  xlarge: { w: 300, h: 112, xSpace: 370, ySpace: 380, font: 18 },
 };
 
 /** Minimum zoom when jumping to a searched person, so the card stays readable */
@@ -111,6 +112,10 @@ export function FamilyChartView({
   const mainIdRef = useRef(mainId);
   const highlightRef = useRef<string | null>(highlightId);
   const attendingRef = useRef(new Set(attendingPersonIds));
+  const pendingRef = useRef(
+    new Set(people.filter((p) => p.pending).map((p) => p.id)),
+  );
+  const overviewRef = useRef(overview);
   /** Set when the highlight came from a tap — no need to slide the view then */
   const skipPanRef = useRef<string | null>(null);
 
@@ -120,7 +125,7 @@ export function FamilyChartView({
   const peopleSig = people
     .map(
       (p) =>
-        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.birthDate ?? ""}:${p.deathDate ?? ""}:${p.photoUrl ?? ""}`,
+        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.birthDate ?? ""}:${p.deathDate ?? ""}:${p.photoUrl ?? ""}:${p.pending ? "1" : "0"}`,
     )
     .join("|");
 
@@ -129,6 +134,10 @@ export function FamilyChartView({
     mainIdRef.current = mainId;
     highlightRef.current = highlightId;
     attendingRef.current = new Set(attendingPersonIds);
+    pendingRef.current = new Set(
+      people.filter((p) => p.pending).map((p) => p.id),
+    );
+    overviewRef.current = overview;
   });
 
   /** Bars above the canvas come and go — keep it inside the window */
@@ -187,6 +196,10 @@ export function FamilyChartView({
       node.classList.toggle(
         "is-attending",
         Boolean(id && attendingRef.current.has(id)),
+      );
+      node.classList.toggle(
+        "is-pending",
+        Boolean(id && pendingRef.current.has(id)),
       );
     });
   };
@@ -275,12 +288,21 @@ export function FamilyChartView({
     chart.setProgenyDepth(100);
     chart.setCardXSpacing(layout.xSpace);
     chart.setCardYSpacing(layout.ySpace);
-    chart.afterUpdate = () => {
+    let linkTimer = 0;
+    const paintLinks = () => {
       el.querySelectorAll("path.link").forEach((path) => {
-        path.setAttribute("stroke", "#5f7a6a");
-        path.setAttribute("stroke-width", "2.5");
+        if (!path.classList.contains("f3-path-to-main")) {
+          path.setAttribute("stroke", "#8aa392");
+          path.setAttribute("stroke-width", "2.25");
+        }
         path.setAttribute("fill", "none");
       });
+      separateChartLinks(el);
+    };
+    chart.afterUpdate = () => {
+      paintLinks();
+      window.clearTimeout(linkTimer);
+      linkTimer = window.setTimeout(paintLinks, 280);
       applyHighlight();
       applyAttending();
     };
@@ -334,10 +356,26 @@ export function FamilyChartView({
       const photo = this.querySelector("img");
       if (photo) bindChartPhotoFallback(photo);
       this.classList.toggle("is-attending", attendingRef.current.has(id));
+      this.classList.toggle("is-pending", pendingRef.current.has(id));
     });
 
     chart.updateMainId(safeMain);
-    chart.updateTree({ initial: true, tree_position: "fit" });
+    // `initial: true` always fits the whole tree. A mid-tree ancestor like
+    // Wincenty has ~400 cards and a 50k-px layout — fit shrinks cards to a
+    // few pixels and the canvas looks empty. Focused "widok wokół" must
+    // center the person at a readable zoom.
+    try {
+      chart.updateTree({
+        initial: false,
+        tree_position: overviewRef.current ? "fit" : "main_to_middle",
+      });
+    } catch (err) {
+      console.error("family-chart updateTree failed", err);
+      chart.updateTree({
+        initial: false,
+        tree_position: "main_to_middle",
+      });
+    }
     chartRef.current = chart;
 
     /** Neighbor cards sit in later stacking contexts and steal clicks from the plus. */
@@ -355,6 +393,7 @@ export function FamilyChartView({
     el.addEventListener("pointerleave", onPlusPointerLeave);
 
     return () => {
+      window.clearTimeout(linkTimer);
       el.removeEventListener("pointerdown", onPlusPointerDown, true);
       el.removeEventListener("pointerleave", onPlusPointerLeave);
       chartRef.current = null;
@@ -404,9 +443,14 @@ export function FamilyChartView({
       }, 280);
       return () => window.clearTimeout(timer);
     }
-    chart.updateTree({
-      tree_position: overview ? "fit" : "main_to_middle",
-    });
+    try {
+      chart.updateTree({
+        tree_position: overview ? "fit" : "main_to_middle",
+      });
+    } catch (err) {
+      console.error("family-chart updateTree failed", err);
+      chart.updateTree({ tree_position: "main_to_middle" });
+    }
     // applyHighlight / panToCard close over DOM nodes rebuilt with the chart
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainId, overview]);
@@ -517,6 +561,11 @@ export function FamilyChartView({
         {attendingPersonIds.length > 0 && (
           <span className="attending-legend" title="Osoby zapisane na spotkanie rodzinne">
             Pomarańczowa ramka — idą na spotkanie
+          </span>
+        )}
+        {people.some((p) => p.pending) && (
+          <span className="pending-legend" title="Osoby dodane roboczo, czekają na akceptację">
+            Szara karta — roboczo, jeszcze niezaakceptowane
           </span>
         )}
       </div>

@@ -1,12 +1,59 @@
 import { NextResponse } from "next/server";
 import { getAdminSession, isSessionValid } from "@/lib/auth";
 import { readFamilyDb, toFamilyPayload, writeFamilyDb } from "@/lib/db";
-import { applyGraphMutation, snapshotPeople } from "@/lib/familyMutations";
+import {
+  applyGraphMutations,
+  snapshotPeople,
+  type GraphMutationInput,
+} from "@/lib/familyMutations";
 import { appendSubmission } from "@/lib/submissions";
-import { graphMutationSchema } from "@/lib/validation";
+import {
+  graphMutationSchema,
+  graphMutateRequestSchema,
+} from "@/lib/validation";
 import { sanitizePlainText } from "@/lib/sanitize";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
-import type { ChangeSubmission } from "@/types/submissions";
+import type { ChangeSubmission, GraphEditPayload } from "@/types/submissions";
+
+function editsFromBody(json: unknown): GraphMutationInput[] {
+  const parsed = graphMutateRequestSchema.safeParse(json);
+  if (!parsed.success) {
+    const msg =
+      parsed.error.issues[0]?.message || "Nieprawidłowe dane mutacji.";
+    throw Object.assign(new Error(msg), { status: 400 });
+  }
+  const body = parsed.data;
+  const raw = body.edits?.length
+    ? body.edits
+    : [
+        {
+          op: body.op!,
+          anchorPersonId: body.anchorPersonId!,
+          relatedPersonId: body.relatedPersonId,
+          newPerson: body.newPerson,
+          secondParentId: body.secondParentId,
+          replaceParentIds: body.replaceParentIds,
+          reporterName: body.reporterName,
+          reporterPersonId: body.reporterPersonId,
+        },
+      ];
+  return raw.map((edit) => {
+    const one = graphMutationSchema.safeParse(edit);
+    if (!one.success) {
+      const msg =
+        one.error.issues[0]?.message || "Nieprawidłowe dane mutacji.";
+      throw Object.assign(new Error(msg), { status: 400 });
+    }
+    return {
+      op: one.data.op,
+      anchorPersonId: one.data.anchorPersonId,
+      relatedPersonId: one.data.relatedPersonId,
+      newPerson: one.data.newPerson,
+      secondParentId: one.data.secondParentId,
+      replaceParentIds: one.data.replaceParentIds,
+    };
+  });
+}
 
 export async function POST(request: Request) {
   const unlocked = await isSessionValid();
@@ -30,27 +77,17 @@ export async function POST(request: Request) {
 
   try {
     const json = await request.json();
-    const parsed = graphMutationSchema.safeParse(json);
-    if (!parsed.success) {
-      const msg =
-        parsed.error.issues[0]?.message || "Nieprawidłowe dane mutacji.";
-      return NextResponse.json({ error: msg }, { status: 400 });
-    }
-    const body = parsed.data;
-    const db = await readFamilyDb();
-    const result = applyGraphMutation(db, {
-      op: body.op,
-      anchorPersonId: body.anchorPersonId,
-      relatedPersonId: body.relatedPersonId,
-      newPerson: body.newPerson,
-      secondParentId: body.secondParentId,
-      replaceParentIds: body.replaceParentIds,
-    });
-
+    const edits = editsFromBody(json);
     const reporterName = sanitizePlainText(
-      body.reporterName?.trim() || "Edycja grafu (aplikacja)",
+      (json as { reporterName?: string })?.reporterName?.trim() ||
+        "Edycja grafu (aplikacja)",
       120,
     );
+    const reporterPersonId = (json as { reporterPersonId?: string })
+      ?.reporterPersonId;
+
+    const db = await readFamilyDb();
+    const result = applyGraphMutations(db, edits);
 
     if (admin) {
       await writeFamilyDb(result.db, admin.adminId);
@@ -59,32 +96,33 @@ export async function POST(request: Request) {
         applied: true,
         summary: result.summary,
         family: toFamilyPayload(result.db),
-        createdPersonId: result.createdPerson?.id,
+        createdPersonId: result.createdPeople.at(-1)?.id,
+        createdPersonIds: result.createdPeople.map((p) => p.id),
       });
     }
+
+    const graphEdits: GraphEditPayload[] = edits.map((edit, i) => ({
+      ...edit,
+      summary: result.summaries[i],
+    }));
 
     const submission: ChangeSubmission = {
       id: `sub-${Date.now()}`,
       createdAt: new Date().toISOString(),
       kind: "graph_edit",
       reporterName,
-      reporterPersonId: body.reporterPersonId,
+      reporterPersonId,
       targetPersonId: result.targetPersonId,
       targetPersonName: result.targetPersonName,
       message: result.summary,
-      graphEdit: {
-        op: body.op,
-        anchorPersonId: body.anchorPersonId,
-        relatedPersonId: body.relatedPersonId,
-        secondParentId: body.secondParentId,
-        replaceParentIds: body.replaceParentIds,
-        newPerson: body.newPerson,
-        summary: result.summary,
-      },
+      graphEdit: graphEdits[0],
+      graphEdits: graphEdits.length > 1 ? graphEdits : undefined,
       before: snapshotPeople(db.people, [
-        body.anchorPersonId,
-        body.relatedPersonId ?? "",
-        body.secondParentId ?? "",
+        ...edits.flatMap((edit) => [
+          edit.anchorPersonId,
+          edit.relatedPersonId ?? "",
+          edit.secondParentId ?? "",
+        ]),
       ]),
       status: "new",
     };
@@ -98,8 +136,12 @@ export async function POST(request: Request) {
       family: toFamilyPayload(db),
     });
   } catch (err) {
+    const status = (err as { status?: number }).status;
     const message =
       err instanceof Error ? err.message : "Nie udało się zapisać zmiany.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json(
+      { error: message },
+      { status: status === 400 ? 400 : 400 },
+    );
   }
 }

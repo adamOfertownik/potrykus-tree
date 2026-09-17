@@ -165,6 +165,57 @@ test("returning to full tree keeps the highlighted person", async ({
   await ctx.close();
 });
 
+test("kinship tree from B highlights the person on the full tree", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as {
+    people: { id: string; firstName: string; lastName: string }[];
+  };
+  const adam = payload.people.find(
+    (p) => p.firstName === "Adam" && p.lastName === "Lieske",
+  );
+  const wincenty = payload.people.find(
+    (p) =>
+      p.lastName === "Potrykus" &&
+      (p.firstName.includes("Wincenty") ||
+        p.firstName.includes("Vincentius")),
+  );
+  expect(adam, "Adam Lieske must exist").toBeTruthy();
+  expect(wincenty, "Wincenty Potrykus must exist").toBeTruthy();
+
+  await page.goto(
+    `/pokrewienstwo?a=${encodeURIComponent(adam!.id)}&b=${encodeURIComponent(wincenty!.id)}`,
+  );
+  await expect(page.getByRole("heading", { name: "Kto jest kim" })).toBeVisible({
+    timeout: 20000,
+  });
+  await page.getByRole("button", { name: "Drzewo od B" }).click();
+  await expect(page).toHaveURL(new RegExp(`[?&]hl=${wincenty!.id}\\b`));
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.getByTestId("full-tree-back")).toHaveCount(0);
+  await expect(page.locator(".tree-focus-bar")).toContainText(/Wincenty|Vincentius/);
+  await expect(page.locator(".is-chart-highlight").first()).toBeVisible({
+    timeout: 15_000,
+  });
+  const cardBox = await page.locator(".is-chart-highlight").first().boundingBox();
+  expect(cardBox, "highlighted card should be on screen").toBeTruthy();
+  expect(cardBox!.width).toBeGreaterThan(40);
+  expect(cardBox!.height).toBeGreaterThan(20);
+  await ctx.close();
+});
+
 test("kinship and birthdays pages load", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);
@@ -224,9 +275,13 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
     timeout: 20000,
   });
   await expect(page.getByText(/240\s*zł/).first()).toBeVisible();
+  await expect(page.getByText(/120\s*zł/).first()).toBeVisible();
   await expect(page.getByText(/\/ 200 miejsc/)).toBeVisible();
+  await expect(page.getByText("CA Elżbieta Lieder")).toBeVisible();
+  await expect(page.getByText(/65 1940 1076 4614 2125 0001 0000/)).toBeVisible();
+  await expect(page.getByText(/IMPREZA RODZINNA/).first()).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Prześlij zdjęcia rodzinne" }),
+    page.getByRole("heading", { name: "Zdjęcia rodziców" }),
   ).toBeVisible();
   await expect(page.getByText("maciej.lieder@gmail.com")).toBeVisible();
   await expect(
@@ -234,6 +289,67 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
   ).toHaveAttribute("href", /drive\.google\.com/);
   await expect(page.getByText("Od 14:00 możliwe zakwaterowanie.")).toBeVisible();
   await expect(page.getByText("Serwis szynki pieczonej")).toBeVisible();
+
+  const payerSearch = page.locator("#zapisz input").first();
+  await payerSearch.fill("Adam Lieske");
+  await page.getByRole("button", { name: /Adam Lieske/ }).first().click();
+  await expect(page.getByText(/Płatnik:\s*Adam Lieske/)).toBeVisible();
+  await expect(
+    page.getByText(/Za kogo jeszcze płacisz\? Rodzina/),
+  ).toBeVisible();
+  await expect(page.getByText(/IMPREZA RODZINNA, dorosłych-/)).toBeVisible();
+  await ctx.close();
+});
+
+test("draft child and grandchild stay gray until a batch is sent", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const stamp = Date.now();
+  const childName = `RoboczeDziecko${stamp}`;
+  const grandName = `RoboczyWnuk${stamp}`;
+
+  await page.goto("/lista");
+  await page.waitForSelector(".genealogy-add", { timeout: 45000 });
+  await page.locator(".genealogy-add").first().click();
+  await page.getByRole("button", { name: "Dziecko" }).click();
+  await page.getByRole("tab", { name: "Nowa osoba" }).click();
+  await page.getByLabel("Imię *").fill(childName);
+  await page.getByLabel("Nazwisko *").fill("Testowy");
+  await page.getByRole("button", { name: "Dalej — potwierdzenie" }).click();
+  await page.getByRole("button", { name: "Dodaj roboczo" }).click();
+
+  await expect(page.getByTestId("draft-graph-bar")).toBeVisible();
+  const childRow = page.locator(".genealogy-item.is-pending", {
+    hasText: childName,
+  });
+  await expect(childRow).toBeVisible();
+  await expect(childRow.locator(".pending-pill")).toHaveText("roboczo");
+
+  await childRow.locator(".genealogy-add").click();
+  await page.getByRole("button", { name: "Dziecko" }).click();
+  await page.getByRole("tab", { name: "Nowa osoba" }).click();
+  await page.getByLabel("Imię *").fill(grandName);
+  await page.getByLabel("Nazwisko *").fill("Testowy");
+  await page.getByRole("button", { name: "Dalej — potwierdzenie" }).click();
+  await page.getByRole("button", { name: "Dodaj roboczo" }).click();
+
+  await expect(
+    page.locator(".genealogy-item.is-pending", { hasText: grandName }),
+  ).toBeVisible();
+  await expect(page.getByTestId("draft-graph-bar")).toContainText("2 robocze");
+
+  await page.getByRole("button", { name: "Wyślij całość" }).click();
+  await expect(page.getByTestId("draft-graph-bar")).toHaveCount(0);
+  await expect(page.locator(".genealogy-item.is-pending")).toHaveCount(0);
   await ctx.close();
 });
 

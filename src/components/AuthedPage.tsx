@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import { AccessGate } from "@/components/AccessGate";
 import { AppShell } from "@/components/AppShell";
+import { DraftGraphBanner } from "@/components/DraftGraphBanner";
+import { useDraftGraph } from "@/components/DraftGraphProvider";
 import { useAuthStatus, useFamily } from "@/lib/hooks";
 import type { FamilyPayload } from "@/types/family";
 
@@ -26,6 +28,7 @@ export function AuthedPage({
   const auth = useAuthStatus();
   const unlocked = Boolean(auth.data?.unlocked);
   const family = useFamily(unlocked);
+  const drafts = useDraftGraph();
 
   if (auth.isLoading) {
     return <div className="loading-screen">Ładowanie…</div>;
@@ -50,7 +53,8 @@ export function AuthedPage({
     );
   }
 
-  const people = family.data.people;
+  const people = drafts.mergePeople(family.data.people);
+  const mergedFamily = { ...family.data, people };
 
   return (
     <AppShell
@@ -58,7 +62,8 @@ export function AuthedPage({
       exportRootId={exportRootId}
       immersive={immersive}
     >
-      {children({ family: family.data, people })}
+      <DraftGraphBanner />
+      {children({ family: mergedFamily, people })}
     </AppShell>
   );
 }

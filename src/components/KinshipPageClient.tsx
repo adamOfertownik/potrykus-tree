@@ -209,7 +209,7 @@ function KinshipInner({ people }: { people: Person[] }) {
               className="btn btn-secondary"
               onClick={() =>
                 router.push(
-                  `/drzewo?root=${encodeURIComponent(personA.id)}`,
+                  `/drzewo?hl=${encodeURIComponent(personA.id)}`,
                 )
               }
             >
@@ -220,7 +220,7 @@ function KinshipInner({ people }: { people: Person[] }) {
               className="btn btn-secondary"
               onClick={() =>
                 router.push(
-                  `/drzewo?root=${encodeURIComponent(personB.id)}`,
+                  `/drzewo?hl=${encodeURIComponent(personB.id)}`,
                 )
               }
             >

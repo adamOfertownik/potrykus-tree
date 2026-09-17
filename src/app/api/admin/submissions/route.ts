@@ -62,7 +62,11 @@ export async function PATCH(request: Request) {
     try {
       const db = await readFamilyDb();
       const preview = previewSubmission(db, current);
-      if (current.graphEdit && preview.warnings.length && !preview.autoApply) {
+      if (
+        (current.graphEdits?.length || current.graphEdit) &&
+        preview.warnings.length &&
+        !preview.autoApply
+      ) {
         return NextResponse.json(
           { error: preview.warnings[0] || "Nie można zastosować zgłoszenia." },
           { status: 409 },

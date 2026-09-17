@@ -49,7 +49,7 @@ function BirthdaysInner({
                 )}
                 <Link
                   className="btn-text"
-                  href={`/drzewo?root=${encodeURIComponent(e.person.id)}`}
+                  href={`/drzewo?hl=${encodeURIComponent(e.person.id)}`}
                 >
                   drzewo
                 </Link>

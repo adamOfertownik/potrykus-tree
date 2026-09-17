@@ -48,6 +48,7 @@ type Row = {
     self?: ChangeSubmission["self"];
     relatives?: ChangeSubmission["relatives"];
     graphEdit?: ChangeSubmission["graphEdit"];
+    graphEdits?: ChangeSubmission["graphEdits"];
     correction?: ChangeSubmission["correction"];
     photoUrl?: string;
     photoAction?: ChangeSubmission["photoAction"];
@@ -68,6 +69,7 @@ function payloadFrom(submission: ChangeSubmission) {
     self: submission.self ?? null,
     relatives: submission.relatives ?? null,
     graphEdit: submission.graphEdit ?? null,
+    graphEdits: submission.graphEdits ?? null,
     correction: submission.correction ?? null,
     photoUrl: submission.photoUrl ?? null,
     photoAction: submission.photoAction ?? null,
@@ -92,6 +94,7 @@ function rowToSubmission(row: Row): ChangeSubmission {
     self: row.payload?.self,
     relatives: row.payload?.relatives,
     graphEdit: row.payload?.graphEdit,
+    graphEdits: row.payload?.graphEdits,
     correction: row.payload?.correction,
     photoUrl: row.payload?.photoUrl,
     photoAction: row.payload?.photoAction,

@@ -8,6 +8,7 @@ import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { IdentityProvider, useIdentity } from "@/components/IdentityProvider";
+import { PwaInstallModal, usePwaAutoPrompt } from "@/components/PwaInstallGuide";
 import { resetPageScrollLockIfIdle } from "@/lib/scroll-lock";
 import type { Person } from "@/types/family";
 
@@ -38,6 +39,7 @@ function AppShellInner({
   const [menuOpen, setMenuOpen] = useState(false);
   const [pdfBusy, setPdfBusy] = useState<"list" | "a0" | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const pwa = usePwaAutoPrompt();
   const menuRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -209,6 +211,18 @@ function AppShellInner({
                   </button>
                 ))}
                 <div className="nav-menu__sep" />
+                <p className="nav-menu__label">Telefon</p>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    pwa.setOpen(true);
+                  }}
+                >
+                  Aplikacja na telefon
+                </button>
+                <div className="nav-menu__sep" />
                 <p className="nav-menu__label">Pobieranie</p>
                 <button
                   type="button"
@@ -290,9 +304,18 @@ function AppShellInner({
       <div className="app-main">{children}</div>
       {!immersive && (
         <footer className="app-footer">
-          Twórca: Adam Lieske · dane lokalne · dostęp kodem rodzinnym
+          Twórca: Adam Lieske · dostęp kodem rodzinnym
+          {" · "}
+          <button
+            type="button"
+            className="app-footer__link"
+            onClick={() => pwa.setOpen(true)}
+          >
+            Aplikacja na telefon
+          </button>
         </footer>
       )}
+      <PwaInstallModal open={pwa.open} onClose={() => pwa.setOpen(false)} />
     </div>
   );
 }

@@ -4,21 +4,27 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AccessGate } from "@/components/AccessGate";
 import { AppShell } from "@/components/AppShell";
-import { useAuthStatus, useFamily } from "@/lib/hooks";
+import { useAdminAuthStatus, useAuthStatus, useFamily } from "@/lib/hooks";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
-import { displayName } from "@/lib/db-client";
+import { displayName, formatPolishDate } from "@/lib/db-client";
+import { householdSuggestions } from "@/lib/eventAttending";
 import {
+  ageGroupFromBirth,
   amountDuePln,
+  breakdownFromAgeGroups,
   buildTransferTitle,
   DEFAULT_PRICE_PER_PERSON_PLN,
+  DEFAULT_PRICE_UNDER_7_PLN,
   EARLY_ARRIVAL_OVER_7_PLN,
   EARLY_ARRIVAL_UNDER_7_PLN,
+  earlyArrivalSurchargePln,
   formatPln,
-  payingGuests,
   totalGuests,
+  type GuestAgeGroup,
 } from "@/lib/eventPricing";
 import type { FamilyEvent } from "@/types/event";
+import type { Person } from "@/types/family";
 
 type EventApi = {
   storage?: string;
@@ -34,6 +40,7 @@ type EventApi = {
     id: string;
     createdAt: string;
     fullName: string;
+    personId?: string;
     guests: number;
     adults?: number;
     children3to12?: number;
@@ -41,7 +48,16 @@ type EventApi = {
     amountPln?: number;
     willTransfer: boolean;
     earlyArrival?: boolean;
+    coveredPersonIds?: string[];
+    source?: "form" | "admin";
   }[];
+};
+
+type PartyMember = {
+  key: string;
+  personId?: string;
+  name: string;
+  ageGroup: GuestAgeGroup;
 };
 
 async function fetchEvent(): Promise<EventApi> {
@@ -53,7 +69,28 @@ async function fetchEvent(): Promise<EventApi> {
 
 function formatIban(iban: string): string {
   const clean = iban.replace(/\s/g, "");
+  if (/^\d{26}$/.test(clean)) {
+    return `${clean.slice(0, 2)} ${clean
+      .slice(2)
+      .replace(/(.{4})/g, "$1 ")
+      .trim()}`;
+  }
   return clean.replace(/(.{4})/g, "$1 ").trim();
+}
+
+function memberFromPerson(person: Person, people: Person[]): PartyMember {
+  return {
+    key: person.id,
+    personId: person.id,
+    name: displayName(person, people),
+    ageGroup: ageGroupFromBirth(person.birthDate),
+  };
+}
+
+function ageLabel(group: GuestAgeGroup, price: number, under7: number): string {
+  if (group === "over7") return `7+ · ${formatPln(price)}`;
+  if (group === "under7") return `do lat 7 · ${formatPln(under7)}`;
+  return "do lat 3 · 0 zł";
 }
 
 function Stepper({
@@ -102,10 +139,68 @@ function Stepper({
   );
 }
 
+function EventPersonField({
+  people,
+  label,
+  placeholder,
+  excludeIds,
+  onPick,
+}: {
+  people: Person[];
+  label: string;
+  placeholder: string;
+  excludeIds: Set<string>;
+  onPick: (person: Person) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const matches = useMemo(() => {
+    if (!query.trim()) return [];
+    return searchPeople(people, query)
+      .filter((p) => !excludeIds.has(p.id))
+      .slice(0, 8);
+  }, [people, query, excludeIds]);
+
+  return (
+    <div className="field-block event-person-field">
+      <label>
+        {label}
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={placeholder}
+          autoComplete="off"
+        />
+      </label>
+      {matches.length > 0 && (
+        <ul className="who-matches">
+          {matches.map((p) => {
+            const dates = formatPolishDate(p.birthDate);
+            return (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onPick(p);
+                    setQuery("");
+                  }}
+                >
+                  {displayName(p, people)}
+                  {dates ? ` · ur. ${dates}` : ""}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function EventPageClient() {
   const auth = useAuthStatus();
   const unlocked = Boolean(auth.data?.unlocked);
   const family = useFamily(unlocked);
+  const admin = useAdminAuthStatus();
   const qc = useQueryClient();
   const eventQ = useQuery({
     queryKey: ["event"],
@@ -115,48 +210,105 @@ export function EventPageClient() {
 
   const [fullName, setFullName] = useState("");
   const [personId, setPersonId] = useState<string | undefined>();
+  const [party, setParty] = useState<PartyMember[]>([]);
   const [phone, setPhone] = useState("");
-  const [adults, setAdults] = useState(1);
-  const [children3to12, setChildren3to12] = useState(0);
-  const [childrenUnder3, setChildrenUnder3] = useState(0);
   const [notes, setNotes] = useState("");
   const [willTransfer, setWillTransfer] = useState(true);
   const [earlyArrival, setEarlyArrival] = useState(false);
   const [earlyArrivalOver7, setEarlyArrivalOver7] = useState(0);
   const [earlyArrivalUnder7, setEarlyArrivalUnder7] = useState(0);
-  const [nameQuery, setNameQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [cancelId, setCancelId] = useState<string | null>(null);
+
+  const people = family.data?.people ?? [];
 
   useEffect(() => {
     const r = loadReporter();
-    if (r?.name) {
-      setFullName(r.name);
-      setPersonId(r.personId);
-    }
+    if (!r?.name) return;
+    setFullName(r.name);
+    setPersonId(r.personId);
   }, []);
 
-  const people = family.data?.people ?? [];
-  const matches = useMemo(
-    () =>
-      nameQuery.trim() ? searchPeople(people, nameQuery).slice(0, 6) : [],
-    [people, nameQuery],
+  useEffect(() => {
+    if (!personId || party.length > 0 || !people.length) return;
+    const found = people.find((p) => p.id === personId);
+    if (found) setParty([memberFromPerson(found, people)]);
+  }, [people, personId, party.length]);
+
+  const excludeIds = useMemo(
+    () => new Set(party.map((m) => m.personId).filter(Boolean) as string[]),
+    [party],
   );
 
-  const price = eventQ.data?.event.pricePerPersonPln ?? DEFAULT_PRICE_PER_PERSON_PLN;
+  const suggestions = useMemo(
+    () => (personId ? householdSuggestions(personId, people) : []),
+    [personId, people],
+  );
+
+  const price =
+    eventQ.data?.event.pricePerPersonPln ?? DEFAULT_PRICE_PER_PERSON_PLN;
+  const priceUnder7 =
+    eventQ.data?.event.priceUnder7Pln ?? DEFAULT_PRICE_UNDER_7_PLN;
+
   const breakdown = useMemo(
-    () => ({ adults, children3to12, childrenUnder3 }),
-    [adults, children3to12, childrenUnder3],
+    () => breakdownFromAgeGroups(party.map((m) => m.ageGroup)),
+    [party],
   );
   const early = useMemo(
     () => ({ earlyArrival, earlyArrivalOver7, earlyArrivalUnder7 }),
     [earlyArrival, earlyArrivalOver7, earlyArrivalUnder7],
   );
   const guests = totalGuests(breakdown);
-  const paying = payingGuests(breakdown);
-  const amount = amountDuePln(breakdown, price, early);
+  const amount = amountDuePln(breakdown, price, early, priceUnder7);
+  const earlyFee = earlyArrivalSurchargePln(early);
+  const titleNames =
+    party.map((m) => m.name).filter(Boolean).join(", ") || fullName;
+  const transferTitle = buildTransferTitle(
+    breakdown.adults,
+    breakdown.children3to12,
+    titleNames,
+  );
+
+  const setPayer = (person: Person) => {
+    const next = memberFromPerson(person, people);
+    setFullName(next.name);
+    setPersonId(person.id);
+    setParty([next]);
+  };
+
+  const addMember = (person: Person) => {
+    setParty((cur) => {
+      if (cur.some((m) => m.personId === person.id)) return cur;
+      const next = memberFromPerson(person, people);
+      if (cur.length === 0) {
+        setFullName(next.name);
+        setPersonId(person.id);
+        return [next];
+      }
+      return [...cur, next];
+    });
+  };
+
+  const removeMember = (key: string) => {
+    setParty((cur) => {
+      const next = cur.filter((m) => m.key !== key);
+      if (cur[0]?.key === key) {
+        const head = next[0];
+        setFullName(head?.name ?? "");
+        setPersonId(head?.personId);
+      }
+      return next;
+    });
+  };
+
+  const setAge = (key: string, ageGroup: GuestAgeGroup) => {
+    setParty((cur) =>
+      cur.map((m) => (m.key === key ? { ...m, ageGroup } : m)),
+    );
+  };
 
   if (auth.isLoading) return <div className="loading-screen">Ładowanie…</div>;
   if (!auth.data?.unlocked) return <AccessGate />;
@@ -170,14 +322,12 @@ export function EventPageClient() {
 
   const { event, stats, rsvps, storage } = eventQ.data;
   const photos = event.photos;
-  const spotsLeft = stats.spotsLeft ?? Math.max(0, (stats.capacity ?? event.capacity) - stats.guestTotal);
+  const spotsLeft =
+    stats.spotsLeft ??
+    Math.max(0, (stats.capacity ?? event.capacity) - stats.guestTotal);
   const iban = event.transfer.iban?.trim();
-  const transferTitle = buildTransferTitle(
-    event.transfer.titleTemplate,
-    fullName,
-    guests,
-    amount,
-  );
+  const isAdmin = Boolean(admin.data?.loggedIn);
+  const byId = new Map(people.map((p) => [p.id, p]));
 
   const flashCopy = (key: string) => {
     setCopied(key);
@@ -208,30 +358,53 @@ export function EventPageClient() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (guests < 1) {
-      setError("Wybierz co najmniej jedną osobę.");
+    const members =
+      party.length > 0
+        ? party
+        : fullName.trim()
+          ? [
+              {
+                key: "payer",
+                personId,
+                name: fullName.trim(),
+                ageGroup: "over7" as const,
+              },
+            ]
+          : [];
+    const payerName = (members[0]?.name || fullName).trim();
+    if (!payerName) {
+      setError("Wybierz osobę z drzewa albo wpisz imię i nazwisko.");
+      return;
+    }
+    const counts = breakdownFromAgeGroups(members.map((m) => m.ageGroup));
+    if (totalGuests(counts) < 1) {
+      setError("Zaznacz, za kogo płacisz.");
       return;
     }
     setBusy(true);
     setError(null);
     setSuccess(null);
     try {
-      saveReporter({ name: fullName.trim(), personId });
+      const payerId = party[0]?.personId ?? personId;
+      saveReporter({ name: payerName, personId: payerId });
       const res = await fetch("/api/event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullName: fullName.trim(),
-          personId,
+          fullName: payerName,
+          personId: payerId,
           phone: phone.trim() || undefined,
-          adults,
-          children3to12,
-          childrenUnder3,
+          adults: counts.adults,
+          children3to12: counts.children3to12,
+          childrenUnder3: counts.childrenUnder3,
           notes: notes.trim() || undefined,
           willTransfer,
           earlyArrival,
           earlyArrivalOver7: earlyArrival ? earlyArrivalOver7 : 0,
           earlyArrivalUnder7: earlyArrival ? earlyArrivalUnder7 : 0,
+          coveredPersonIds: members
+            .map((m) => m.personId)
+            .filter((id): id is string => Boolean(id)),
         }),
       });
       const data = await res.json();
@@ -239,8 +412,8 @@ export function EventPageClient() {
       const paid = formatPln(data.amountPln ?? amount);
       setSuccess(
         data.warning
-          ? `${data.warning} Kwota: ${paid}.`
-          : `Zapisano. Do zapłaty: ${paid}. Skopiuj dane przelewu poniżej.`,
+          ? `${data.warning} Kwota: ${paid}. Tytuł: ${transferTitle}`
+          : `Zapisano. Do zapłaty: ${paid}. W tytule przelewu koniecznie „IMPREZA RODZINNA”.`,
       );
       setNotes("");
       await Promise.all([
@@ -251,6 +424,27 @@ export function EventPageClient() {
       setError((err as Error).message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const cancelRsvp = async (id: string) => {
+    setCancelId(id);
+    try {
+      const res = await fetch("/api/event/attend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rsvpId: id, attending: false }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd");
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["event"] }),
+        qc.invalidateQueries({ queryKey: ["family"] }),
+      ]);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setCancelId(null);
     }
   };
 
@@ -275,7 +469,9 @@ export function EventPageClient() {
             </li>
             <li>
               <span>Cena</span>
-              <strong>{formatPln(price)} / osoba</strong>
+              <strong>
+                {formatPln(price)} / {formatPln(priceUnder7)} / 0 zł
+              </strong>
             </li>
             <li>
               <span>Zapisy</span>
@@ -303,7 +499,8 @@ export function EventPageClient() {
           <section className="event-section">
             <h2>Na miejscu</h2>
             <p className="event-section__lead">
-              Co warto wiedzieć przed przyjazdem do Jastrzębiej Góry.
+              W cenie: sala, jedzenie, DJ, a dodatkowo bez dopłaty nocleg ze
+              śniadaniem.
             </p>
             <ul className="event-amenities">
               {event.amenities.map((a) => (
@@ -318,10 +515,11 @@ export function EventPageClient() {
 
         {photos && (photos.email || photos.driveUrl) ? (
           <section className="event-section" id="zdjecia">
-            <h2>Prześlij zdjęcia rodzinne</h2>
+            <h2>Zdjęcia rodziców</h2>
             <p className="event-section__lead">
-              Zdjęcia pokażemy na imprezie. Wyślij je mailem albo wstaw do
-              wspólnego folderu.
+              Proszę przysyłać zdjęcia swoich rodziców z dokładnym opisem,{" "}
+              <strong>kto jest na zdjęciu</strong> i <strong>od kogo</strong>{" "}
+              pochodzi. Pokażemy je na imprezie.
             </p>
             <ul className="event-photos">
               {photos.email ? (
@@ -376,50 +574,139 @@ export function EventPageClient() {
         <section className="event-section" id="zapisz">
           <h2>Zapisz się i policz opłatę</h2>
           <p className="event-section__lead">
-            {formatPln(price)} od osoby dorosłej i dziecka 3–12 lat — w cenie
-            nocleg, impreza i śniadanie. Dzieci do lat 3 — bez opłaty.
+            Wybierz siebie z drzewa (np. Adam Lieske), a potem zaznacz, za kogo
+            jeszcze płacisz. Dorośli i dzieci powyżej 7 lat —{" "}
+            {formatPln(price)}. Dzieci do lat 7 — {formatPln(priceUnder7)}.
+            Dzieci do lat 3 — 0 zł.
           </p>
 
           <form className="change-form" onSubmit={submit}>
+            <EventPersonField
+              people={people}
+              label="Kto się zgłasza / kto płaci"
+              placeholder="Szukaj, np. Adam Lieske…"
+              excludeIds={new Set()}
+              onPick={setPayer}
+            />
+
             <label className="field-block">
-              Znajdź siebie w drzewie (opcjonalnie)
+              Imię i nazwisko *
               <input
-                value={nameQuery}
-                onChange={(e) => setNameQuery(e.target.value)}
-                placeholder="Szukaj…"
+                required
+                value={fullName}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFullName(value);
+                  setPersonId(undefined);
+                  setParty((cur) => {
+                    if (!cur.length) {
+                      return value.trim()
+                        ? [
+                            {
+                              key: "payer",
+                              name: value,
+                              ageGroup: "over7",
+                            },
+                          ]
+                        : [];
+                    }
+                    const [head, ...rest] = cur;
+                    if (head.personId) {
+                      return [
+                        { key: "payer", name: value, ageGroup: head.ageGroup },
+                        ...rest,
+                      ];
+                    }
+                    return [{ ...head, name: value }, ...rest];
+                  });
+                }}
               />
             </label>
-            {matches.length > 0 && (
-              <ul className="who-matches">
-                {matches.map((p) => (
-                  <li key={p.id}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFullName(displayName(p));
-                        setPersonId(p.id);
-                        setNameQuery("");
-                      }}
-                    >
-                      {displayName(p)}
-                    </button>
-                  </li>
+
+            {party.length > 0 && (
+              <div className="event-party" role="group" aria-label="Za kogo płacisz">
+                <p className="event-party__lead">
+                  Za kogo płacisz — zaznacz grupę wiekową przy każdej osobie
+                </p>
+                {party.map((member, index) => (
+                  <div key={member.key} className="event-party__member">
+                    <div className="event-party__head">
+                      <strong>
+                        {index === 0 ? "Płatnik: " : ""}
+                        {member.name}
+                      </strong>
+                      {party.length > 1 || member.personId ? (
+                        <button
+                          type="button"
+                          className="btn btn-secondary event-party__remove"
+                          onClick={() => removeMember(member.key)}
+                        >
+                          Usuń
+                        </button>
+                      ) : null}
+                    </div>
+                    <div className="event-party__ages" role="radiogroup">
+                      {(["over7", "under7", "under3"] as GuestAgeGroup[]).map(
+                        (group) => (
+                          <label
+                            key={group}
+                            className={
+                              member.ageGroup === group ? "is-on" : undefined
+                            }
+                          >
+                            <input
+                              type="radio"
+                              name={`age-${member.key}`}
+                              checked={member.ageGroup === group}
+                              onChange={() => setAge(member.key, group)}
+                            />
+                            {ageLabel(group, price, priceUnder7)}
+                          </label>
+                        ),
+                      )}
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
 
+            {suggestions.length > 0 && (
+              <div className="event-suggest">
+                <p className="event-party__lead">
+                  Za kogo jeszcze płacisz? Rodzina {fullName || "tej osoby"}:
+                </p>
+                {suggestions.map((p) => {
+                  const checked = excludeIds.has(p.id);
+                  const dates = formatPolishDate(p.birthDate);
+                  return (
+                    <label key={p.id}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          if (checked) removeMember(p.id);
+                          else addMember(p);
+                        }}
+                      />
+                      <span>
+                        {displayName(p, people)}
+                        {dates ? ` · ur. ${dates}` : ""}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
+            <EventPersonField
+              people={people}
+              label="Dodaj kolejną osobę z drzewa"
+              placeholder="Szukaj kolejnej osoby…"
+              excludeIds={excludeIds}
+              onPick={addMember}
+            />
+
             <div className="form-grid">
-              <label>
-                Imię i nazwisko *
-                <input
-                  required
-                  value={fullName}
-                  onChange={(e) => {
-                    setFullName(e.target.value);
-                    setPersonId(undefined);
-                  }}
-                />
-              </label>
               <label>
                 Telefon
                 <input
@@ -430,33 +717,6 @@ export function EventPageClient() {
               </label>
             </div>
 
-            <div className="guest-steppers" role="group" aria-label="Liczba osób">
-              <Stepper
-                label="Osoby (13+)"
-                hint={`${formatPln(price)} / os.`}
-                value={adults}
-                min={0}
-                max={20}
-                onChange={setAdults}
-              />
-              <Stepper
-                label="Dzieci 3–12 lat"
-                hint={`${formatPln(price)} / os.`}
-                value={children3to12}
-                min={0}
-                max={20}
-                onChange={setChildren3to12}
-              />
-              <Stepper
-                label="Dzieci do lat 3"
-                hint="bez opłaty"
-                value={childrenUnder3}
-                min={0}
-                max={20}
-                onChange={setChildrenUnder3}
-              />
-            </div>
-
             <label className="check-row">
               <input
                 type="checkbox"
@@ -465,7 +725,9 @@ export function EventPageClient() {
                   const on = e.target.checked;
                   setEarlyArrival(on);
                   if (on) {
-                    setEarlyArrivalOver7((n) => (n > 0 ? n : adults));
+                    setEarlyArrivalOver7((n) =>
+                      n > 0 ? n : breakdown.adults,
+                    );
                   } else {
                     setEarlyArrivalOver7(0);
                     setEarlyArrivalUnder7(0);
@@ -476,7 +738,11 @@ export function EventPageClient() {
               do 7 lat {EARLY_ARRIVAL_UNDER_7_PLN} zł, do 3 lat za darmo)
             </label>
             {earlyArrival ? (
-              <div className="guest-steppers" role="group" aria-label="Wcześniejszy przyjazd">
+              <div
+                className="guest-steppers"
+                role="group"
+                aria-label="Wcześniejszy przyjazd"
+              >
                 <Stepper
                   label="Osoby 7 lat i więcej"
                   hint={`+${formatPln(EARLY_ARRIVAL_OVER_7_PLN)} / os.`}
@@ -486,7 +752,7 @@ export function EventPageClient() {
                   onChange={setEarlyArrivalOver7}
                 />
                 <Stepper
-                  label="Dzieci 3–6 lat"
+                  label="Dzieci do 7 lat"
                   hint={`+${formatPln(EARLY_ARRIVAL_UNDER_7_PLN)} / os.`}
                   value={earlyArrivalUnder7}
                   min={0}
@@ -528,7 +794,9 @@ export function EventPageClient() {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={busy || guests < 1 || guests > spotsLeft || spotsLeft < 1}
+              disabled={
+                busy || guests < 1 || guests > spotsLeft || spotsLeft < 1
+              }
             >
               {busy
                 ? "Zapisuję…"
@@ -541,6 +809,11 @@ export function EventPageClient() {
 
         <section className="event-section event-pay" id="platnosc">
           <h2>Szybka płatność</h2>
+          <p className="event-transfer-must">
+            KONIECZNIE opisz w tytule, na co te pieniądze:{" "}
+            <strong>IMPREZA RODZINNA</strong>, liczba dorosłych i dzieci do lat
+            7 oraz za kogo.
+          </p>
           <p className="event-section__lead">{event.transfer.notes}</p>
 
           <div className="pay-summary">
@@ -549,15 +822,16 @@ export function EventPageClient() {
               <strong>{guests}</strong>
             </div>
             <div>
-              <span>Płatne miejsca</span>
-              <strong>{paying}</strong>
+              <span>7+ / do 7 / do 3</span>
+              <strong>
+                {breakdown.adults} / {breakdown.children3to12} /{" "}
+                {breakdown.childrenUnder3}
+              </strong>
             </div>
             {earlyArrival ? (
               <div>
                 <span>Dopłata wcześniej</span>
-                <strong>
-                  {formatPln(amount - paying * price)}
-                </strong>
+                <strong>{formatPln(earlyFee)}</strong>
               </div>
             ) : null}
             <div className="pay-summary__total">
@@ -631,31 +905,58 @@ export function EventPageClient() {
               Wróć do zapisu
             </a>
           </div>
-          <p className="event-footnote">
-            {event.transfer.amountHint} Po uzupełnieniu numeru konta wystarczy
-            wkleić skopiowane dane w aplikacji bankowej.
-          </p>
+          <p className="event-footnote">{event.transfer.amountHint}</p>
         </section>
 
         <section className="event-section">
           <h2>Lista zapisanych ({rsvps.length})</h2>
+          {isAdmin && (
+            <p className="event-section__lead">
+              Jesteś administratorem — możesz też oznaczać zapisy na liście
+              rodziny i przy osobie.
+            </p>
+          )}
           {rsvps.length === 0 ? (
             <p className="empty-hint">Nikt jeszcze się nie zapisał.</p>
           ) : (
             <ul className="rsvp-list">
-              {rsvps.map((r) => (
-                <li key={r.id}>
-                  <strong>{r.fullName}</strong>
-                  <span>
-                    {r.guests} {r.guests === 1 ? "osoba" : "osób"}
-                    {typeof r.amountPln === "number" && r.amountPln > 0
-                      ? ` · ${formatPln(r.amountPln)}`
-                      : ""}
-                    {r.willTransfer ? " · przelew" : ""}
-                    {r.earlyArrival ? " · dzień wcześniej" : ""}
-                  </span>
-                </li>
-              ))}
+              {rsvps.map((r) => {
+                const covered = (r.coveredPersonIds ?? [])
+                  .map((id) => {
+                    const p = byId.get(id);
+                    return p ? displayName(p, people) : null;
+                  })
+                  .filter(Boolean);
+                return (
+                  <li key={r.id}>
+                    <div>
+                      <strong>{r.fullName}</strong>
+                      <span>
+                        {r.guests} {r.guests === 1 ? "osoba" : "osób"}
+                        {typeof r.amountPln === "number" && r.amountPln > 0
+                          ? ` · ${formatPln(r.amountPln)}`
+                          : ""}
+                        {r.willTransfer ? " · przelew" : ""}
+                        {r.earlyArrival ? " · dzień wcześniej" : ""}
+                        {r.source === "admin" ? " · admin" : ""}
+                      </span>
+                      {covered.length > 0 && (
+                        <span>Za: {covered.join(", ")}</span>
+                      )}
+                    </div>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        disabled={cancelId === r.id}
+                        onClick={() => cancelRsvp(r.id)}
+                      >
+                        {cancelId === r.id ? "Usuwam…" : "Usuń zapis"}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
           {event.contactNote && (

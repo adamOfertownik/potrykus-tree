@@ -18,6 +18,18 @@ type Props = {
   trailing?: React.ReactNode;
 };
 
+function useNarrowScreen() {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 720px)");
+    const apply = () => setNarrow(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+  return narrow;
+}
+
 function useFloatingBelow(
   anchor: React.RefObject<HTMLElement | null>,
   active: boolean,
@@ -40,12 +52,18 @@ function useFloatingBelow(
       if (!el) return;
       const r = el.getBoundingClientRect();
       const view = window.visualViewport;
-      const viewBottom = view ? view.offsetTop + view.height : window.innerHeight;
-      const top = Math.round(r.bottom + 4);
-      const maxHeight = Math.max(96, Math.min(280, viewBottom - top - 8));
+      const ox = view?.offsetLeft ?? 0;
+      const oy = view?.offsetTop ?? 0;
+      const top = Math.round(r.bottom + 4 - oy);
+      const left = Math.round(r.left - ox);
+      const viewHeight = view?.height ?? window.innerHeight;
+      const maxHeight = Math.max(
+        96,
+        Math.min(280, Math.round(viewHeight - (r.bottom - oy) - 12)),
+      );
       setBox({
         top,
-        left: Math.round(r.left),
+        left,
         width: Math.round(r.width),
         maxHeight,
       });
@@ -79,10 +97,13 @@ export function PersonSearch({
   const [active, setActive] = useState(0);
   const [missingOpen, setMissingOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const fieldRef = useRef<HTMLDivElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   const listId = useId();
+  const narrow = useNarrowScreen();
   const showPanel = open && query.trim().length >= 1;
-  const floatBox = useFloatingBelow(wrapRef, showPanel);
+  const usePortal = narrow && showPanel;
+  const floatBox = useFloatingBelow(fieldRef, usePortal);
 
   const matches = useMemo(
     () =>
@@ -129,8 +150,58 @@ export function PersonSearch({
     }
   };
 
+  const results =
+    matches.length > 0 ? (
+      <ul id={listId} role="listbox" className="person-search__results">
+        {matches.map((p, i) => {
+          const dates = [
+            formatPolishDate(p.birthDate),
+            formatPolishDate(p.deathDate),
+          ]
+            .filter(Boolean)
+            .join(" – ");
+          return (
+            <li
+              key={p.id}
+              id={`${listId}-opt-${p.id}`}
+              role="option"
+              aria-selected={i === active}
+            >
+              <button
+                type="button"
+                className={`person-search__item${i === active ? " is-active" : ""}`}
+                onMouseEnter={() => setActive(i)}
+                onClick={() => pick(p)}
+              >
+                <span className="person-search__name">
+                  {displayName(p, people)}
+                </span>
+                {dates && (
+                  <span className="person-search__meta">{dates}</span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    ) : (
+      <div className="person-search__empty">
+        <p>Brak wyników dla „{query}”.</p>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => {
+            setMissingOpen(true);
+            setOpen(false);
+          }}
+        >
+          Podaj dane — dopasujemy
+        </button>
+      </div>
+    );
+
   const panel =
-    showPanel && floatBox && typeof document !== "undefined"
+    usePortal && floatBox && typeof document !== "undefined"
       ? createPortal(
           <div
             ref={resultsRef}
@@ -142,54 +213,7 @@ export function PersonSearch({
               maxHeight: floatBox.maxHeight,
             }}
           >
-            {matches.length > 0 ? (
-              <ul id={listId} role="listbox" className="person-search__results">
-                {matches.map((p, i) => {
-                  const dates = [
-                    formatPolishDate(p.birthDate),
-                    formatPolishDate(p.deathDate),
-                  ]
-                    .filter(Boolean)
-                    .join(" – ");
-                  return (
-                    <li
-                      key={p.id}
-                      id={`${listId}-opt-${p.id}`}
-                      role="option"
-                      aria-selected={i === active}
-                    >
-                      <button
-                        type="button"
-                        className={`person-search__item${i === active ? " is-active" : ""}`}
-                        onMouseEnter={() => setActive(i)}
-                        onClick={() => pick(p)}
-                      >
-                        <span className="person-search__name">
-                          {displayName(p, people)}
-                        </span>
-                        {dates && (
-                          <span className="person-search__meta">{dates}</span>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <div className="person-search__empty">
-                <p>Brak wyników dla „{query}”.</p>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => {
-                    setMissingOpen(true);
-                    setOpen(false);
-                  }}
-                >
-                  Podaj dane — dopasujemy
-                </button>
-              </div>
-            )}
+            {results}
           </div>,
           document.body,
         )
@@ -214,7 +238,7 @@ export function PersonSearch({
           ) : null}
         </div>
         <div className="person-search__row">
-          <div className="person-search__field">
+          <div className="person-search__field" ref={fieldRef}>
             <span className="person-search__icon" aria-hidden>
               <svg
                 viewBox="0 0 24 24"
@@ -268,6 +292,7 @@ export function PersonSearch({
                 ×
               </button>
             )}
+            {showPanel && !usePortal ? results : null}
           </div>
           {trailing}
         </div>

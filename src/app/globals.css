@@ -545,6 +545,18 @@ textarea:focus-visible {
   color: var(--ink-soft);
 }
 
+.app-footer__link {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-strong);
+  font: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .loading-screen {
   min-height: 50dvh;
   display: grid;
@@ -694,6 +706,12 @@ textarea:focus-visible {
   z-index: 1;
   flex: 1 1 260px;
   max-width: 440px;
+}
+
+.person-search.person-search--overlay {
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: none;
 }
 
 .person-search__row {
@@ -1033,10 +1051,25 @@ textarea:focus-visible {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--attending) 32%, transparent);
 }
 
+.family-chart-host .card_cont.is-pending .card,
+.family-chart-host .card_cont.is-pending .card-inner,
+.family-chart-host .card_cont.is-pending .card-rect {
+  opacity: 0.62;
+  filter: grayscale(0.75);
+  outline: 2px dashed #8a8a8a;
+  outline-offset: 2px;
+}
+
 .family-chart-host g.card_cont.is-attending .card-outline,
 .family-chart-host g.card_cont.is-attending .card-body-rect {
   stroke: var(--attending);
   stroke-width: 4px;
+}
+
+.family-chart-host g.card_cont.is-pending .card-outline,
+.family-chart-host g.card_cont.is-pending .card-body-rect {
+  stroke: #8a8a8a;
+  stroke-dasharray: 5 4;
 }
 
 .family-chart-host .card_cont.is-chart-highlight .card,
@@ -1241,12 +1274,14 @@ textarea:focus-visible {
   font-size: var(--f3-card-font, 13px) !important;
 }
 
-/* Relationship lines — visible on light background */
+/* Relationship lines — lanes get their own stroke in JS so they stay separable */
 .family-chart-host svg.main_svg .link,
 .family-chart-host svg .link {
-  stroke: #5f7a6a !important;
-  stroke-width: 2.5px;
+  stroke: #8aa392;
+  stroke-width: 2.25px;
   fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
 .family-chart-host svg.main_svg .link.f3-path-to-main,
@@ -1299,6 +1334,20 @@ textarea:focus-visible {
   border: 1px solid color-mix(in srgb, var(--attending) 50%, white);
   border-radius: 999px;
   max-width: 16rem;
+  line-height: 1.25;
+}
+
+.pending-legend {
+  pointer-events: auto;
+  align-self: center;
+  padding: 0.32rem 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: #4a4a4a;
+  background: color-mix(in srgb, #8a8a8a 16%, white);
+  border: 1px dashed #8a8a8a;
+  border-radius: 999px;
+  max-width: 18rem;
   line-height: 1.25;
 }
 
@@ -1734,6 +1783,15 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--attending) 8%, white);
 }
 
+.genealogy-item.is-pending .genealogy-content {
+  opacity: 0.7;
+  filter: grayscale(0.55);
+  outline: 1px dashed #8a8a8a;
+  outline-offset: 1px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #8a8a8a 8%, white);
+}
+
 .attending-pill {
   display: inline-block;
   margin-left: 0.4rem;
@@ -1745,6 +1803,21 @@ textarea:focus-visible {
   color: #9a4b12;
   background: color-mix(in srgb, var(--attending) 18%, white);
   border: 1px solid color-mix(in srgb, var(--attending) 45%, white);
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.pending-pill {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #4a4a4a;
+  background: color-mix(in srgb, #8a8a8a 16%, white);
+  border: 1px dashed #8a8a8a;
   border-radius: 999px;
   vertical-align: middle;
 }
@@ -1967,6 +2040,11 @@ textarea:focus-visible {
   letter-spacing: -0.02em;
 }
 
+.person-detail__header .attend-toggle {
+  display: block;
+  margin: 0.35rem 0 0.5rem;
+}
+
 .attending-banner {
   display: inline-block;
   margin: 0.15rem 0 0.4rem;
@@ -2063,6 +2141,53 @@ textarea:focus-visible {
 .prototype-banner span {
   min-width: 0;
   flex: 1 1 12rem;
+}
+
+.draft-graph-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.85rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.9rem;
+  background: color-mix(in srgb, #8a8a8a 12%, white);
+  color: var(--ink);
+  border-bottom: 1px dashed #8a8a8a;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  flex-shrink: 0;
+  z-index: 90;
+}
+
+.draft-graph-bar p {
+  margin: 0;
+  flex: 1 1 14rem;
+}
+
+.draft-graph-bar--done {
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  border-bottom-style: solid;
+  border-bottom-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  color: var(--accent-strong);
+}
+
+.draft-graph-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.draft-graph-bar__error {
+  flex: 1 1 100%;
+  margin: 0;
+  color: #8a1f1f;
+}
+
+.admin-graph-edits {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
 }
 
 /* ——— Search identity ——— */
@@ -2181,6 +2306,109 @@ textarea:focus-visible {
 .modal-actions--stack .btn {
   width: 100%;
   text-align: center;
+}
+
+.modal-card--pwa {
+  width: min(28rem, 100%);
+}
+
+.pwa-os-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+}
+
+.pwa-os-switch button {
+  min-height: var(--touch);
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.pwa-os-switch button.is-on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  color: var(--accent-strong);
+}
+
+.pwa-preview {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.pwa-preview li {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem 0.8rem;
+  background: var(--bg);
+  border-radius: 12px;
+}
+
+.pwa-preview strong {
+  font-size: 1rem;
+}
+
+.pwa-preview span {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.pwa-step {
+  padding: 0.9rem 0.95rem;
+  margin: 0 0 1rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, white), white);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 14px;
+}
+
+.pwa-step__num {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.pwa-step h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+}
+
+.pwa-step p {
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  font-size: 1rem;
+}
+
+.pwa-guide__ok,
+.pwa-guide__warn {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  line-height: 1.4;
+}
+
+.pwa-guide__ok {
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  color: var(--accent-strong);
+}
+
+.pwa-guide__warn {
+  background: color-mix(in srgb, var(--attending) 14%, white);
+  border: 1px solid color-mix(in srgb, var(--attending) 35%, var(--line));
+  color: #7a3b0e;
 }
 
 .graph-person-backdrop {
@@ -3076,6 +3304,144 @@ textarea:focus-visible {
   line-height: 1.4;
 }
 
+.event-party {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.25rem 0 1rem;
+}
+
+.event-party__lead {
+  margin: 0.2rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.event-party__member {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.event-party__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.event-party__remove {
+  flex-shrink: 0;
+  padding: 0.25rem 0.65rem;
+  min-height: 2rem;
+  font-size: 0.78rem;
+}
+
+.event-party__ages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.event-party__ages label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  background: white;
+  cursor: pointer;
+}
+
+.event-party__ages label.is-on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, white);
+  color: var(--accent-strong);
+}
+
+.event-party__ages input {
+  width: auto;
+  margin: 0;
+}
+
+.event-suggest {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+}
+
+.event-suggest label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.65rem;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.event-suggest input {
+  width: auto;
+}
+
+.event-person-field {
+  margin-bottom: 0.75rem;
+}
+
+.event-transfer-must {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--attending) 14%, white);
+  border: 1px solid color-mix(in srgb, var(--attending) 40%, var(--line));
+  color: #7a3b0e;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.attend-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.attend-toggle__err {
+  font-size: 0.72rem;
+  color: #9a1f1f;
+  max-width: 8rem;
+}
+
+.genealogy-attend {
+  border: 1px solid var(--line);
+  background: white;
+  color: var(--ink-soft);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  min-height: var(--touch);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.genealogy-attend.is-on {
+  border-color: var(--attending);
+  color: #9a4b12;
+  background: color-mix(in srgb, var(--attending) 16%, white);
+}
+
+.genealogy-attend:hover,
+.genealogy-attend:focus-visible {
+  border-color: var(--attending);
+  color: #9a4b12;
+}
+
 .guest-steppers {
   display: grid;
   gap: 0.55rem;
@@ -3264,6 +3630,7 @@ textarea:focus-visible {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 0.35rem 1rem;
   padding: 0.55rem 0.7rem;
   background: var(--bg);
@@ -3271,8 +3638,14 @@ textarea:focus-visible {
   font-size: 0.92rem;
 }
 
+.rsvp-list li > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
 .rsvp-list span {
   color: var(--ink-soft);
+  display: block;
 }
 
 .event-footnote {
@@ -3381,6 +3754,11 @@ textarea:focus-visible {
 
 @media (min-width: 721px) {
   .nav-menu__login-fallback {
+    display: none;
+  }
+
+  /* Desktop tree: keep the field at the old spot — identity is in Menu. */
+  .person-search--overlay .person-search__top:has(.person-search__who) {
     display: none;
   }
 }
