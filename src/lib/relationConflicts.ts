@@ -20,7 +20,6 @@ export function findRelationConflicts(
   childIds: string[],
 ): RelationConflict[] {
   const parentSet = new Set(parentIds);
-  const spouseSet = new Set(spouseIds);
   const childSet = new Set(childIds);
   const found: RelationConflict[] = [];
   const seen = new Set<string>();

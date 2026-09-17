@@ -427,9 +427,16 @@ function AdminPeoplePanel({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
-  const [personId, setPersonId] = useState<string | null>(
-    () => initialPersonId || people[0]?.id || null,
+  const [chosenId, setChosenId] = useState<string | null>(
+    () => initialPersonId ?? null,
   );
+  const personId =
+    (chosenId && people.some((p) => p.id === chosenId) ? chosenId : null) ??
+    (initialPersonId && people.some((p) => p.id === initialPersonId)
+      ? initialPersonId
+      : null) ??
+    people[0]?.id ??
+    null;
   const person = people.find((p) => p.id === personId) ?? null;
   const [form, setForm] = useState({
     firstName: "",
@@ -450,20 +457,11 @@ function AdminPeoplePanel({
   const hydratedId = useRef<string | null>(null);
 
   const selectPerson = (id: string) => {
-    setPersonId(id);
+    setChosenId(id);
     const next = new URLSearchParams(searchParams.toString());
     next.set("osoba", id);
     router.replace(`/admin?${next.toString()}`, { scroll: false });
   };
-
-  useEffect(() => {
-    if (personId && people.some((p) => p.id === personId)) return;
-    const preferred =
-      (initialPersonId && people.some((p) => p.id === initialPersonId)
-        ? initialPersonId
-        : people[0]?.id) ?? null;
-    if (preferred) setPersonId(preferred);
-  }, [people, personId, initialPersonId]);
 
   useEffect(() => {
     if (!person) return;
@@ -539,7 +537,7 @@ function AdminPeoplePanel({
       onFamily(data.family);
       const nextId = data.family.people[0]?.id as string | undefined;
       if (nextId) selectPerson(nextId);
-      else setPersonId(null);
+      else setChosenId(null);
       setDeleteOpen(false);
       onSuccess(`Usunięto osobę. Odpięto powiązania: ${(data.affectedNames || []).join(", ")}`);
     } catch (e) {
