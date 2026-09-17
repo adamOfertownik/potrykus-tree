@@ -44,6 +44,7 @@ export interface PersonFieldPatch {
   gender?: Gender;
   birthDate?: string;
   deathDate?: string;
+  weddingDate?: string;
   phone?: string;
   notes?: string;
 }
@@ -56,6 +57,7 @@ export interface PersonSnapshot {
   gender: Gender;
   birthDate?: string;
   deathDate?: string;
+  weddingDate?: string;
   photoUrl?: string;
   phone?: string;
   notes?: string;

@@ -14,7 +14,8 @@ import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { useIdentity } from "@/components/IdentityProvider";
 import { useAdminAuthStatus } from "@/lib/hooks";
 import { describeKinship } from "@/lib/kinship";
-import { displayName, lifespan } from "@/lib/db-client";
+import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
+import { resolveWeddingDate } from "@/lib/weddingDate";
 import { findRelationConflicts } from "@/lib/relationConflicts";
 import { comparePeopleByBirth, getChildrenIds } from "@/lib/tree";
 import type { Person } from "@/types/family";
@@ -169,6 +170,11 @@ function PersonInner({
             </p>
           )}
           <p className="person-detail__dates">{lifespan(person)}</p>
+          {resolveWeddingDate(person) && (
+            <p className="person-detail__dates">
+              Ślub: {formatPolishDate(resolveWeddingDate(person))}
+            </p>
+          )}
           {person.phone && (
             <p className="person-detail__phone">
               Telefon: <a href={`tel:${person.phone}`}>{person.phone}</a>

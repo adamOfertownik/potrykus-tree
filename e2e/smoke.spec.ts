@@ -381,9 +381,10 @@ test("kinship and birthdays pages load", async ({ browser }) => {
     timeout: 20000,
   });
   await page.goto("/urodziny");
-  await expect(page.getByRole("heading", { name: /Urodziny/ })).toBeVisible({
+  await expect(page.getByRole("heading", { name: /Urodziny i rocznice/ })).toBeVisible({
     timeout: 20000,
   });
+  await expect(page.getByRole("heading", { name: "W tym miesiącu" })).toBeVisible();
   await ctx.close();
 });
 

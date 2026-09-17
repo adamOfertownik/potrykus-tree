@@ -12,6 +12,7 @@ import { getSql, hasDb } from "@/lib/sql";
 export { getChildrenIds, getPersonMap } from "@/lib/tree";
 export { formatPolishDate, displayName, lifespan } from "@/lib/db-client";
 import { getChildrenIds } from "@/lib/tree";
+import { weddingDateFromNotes } from "@/lib/weddingDate";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FAMILY_PATH = path.join(DATA_DIR, "family.json");
@@ -25,6 +26,7 @@ type PersonRow = {
   gender: string;
   birth_date: string | null;
   death_date: string | null;
+  wedding_date?: string | null;
   photo_url: string | null;
   phone: string | null;
   notes: string | null;
@@ -50,6 +52,14 @@ function isMissingFamilySchema(err: unknown): boolean {
   return (
     /undefined_table|does not exist/i.test(message) &&
     /people|family_meta|family_tree/i.test(message)
+  );
+}
+
+function isMissingWeddingDateColumn(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return (
+    /undefined_column|does not exist/i.test(message) &&
+    /wedding_date/i.test(message)
   );
 }
 
@@ -104,6 +114,7 @@ function rowToPerson(row: PersonRow): Person {
     gender: asGender(row.gender),
     birthDate: opt(row.birth_date),
     deathDate: opt(row.death_date),
+    weddingDate: opt(row.wedding_date) || weddingDateFromNotes(row.notes ?? undefined),
     photoUrl: opt(row.photo_url),
     phone: opt(row.phone),
     notes: opt(row.notes),
@@ -118,6 +129,7 @@ function normalizeStoredPerson(person: Person): Person {
     parentIds: asIdList(person.parentIds),
     spouseIds: asIdList(person.spouseIds),
     gender: asGender(person.gender),
+    weddingDate: person.weddingDate || weddingDateFromNotes(person.notes),
   };
 }
 
@@ -131,6 +143,7 @@ function peopleInsertPayload(people: Person[]): string {
       gender: p.gender,
       birth_date: p.birthDate ?? null,
       death_date: p.deathDate ?? null,
+      wedding_date: p.weddingDate ?? null,
       photo_url: p.photoUrl ?? null,
       phone: p.phone ?? null,
       notes: p.notes ?? null,
@@ -149,13 +162,25 @@ async function readFamilyFromNeon(): Promise<FamilyDatabase> {
       WHERE id = 1
       LIMIT 1
     `) as MetaRow[];
-    const peopleRows = (await sql`
-      SELECT
-        id, first_name, last_name, maiden_name, gender,
-        birth_date, death_date, photo_url, phone, notes,
-        parent_ids, spouse_ids
-      FROM people
-    `) as PersonRow[];
+    let peopleRows: PersonRow[];
+    try {
+      peopleRows = (await sql`
+        SELECT
+          id, first_name, last_name, maiden_name, gender,
+          birth_date, death_date, wedding_date, photo_url, phone, notes,
+          parent_ids, spouse_ids
+        FROM people
+      `) as PersonRow[];
+    } catch (err) {
+      if (!isMissingWeddingDateColumn(err)) throw err;
+      peopleRows = (await sql`
+        SELECT
+          id, first_name, last_name, maiden_name, gender,
+          birth_date, death_date, photo_url, phone, notes,
+          parent_ids, spouse_ids
+        FROM people
+      `) as PersonRow[];
+    }
 
     const meta = metaRows[0];
     if (meta) {
@@ -212,6 +237,11 @@ async function writePeopleTables(
   db: FamilyDatabase,
 ): Promise<void> {
   const sql = getSql();
+  try {
+    await sql`ALTER TABLE people ADD COLUMN IF NOT EXISTS wedding_date text`;
+  } catch {
+    /* role may lack ALTER; INSERT below still works after 008 */
+  }
   const payload = peopleInsertPayload(db.people);
   await sql.transaction([
     sql`
@@ -235,12 +265,12 @@ async function writePeopleTables(
     sql`
       INSERT INTO people (
         id, first_name, last_name, maiden_name, gender,
-        birth_date, death_date, photo_url, phone, notes,
+        birth_date, death_date, wedding_date, photo_url, phone, notes,
         parent_ids, spouse_ids
       )
       SELECT
         id, first_name, last_name, maiden_name, gender,
-        birth_date, death_date, photo_url, phone, notes,
+        birth_date, death_date, wedding_date, photo_url, phone, notes,
         parent_ids, spouse_ids
       FROM jsonb_to_recordset(${payload}::jsonb) AS t(
         id text,
@@ -250,6 +280,7 @@ async function writePeopleTables(
         gender text,
         birth_date text,
         death_date text,
+        wedding_date text,
         photo_url text,
         phone text,
         notes text,
@@ -302,7 +333,10 @@ async function writeFamilyTreeDocument(
 }
 
 export async function readFamilyDb(): Promise<FamilyDatabase> {
-  if (!hasDb()) return readFamilyFile();
+  if (!hasDb()) {
+    const db = await readFamilyFile();
+    return { ...db, people: db.people.map(normalizeStoredPerson) };
+  }
   return readFamilyFromNeon();
 }
 

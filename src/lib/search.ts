@@ -22,6 +22,7 @@ export function searchPeople(people: Person[], query: string): Person[] {
           p.maidenName ?? "",
           p.notes ?? "",
           p.birthDate ?? "",
+          p.weddingDate ?? "",
         ].join(" "),
       );
       return tokens.every((token) => hay.includes(token));

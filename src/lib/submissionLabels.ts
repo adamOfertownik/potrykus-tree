@@ -25,6 +25,7 @@ export const PERSON_FIELD_LABELS: Record<string, string> = {
   gender: "Płeć",
   birthDate: "Data urodzenia",
   deathDate: "Data zgonu",
+  weddingDate: "Data ślubu",
   phone: "Telefon",
   notes: "Notatki",
   photoUrl: "Zdjęcie",

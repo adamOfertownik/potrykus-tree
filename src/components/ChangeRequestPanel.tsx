@@ -7,6 +7,7 @@ import type {
   PersonFieldPatch,
   SubmissionPayload,
 } from "@/types/submissions";
+import { DateField } from "@/components/DateField";
 import { displayName } from "@/lib/db-client";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
@@ -18,7 +19,7 @@ type Props = {
 
 const KINDS: { id: ChangeKind; label: string }[] = [
   { id: "correction", label: "Poprawka danych" },
-  { id: "dates", label: "Daty urodzenia / zgonu" },
+  { id: "dates", label: "Daty urodzenia / zgonu / ślubu" },
   { id: "photo", label: "Zdjęcie" },
   { id: "relatives", label: "Powiązania / bliscy" },
   { id: "missing_person", label: "Brakująca osoba" },
@@ -75,6 +76,7 @@ export function ChangeRequestPanel({ people }: Props) {
       maidenName: p.maidenName,
       birthDate: p.birthDate,
       deathDate: p.deathDate,
+      weddingDate: p.weddingDate,
       phone: p.phone,
       notes: p.notes,
     });
@@ -104,6 +106,7 @@ export function ChangeRequestPanel({ people }: Props) {
                 : {}),
               birthDate: patch.birthDate,
               deathDate: patch.deathDate,
+              weddingDate: patch.weddingDate,
             }
           : undefined;
       const payload: SubmissionPayload = {
@@ -274,21 +277,28 @@ export function ChangeRequestPanel({ people }: Props) {
             )}
             <label>
               Data urodzenia
-              <input
-                type="date"
+              <DateField
                 value={patch.birthDate || ""}
-                onChange={(e) =>
-                  setPatch((s) => ({ ...s, birthDate: e.target.value }))
+                onChange={(value) =>
+                  setPatch((s) => ({ ...s, birthDate: value || undefined }))
                 }
               />
             </label>
             <label>
               Data zgonu
-              <input
-                type="date"
+              <DateField
                 value={patch.deathDate || ""}
-                onChange={(e) =>
-                  setPatch((s) => ({ ...s, deathDate: e.target.value }))
+                onChange={(value) =>
+                  setPatch((s) => ({ ...s, deathDate: value || undefined }))
+                }
+              />
+            </label>
+            <label>
+              Data ślubu
+              <DateField
+                value={patch.weddingDate || ""}
+                onChange={(value) =>
+                  setPatch((s) => ({ ...s, weddingDate: value || undefined }))
                 }
               />
             </label>

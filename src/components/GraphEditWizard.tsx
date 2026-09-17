@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { DateField } from "@/components/DateField";
 import { Modal } from "@/components/Modal";
 import { displayName } from "@/lib/db-client";
 import {
@@ -341,28 +342,26 @@ export function GraphEditWizard({
                 </label>
                 <label className="field-block">
                   Data ur. (opcjonalnie)
-                  <input
+                  <DateField
                     className="field-input"
-                    type="date"
                     value={newPerson.birthDate || ""}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setNewPerson((s) => ({
                         ...s,
-                        birthDate: e.target.value || undefined,
+                        birthDate: value || undefined,
                       }))
                     }
                   />
                 </label>
                 <label className="field-block">
                   Data zgonu (opcjonalnie)
-                  <input
+                  <DateField
                     className="field-input"
-                    type="date"
                     value={newPerson.deathDate || ""}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setNewPerson((s) => ({
                         ...s,
-                        deathDate: e.target.value || undefined,
+                        deathDate: value || undefined,
                       }))
                     }
                   />

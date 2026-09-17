@@ -376,6 +376,7 @@ export function snapshotPerson(person: Person) {
     gender: person.gender,
     birthDate: person.birthDate,
     deathDate: person.deathDate,
+    weddingDate: person.weddingDate,
     photoUrl: person.photoUrl,
     phone: person.phone,
     notes: person.notes,
@@ -401,6 +402,7 @@ export function patchPerson(
       | "gender"
       | "birthDate"
       | "deathDate"
+      | "weddingDate"
       | "phone"
       | "notes"
       | "photoUrl"
@@ -422,6 +424,9 @@ export function patchPerson(
   }
   if (patch.deathDate !== undefined) {
     person.deathDate = patch.deathDate.trim() || undefined;
+  }
+  if (patch.weddingDate !== undefined) {
+    person.weddingDate = patch.weddingDate.trim() || undefined;
   }
   if (patch.phone !== undefined) person.phone = patch.phone.trim() || undefined;
   if (patch.notes !== undefined) person.notes = patch.notes.trim() || undefined;

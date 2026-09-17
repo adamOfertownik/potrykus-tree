@@ -8,6 +8,7 @@ export interface Person {
   gender: Gender;
   birthDate?: string;
   deathDate?: string;
+  weddingDate?: string;
   photoUrl?: string;
   phone?: string;
   notes?: string;

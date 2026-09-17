@@ -11,6 +11,7 @@ import { KIND_LABELS, STATUS_LABELS, genderLabel } from "@/lib/submissionLabels"
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import { searchPeople } from "@/lib/search";
 import { getChildrenIds } from "@/lib/tree";
+import { DateField } from "@/components/DateField";
 import { Modal } from "@/components/Modal";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { AdminRelEditor } from "@/components/AdminRelEditor";
@@ -598,6 +599,7 @@ function AdminPeoplePanel({
     gender: "unknown" as Person["gender"],
     birthDate: "",
     deathDate: "",
+    weddingDate: "",
     phone: "",
     notes: "",
   });
@@ -636,6 +638,7 @@ function AdminPeoplePanel({
       gender: person.gender,
       birthDate: person.birthDate || "",
       deathDate: person.deathDate || "",
+      weddingDate: person.weddingDate || "",
       phone: person.phone || "",
       notes: person.notes || "",
     });
@@ -806,22 +809,29 @@ function AdminPeoplePanel({
             </label>
             <label>
               Data urodzenia
-              <input
+              <DateField
                 value={form.birthDate}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, birthDate: e.target.value }))
+                onChange={(value) =>
+                  setForm((s) => ({ ...s, birthDate: value }))
                 }
-                placeholder="RRRR-MM-DD"
               />
             </label>
             <label>
               Data zgonu
-              <input
+              <DateField
                 value={form.deathDate}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, deathDate: e.target.value }))
+                onChange={(value) =>
+                  setForm((s) => ({ ...s, deathDate: value }))
                 }
-                placeholder="RRRR-MM-DD"
+              />
+            </label>
+            <label>
+              Data ślubu
+              <DateField
+                value={form.weddingDate}
+                onChange={(value) =>
+                  setForm((s) => ({ ...s, weddingDate: value }))
+                }
               />
             </label>
             <label>

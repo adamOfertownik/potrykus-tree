@@ -2,6 +2,7 @@
 
 import { useState, type ChangeEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { DateField } from "@/components/DateField";
 import { Modal } from "@/components/Modal";
 import { displayName } from "@/lib/db-client";
 import { genderLabel } from "@/lib/submissionLabels";
@@ -15,6 +16,7 @@ type FormState = {
   gender: Person["gender"];
   birthDate: string;
   deathDate: string;
+  weddingDate: string;
   phone: string;
   notes: string;
 };
@@ -27,6 +29,7 @@ function fromPerson(person: Person): FormState {
     gender: person.gender,
     birthDate: person.birthDate || "",
     deathDate: person.deathDate || "",
+    weddingDate: person.weddingDate || "",
     phone: person.phone || "",
     notes: person.notes || "",
   };
@@ -58,6 +61,9 @@ function correctionFromForm(
   }
   if (norm(form.deathDate) !== norm(person.deathDate)) {
     patch.deathDate = form.deathDate.trim();
+  }
+  if (norm(form.weddingDate) !== norm(person.weddingDate)) {
+    patch.weddingDate = form.weddingDate.trim();
   }
   if (norm(form.phone) !== norm(person.phone)) {
     patch.phone = form.phone.trim();
@@ -137,6 +143,7 @@ export function PersonEditForm({
               gender: form.gender,
               birthDate: form.birthDate.trim(),
               deathDate: form.deathDate.trim(),
+              weddingDate: form.weddingDate.trim(),
               phone: form.phone.trim(),
               notes: form.notes.trim(),
             },
@@ -243,18 +250,25 @@ export function PersonEditForm({
         </label>
         <label>
           Data urodzenia
-          <input
+          <DateField
             value={form.birthDate}
-            onChange={set("birthDate")}
-            placeholder="RRRR-MM-DD"
+            onChange={(value) => setForm((s) => ({ ...s, birthDate: value }))}
           />
         </label>
         <label>
           Data zgonu
-          <input
+          <DateField
             value={form.deathDate}
-            onChange={set("deathDate")}
-            placeholder="RRRR-MM-DD"
+            onChange={(value) => setForm((s) => ({ ...s, deathDate: value }))}
+          />
+        </label>
+        <label>
+          Data ślubu
+          <DateField
+            value={form.weddingDate}
+            onChange={(value) =>
+              setForm((s) => ({ ...s, weddingDate: value }))
+            }
           />
         </label>
         <label>

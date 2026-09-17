@@ -17,6 +17,7 @@ export const personFieldPatchSchema = z.object({
   gender: z.enum(["male", "female", "unknown"]).optional(),
   birthDate: optionalDate,
   deathDate: optionalDate,
+  weddingDate: optionalDate,
   phone: z
     .string()
     .trim()
