@@ -253,6 +253,29 @@ export function FamilyChartView({
     return ok ? "ok" : "unavailable";
   };
 
+  /**
+   * family-chart's own zoom tween is duration + 100ms delay. A single early
+   * pan gets overwritten and the user is left looking at the apex.
+   */
+  const scheduleFocus = (id: string, reportMissing: boolean) => {
+    const delays = [80, 220, 500];
+    const timers = delays.map((ms, index) =>
+      window.setTimeout(() => {
+        applyHighlight();
+        applyAttending();
+        const status = panToCard(id);
+        if (
+          reportMissing &&
+          status === "missing" &&
+          index === delays.length - 1
+        ) {
+          onHighlightMissing?.(id);
+        }
+      }, ms),
+    );
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  };
+
   const openPersonActions = (id: string) => {
     const person = peopleRef.current.find((p) => p.id === id) ?? null;
     if (!person) return;
@@ -281,7 +304,8 @@ export function FamilyChartView({
     if (!safeMain) return;
 
     const chart = f3.createChart(el, data);
-    chart.setTransitionTime(250);
+    const keepHighlight = highlightRef.current;
+    chart.setTransitionTime(keepHighlight ? 0 : 250);
     chart.setSingleParentEmptyCard(false);
     chart.setSortChildrenFunction((a, b) => {
       const aDate = String(a.data.birthday ?? "").trim();
@@ -374,12 +398,13 @@ export function FamilyChartView({
     chart.updateMainId(safeMain);
     // `initial: true` always fits the whole tree. A mid-tree ancestor like
     // Wincenty has ~400 cards and a 50k-px layout — fit shrinks cards to a
-    // few pixels and the canvas looks empty. Focused "widok wokół" must
-    // center the person at a readable zoom.
+    // few pixels and the canvas looks empty. Focused "widok wokół" and a
+    // kept highlight on the full tree must stay at a readable zoom.
+    const fitWhole = overviewRef.current && !keepHighlight;
     try {
       chart.updateTree({
         initial: false,
-        tree_position: overviewRef.current ? "fit" : "main_to_middle",
+        tree_position: fitWhole ? "fit" : "main_to_middle",
       });
     } catch (err) {
       console.error("family-chart updateTree failed", err);
@@ -388,7 +413,11 @@ export function FamilyChartView({
         tree_position: "main_to_middle",
       });
     }
+    chart.setTransitionTime(250);
     chartRef.current = chart;
+    const cancelInitialFocus = keepHighlight
+      ? scheduleFocus(keepHighlight, keepHighlight !== safeMain)
+      : undefined;
 
     /** Neighbor cards sit in later stacking contexts and steal clicks from the plus. */
     const onPlusPointerDown = (e: PointerEvent) => {
@@ -405,6 +434,7 @@ export function FamilyChartView({
     el.addEventListener("pointerleave", onPlusPointerLeave);
 
     return () => {
+      cancelInitialFocus?.();
       window.clearTimeout(linkTimer);
       el.removeEventListener("pointerdown", onPlusPointerDown, true);
       el.removeEventListener("pointerleave", onPlusPointerLeave);
@@ -440,24 +470,27 @@ export function FamilyChartView({
   }, [scale]);
 
   // Explicit branch focus (deep link ?root=) — recenter the tree around a person.
-  // Returning to the family root keeps the current highlight and pans to that person.
+  // Returning to the family root keeps the current highlight and pans to that person
+  // at a readable zoom — never fit-to-window first, or the card becomes a speck.
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart || !mainId) return;
     chart.updateMainId(mainId);
     const keep = highlightRef.current;
     if (keep && keep !== mainId) {
-      chart.updateTree({ tree_position: "fit" });
-      const timer = window.setTimeout(() => {
-        applyHighlight();
-        applyAttending();
-        panToCard(keep);
-      }, 280);
-      return () => window.clearTimeout(timer);
+      chart.setTransitionTime(0);
+      try {
+        chart.updateTree({ tree_position: "main_to_middle" });
+      } catch (err) {
+        console.error("family-chart updateTree failed", err);
+        chart.updateTree({ tree_position: "main_to_middle" });
+      }
+      chart.setTransitionTime(250);
+      return scheduleFocus(keep, true);
     }
     try {
       chart.updateTree({
-        tree_position: overview ? "fit" : "main_to_middle",
+        tree_position: overview && !keep ? "fit" : "main_to_middle",
       });
     } catch (err) {
       console.error("family-chart updateTree failed", err);
@@ -479,16 +512,9 @@ export function FamilyChartView({
       skipPanRef.current = null;
       return;
     }
-    const timer = window.setTimeout(() => {
-      const status = panToCard(highlightId);
-      applyHighlight();
-      applyAttending();
-      // Only re-root when the person really is outside the rendered tree
-      if (status === "missing") onHighlightMissing?.(highlightId);
-    }, 80);
-    return () => window.clearTimeout(timer);
+    return scheduleFocus(highlightId, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [highlightId, peopleSig, scale]);
+  }, [highlightId, peopleSig, scale, mainId]);
 
   useEffect(() => {
     attendingRef.current = new Set(attendingPersonIds);
