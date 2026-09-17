@@ -142,3 +142,22 @@ test("kinship and birthdays pages load", async ({ browser }) => {
   });
   await ctx.close();
 });
+
+test("add-child form includes death date", async ({ browser }) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await page.locator("#htmlSvg .card_cont").first().click();
+  await page.getByRole("button", { name: "Dziecko" }).click();
+  await page.getByRole("tab", { name: "Nowa osoba" }).click();
+  await expect(page.getByText("Data zgonu (opcjonalnie)")).toBeVisible();
+  await ctx.close();
+});

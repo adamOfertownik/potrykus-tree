@@ -51,6 +51,7 @@ export const newPersonSchema = z.object({
   lastName: z.string().trim().min(1).max(80),
   gender: z.enum(["male", "female", "unknown"]),
   birthDate: optionalDate,
+  deathDate: optionalDate,
   maidenName: z.string().trim().max(80).optional(),
 });
 

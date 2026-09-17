@@ -327,6 +327,20 @@ export function GraphEditWizard({
                   />
                 </label>
                 <label className="field-block">
+                  Data zgonu (opcjonalnie)
+                  <input
+                    className="field-input"
+                    type="date"
+                    value={newPerson.deathDate || ""}
+                    onChange={(e) =>
+                      setNewPerson((s) => ({
+                        ...s,
+                        deathDate: e.target.value || undefined,
+                      }))
+                    }
+                  />
+                </label>
+                <label className="field-block">
                   Nazwisko rodowe
                   <input
                     className="field-input"
@@ -401,6 +415,18 @@ export function GraphEditWizard({
                       },
                     )}
                   </strong>
+                </li>
+              )}
+              {mode === "new" && newPerson.birthDate && (
+                <li>
+                  <span>Data urodzenia</span>
+                  <strong>{newPerson.birthDate}</strong>
+                </li>
+              )}
+              {mode === "new" && newPerson.deathDate && (
+                <li>
+                  <span>Data zgonu</span>
+                  <strong>{newPerson.deathDate}</strong>
                 </li>
               )}
               {op === "reparent" && anchor.parentIds.length > 0 && (

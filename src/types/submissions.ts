@@ -30,6 +30,7 @@ export interface GraphEditPayload {
     lastName: string;
     gender: "male" | "female" | "unknown";
     birthDate?: string;
+    deathDate?: string;
     maidenName?: string;
   };
   summary?: string;

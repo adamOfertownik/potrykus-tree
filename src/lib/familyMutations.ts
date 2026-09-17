@@ -8,6 +8,7 @@ export type NewPersonInput = {
   lastName: string;
   gender: Gender;
   birthDate?: string;
+  deathDate?: string;
   maidenName?: string;
 };
 
@@ -103,6 +104,7 @@ function createPerson(
     maidenName: input.maidenName?.trim() || undefined,
     gender: input.gender,
     birthDate: input.birthDate?.trim() || undefined,
+    deathDate: input.deathDate?.trim() || undefined,
     parentIds: [...parentIds],
     spouseIds: [...spouseIds],
   };
@@ -340,6 +342,7 @@ export function addStandalonePerson(
       lastName: input.lastName,
       gender: input.gender,
       birthDate: input.birthDate,
+      deathDate: input.deathDate,
       maidenName: input.maidenName,
     },
     input.parentIds ?? [],
