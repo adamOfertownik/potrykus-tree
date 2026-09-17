@@ -58,7 +58,7 @@ export function GraphEditWizard({
   const qc = useQueryClient();
   const admin = useAdminAuthStatus();
   const draft = useOptionalDraftGraph();
-  const useDrafts = Boolean(draft) && !admin.data?.loggedIn;
+  const useDrafts = Boolean(draft) && admin.data?.loggedIn === false;
   const [step, setStep] = useState<"pick" | "confirm">("pick");
   const [mode, setMode] = useState<Mode>("existing");
   const [query, setQuery] = useState("");
