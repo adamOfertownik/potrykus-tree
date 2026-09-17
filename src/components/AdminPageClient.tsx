@@ -14,9 +14,10 @@ import { getChildrenIds } from "@/lib/tree";
 import { Modal } from "@/components/Modal";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { AdminRelEditor } from "@/components/AdminRelEditor";
+import { AdminEventPayPanel } from "@/components/AdminEventPayPanel";
 
 type AdminSubmission = ChangeSubmission & { preview?: SubmissionPreview };
-type Tab = "queue" | "people";
+type Tab = "queue" | "people" | "pay";
 type StatusFilter = ChangeSubmission["status"] | "all";
 
 function AdminPanel({ email }: { email: string }) {
@@ -24,8 +25,11 @@ function AdminPanel({ email }: { email: string }) {
   const qc = useQueryClient();
   const searchParams = useSearchParams();
   const focusPersonId = searchParams.get("osoba");
+  const startTab = searchParams.get("tab");
   const [people, setPeople] = useState<Person[]>([]);
-  const [tab, setTab] = useState<Tab>(() => (focusPersonId ? "people" : "queue"));
+  const [tab, setTab] = useState<Tab>(() =>
+    focusPersonId ? "people" : startTab === "platnosci" ? "pay" : "queue",
+  );
   const [items, setItems] = useState<AdminSubmission[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -127,6 +131,9 @@ function AdminPanel({ email }: { email: string }) {
           <Link href="/drzewo" className="btn btn-secondary">
             ← Do drzewa
           </Link>
+          <Link href="/spotkanie" className="btn btn-secondary">
+            Spotkanie
+          </Link>
           <button
             type="button"
             className="btn btn-secondary"
@@ -157,6 +164,15 @@ function AdminPanel({ email }: { email: string }) {
           >
             Osoby
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "pay"}
+            className={tab === "pay" ? "is-active" : undefined}
+            onClick={() => setTab("pay")}
+          >
+            Płatności
+          </button>
         </div>
       </header>
 
@@ -171,7 +187,13 @@ function AdminPanel({ email }: { email: string }) {
         </p>
       )}
 
-      {tab === "queue" ? (
+      {tab === "pay" ? (
+        <AdminEventPayPanel
+          people={people}
+          onError={setError}
+          onSuccess={setSuccess}
+        />
+      ) : tab === "queue" ? (
         <>
           <ul className="admin-metrics">
             {(

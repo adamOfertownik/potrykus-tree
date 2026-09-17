@@ -266,6 +266,21 @@ export const adminRsvpPaidSchema = z.object({
   paid: z.boolean(),
 });
 
+export const adminEventWriteSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("paid"),
+    rsvpId: z.string().trim().min(1).max(120),
+    paid: z.boolean(),
+  }),
+  z.object({
+    action: z.literal("create"),
+    personId: z.string().trim().min(1).max(120),
+    coveredPersonIds: z.array(z.string().trim().min(1).max(120)).max(20),
+    willTransfer: z.boolean().default(false),
+    paid: z.boolean().default(true),
+  }),
+]);
+
 export const adminPersonWriteSchema = z.object({
   action: z.enum(["update", "create", "delete", "graph"]),
   personId: z.string().trim().min(1).max(120).optional(),

@@ -4360,6 +4360,89 @@ textarea:focus-visible {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 70%, var(--line));
 }
 
+.admin-pay {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 960px) {
+  .admin-pay {
+    grid-template-columns: minmax(16rem, 0.9fr) minmax(20rem, 1.2fr);
+    align-items: start;
+  }
+}
+
+.admin-pay h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.admin-pay__draft,
+.admin-pay__cover {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.admin-pay__cover {
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.admin-pay__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.65rem 0;
+}
+
+.admin-pay__filters button {
+  min-height: var(--touch);
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  font-weight: 600;
+}
+
+.admin-pay__filters button.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.admin-pay-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.admin-pay-cards li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6rem 1rem;
+  padding: 0.8rem 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.admin-pay-cards li.is-paid {
+  background: #e5f5ea;
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.admin-pay-cards p {
+  margin: 0.2rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
 .person-photo__hit--static {
   cursor: default;
   pointer-events: none;
