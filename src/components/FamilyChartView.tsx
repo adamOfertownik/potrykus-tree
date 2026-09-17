@@ -7,6 +7,14 @@ import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
 import { separateChartLinks } from "@/lib/chartLinks";
+import {
+  nodesFromChartTree,
+  overviewOpacity,
+  pickBranchLabels,
+  pickGenerationBands,
+  type BranchLabel,
+  type GenerationBand,
+} from "@/lib/chartOverview";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { GraphEditHost } from "@/components/GraphEditHost";
 import { TreeWind } from "@/components/TreeWind";
@@ -106,7 +114,12 @@ type ZoomTransform = {
 };
 
 type ZoomHost = Element & {
-  __zoomObj?: { on: (type: string) => ((e: unknown) => void) | undefined };
+  __zoomObj?: {
+    on: {
+      (type: string): ((e: unknown) => void) | undefined;
+      (type: string, handler: (e: unknown) => void): unknown;
+    };
+  };
   __zoom?: ZoomTransform;
 };
 
@@ -137,6 +150,12 @@ export function FamilyChartView({
   const overviewRef = useRef(overview);
   /** Set when the highlight came from a tap — no need to slide the view then */
   const skipPanRef = useRef<string | null>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const zoomAnimRef = useRef(0);
+  const labelsRef = useRef<BranchLabel[]>([]);
+  const gensRef = useRef<GenerationBand[]>([]);
+  const [branchLabels, setBranchLabels] = useState<BranchLabel[]>([]);
+  const [generationBands, setGenerationBands] = useState<GenerationBand[]>([]);
 
   const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
@@ -223,13 +242,42 @@ export function FamilyChartView({
     });
   };
 
-  /** Drive the chart's own d3 zoom so svg links and html cards stay in sync */
-  const setViewTransform = (k: number, x: number, y: number): boolean => {
+  const zoomHost = (): ZoomHost | null => {
     const svg = chartRef.current?.svg as ZoomHost | undefined;
-    if (!svg) return false;
-    const host: ZoomHost | null = svg.__zoomObj
+    if (!svg) return null;
+    return svg.__zoomObj
       ? svg
       : ((svg.parentNode as ZoomHost | null) ?? null);
+  };
+
+  const currentView = (): ZoomTransform | null => zoomHost()?.__zoom ?? null;
+
+  const paintOverviewOverlay = (k: number, x: number, y: number) => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+    const opacity = overviewOpacity(k);
+    overlay.style.opacity = String(opacity);
+    overlay.style.pointerEvents = "none";
+    overlay.hidden = opacity <= 0.02;
+    overlay.querySelectorAll<HTMLElement>("[data-branch-id]").forEach((el) => {
+      const id = el.dataset.branchId;
+      const label = labelsRef.current.find((item) => item.id === id);
+      if (!label) return;
+      const screenW = Math.max(86, label.width * k);
+      el.style.width = `${Math.min(screenW, 220)}px`;
+      el.style.transform = `translate(${label.x * k + x}px, ${label.y * k + y - 28}px) translate(-50%, -100%)`;
+    });
+    overlay.querySelectorAll<HTMLElement>("[data-gen-key]").forEach((el) => {
+      const key = el.dataset.genKey;
+      const band = gensRef.current.find((item) => item.key === key);
+      if (!band) return;
+      el.style.transform = `translateY(${band.y * k + y}px) translateY(-50%)`;
+    });
+  };
+
+  /** Drive the chart's own d3 zoom so svg links and html cards stay in sync */
+  const setViewTransform = (k: number, x: number, y: number): boolean => {
+    const host = zoomHost();
     const zoomObj = host?.__zoomObj;
     const current = host?.__zoom;
     if (!host || !zoomObj || !current) return false;
@@ -239,7 +287,30 @@ export function FamilyChartView({
       .translate((x - current.x) / k, (y - current.y) / k);
     host.__zoom = next;
     zoomObj.on("zoom")?.({ transform: next });
+    paintOverviewOverlay(next.k, next.x, next.y);
     return true;
+  };
+
+  const animateView = (k: number, x: number, y: number, ms = 560) => {
+    const start = currentView();
+    if (!start) {
+      setViewTransform(k, x, y);
+      return;
+    }
+    window.cancelAnimationFrame(zoomAnimRef.current);
+    const t0 = performance.now();
+    const ease = (t: number) => 1 - (1 - t) ** 3;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - t0) / ms);
+      const e = ease(t);
+      setViewTransform(
+        start.k + (k - start.k) * e,
+        start.x + (x - start.x) * e,
+        start.y + (y - start.y) * e,
+      );
+      if (t < 1) zoomAnimRef.current = window.requestAnimationFrame(step);
+    };
+    zoomAnimRef.current = window.requestAnimationFrame(step);
   };
 
   const viewportRect = (): DOMRect | null => {
@@ -264,12 +335,8 @@ export function FamilyChartView({
     if (!rect) return "unavailable";
 
     const k = Math.max(currentK ?? 1, READABLE_ZOOM);
-    const ok = setViewTransform(
-      k,
-      rect.width / 2 - datum.x * k,
-      rect.height / 2 - datum.y * k,
-    );
-    return ok ? "ok" : "unavailable";
+    animateView(k, rect.width / 2 - datum.x * k, rect.height / 2 - datum.y * k);
+    return "ok";
   };
 
   /**
@@ -354,12 +421,27 @@ export function FamilyChartView({
       });
       separateChartLinks(el);
     };
+    const refreshOverview = () => {
+      const nodes = nodesFromChartTree(
+        chart.store.getTree?.() as { data?: unknown[] } | undefined,
+      );
+      const nextLabels = pickBranchLabels(nodes, peopleRef.current);
+      const nextGens = pickGenerationBands(nodes);
+      labelsRef.current = nextLabels;
+      gensRef.current = nextGens;
+      setBranchLabels(nextLabels);
+      setGenerationBands(nextGens);
+      const view = currentView();
+      if (view) paintOverviewOverlay(view.k, view.x, view.y);
+    };
+
     chart.afterUpdate = () => {
       paintLinks();
       window.clearTimeout(linkTimer);
       linkTimer = window.setTimeout(paintLinks, 280);
       applyHighlight();
       applyAttending();
+      refreshOverview();
     };
 
     const card = chart.setCardHtml();
@@ -417,6 +499,7 @@ export function FamilyChartView({
       this.classList.toggle("is-pending", pendingRef.current.has(id));
     });
 
+    chartRef.current = chart;
     chart.updateMainId(safeMain);
     // `initial: true` always fits the whole tree. A mid-tree ancestor like
     // Wincenty has ~400 cards and a 50k-px layout — fit shrinks cards to a
@@ -436,7 +519,19 @@ export function FamilyChartView({
       });
     }
     chart.setTransitionTime(250);
-    chartRef.current = chart;
+    const host = zoomHost();
+    const zoomObj = host?.__zoomObj;
+    const prevZoom = zoomObj?.on("zoom");
+    zoomObj?.on("zoom", (event: unknown) => {
+      prevZoom?.(event);
+      const t =
+        event && typeof event === "object" && "transform" in event
+          ? (event as { transform?: ZoomTransform }).transform
+          : host?.__zoom;
+      if (t) paintOverviewOverlay(t.k, t.x, t.y);
+    });
+    const view = currentView();
+    if (view) paintOverviewOverlay(view.k, view.x, view.y);
     const cancelInitialFocus = keepHighlight
       ? scheduleFocus(keepHighlight, keepHighlight !== safeMain)
       : undefined;
@@ -487,6 +582,7 @@ export function FamilyChartView({
 
     return () => {
       cancelInitialFocus?.();
+      window.cancelAnimationFrame(zoomAnimRef.current);
       window.clearTimeout(linkTimer);
       el.removeEventListener("pointerdown", onPlusPointerDown, capture);
       window.removeEventListener("pointerup", onPlusPointerUp, capture);
@@ -575,6 +671,12 @@ export function FamilyChartView({
     applyAttending();
   }, [attendingPersonIds, peopleSig]);
 
+  useEffect(() => {
+    const view = currentView();
+    if (view) paintOverviewOverlay(view.k, view.x, view.y);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchLabels, generationBands]);
+
   /** Zoom out until every generation fits inside the visible canvas */
   const fitWholeTree = () => {
     const dim = chartRef.current?.store.getTree?.()?.dim;
@@ -589,10 +691,31 @@ export function FamilyChartView({
       (rect.height - pad * 2) / dim.height,
       1,
     );
-    setViewTransform(
+    animateView(
       k,
       k * dim.x_off + (rect.width - dim.width * k) / 2,
       k * dim.y_off + (rect.height - dim.height * k) / 2,
+    );
+  };
+
+  const zoomToBranch = (label: BranchLabel) => {
+    const rect = viewportRect();
+    if (!rect) return;
+    skipPanRef.current = label.id;
+    highlightRef.current = label.id;
+    applyHighlight();
+    onHighlight?.(label.id);
+    const pad = 56;
+    const k = Math.min(
+      (rect.width - pad * 2) / Math.max(label.width, 360),
+      (rect.height - pad * 2) / 900,
+      0.82,
+    );
+    const nextK = Math.max(k, 0.38);
+    animateView(
+      nextK,
+      rect.width / 2 - label.x * nextK,
+      rect.height / 2 - (label.y + 80) * nextK,
     );
   };
 
@@ -631,6 +754,41 @@ export function FamilyChartView({
         data-text-scale={scale}
       />
 
+      <div
+        ref={overlayRef}
+        className="chart-overview"
+        hidden
+        aria-hidden={branchLabels.length === 0}
+      >
+        <div className="chart-overview__gens" aria-hidden>
+          {generationBands.map((band) => (
+            <span
+              key={band.key}
+              className="chart-gen-label"
+              data-gen-key={band.key}
+            >
+              {band.label}
+            </span>
+          ))}
+        </div>
+        {branchLabels.map((label) => (
+          <button
+            key={label.id}
+            type="button"
+            className="chart-branch-label"
+            data-branch-id={label.id}
+            data-testid="chart-branch-label"
+            title={`Przybliż gałąź: ${label.title}`}
+            onClick={() => zoomToBranch(label)}
+          >
+            <span className="chart-branch-label__name">{label.title}</span>
+            {label.subtitle ? (
+              <span className="chart-branch-label__meta">{label.subtitle}</span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+
       <div className="family-chart-tools">
         <button
           type="button"
@@ -663,7 +821,7 @@ export function FamilyChartView({
       </div>
 
       <p className="family-chart-hint">
-        Przeciągnij, aby przesunąć · scroll = zoom · + na karcie = powiązanie
+        Przeciągnij, aby przesunąć · scroll = zoom · z góry widać nagłówki gałęzi — kliknij, żeby przybliżyć
       </p>
 
       <GraphEditHost

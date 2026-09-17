@@ -1,0 +1,213 @@
+import type { Person } from "@/types/family";
+import { displayName } from "@/lib/db-client";
+import { getChildrenIds } from "@/lib/tree";
+
+export type ChartTreeNode = {
+  id: string;
+  x: number;
+  y: number;
+  depth: number;
+  isAncestry: boolean;
+  isSpouse: boolean;
+};
+
+export type BranchLabel = {
+  id: string;
+  title: string;
+  subtitle: string;
+  x: number;
+  y: number;
+  width: number;
+  count: number;
+};
+
+export type GenerationBand = {
+  key: string;
+  y: number;
+  label: string;
+};
+
+const MIN_BRANCH_WIDTH = 200;
+const MIN_DESCENDANTS = 2;
+
+export function nodesFromChartTree(
+  tree: { data?: unknown[] } | null | undefined,
+): ChartTreeNode[] {
+  const rows = tree?.data;
+  if (!Array.isArray(rows)) return [];
+  const out: ChartTreeNode[] = [];
+  for (const raw of rows) {
+    const d = raw as {
+      x?: number;
+      y?: number;
+      depth?: number;
+      is_ancestry?: boolean;
+      spouse?: unknown;
+      data?: { id?: string };
+    };
+    const id = d.data?.id;
+    if (!id || typeof d.x !== "number" || typeof d.y !== "number") continue;
+    out.push({
+      id,
+      x: d.x,
+      y: d.y,
+      depth: Number(d.depth ?? 0),
+      isAncestry: Boolean(d.is_ancestry),
+      isSpouse: Boolean(d.spouse),
+    });
+  }
+  return out;
+}
+
+function descendantIds(people: Person[], rootId: string): Set<string> {
+  const seen = new Set<string>([rootId]);
+  const queue = [rootId];
+  while (queue.length) {
+    const id = queue.shift()!;
+    for (const childId of getChildrenIds(people, id)) {
+      if (seen.has(childId)) continue;
+      seen.add(childId);
+      queue.push(childId);
+    }
+  }
+  return seen;
+}
+
+function plPeople(n: number): string {
+  const abs = Math.abs(n);
+  if (abs === 1) return "1 osoba";
+  const mod10 = abs % 10;
+  const mod100 = abs % 100;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return `${n} osoby`;
+  }
+  return `${n} osób`;
+}
+
+function branchTitle(person: Person, count: number): {
+  title: string;
+  subtitle: string;
+} {
+  const title = `${person.firstName} ${person.lastName}`.trim();
+  const maiden =
+    person.maidenName && person.maidenName !== person.lastName
+      ? `z d. ${person.maidenName}`
+      : "";
+  const peopleLabel = count > 1 ? `${plPeople(count)} w gałęzi` : "";
+  const subtitle = [maiden, peopleLabel].filter(Boolean).join(" · ");
+  return { title, subtitle };
+}
+
+export function pickBranchLabels(
+  nodes: ChartTreeNode[],
+  people: Person[],
+): BranchLabel[] {
+  if (nodes.length < 6) return [];
+  const byId = new Map(people.map((p) => [p.id, p]));
+  const nodeById = new Map(nodes.map((n) => [n.id, n]));
+  const candidates = nodes.filter(
+    (n) => !n.isSpouse && !n.isAncestry && nodeById.has(n.id),
+  );
+
+  const extents = new Map<
+    string,
+    { minX: number; maxX: number; y: number; count: number }
+  >();
+  for (const node of candidates) {
+    const ids = descendantIds(people, node.id);
+    let minX = node.x;
+    let maxX = node.x;
+    let count = 0;
+    for (const id of ids) {
+      const other = nodeById.get(id);
+      if (!other) continue;
+      count += 1;
+      minX = Math.min(minX, other.x);
+      maxX = Math.max(maxX, other.x);
+    }
+    extents.set(node.id, { minX, maxX, y: node.y, count });
+  }
+
+  const byDepth = new Map<number, ChartTreeNode[]>();
+  for (const node of candidates) {
+    const ext = extents.get(node.id);
+    if (!ext) continue;
+    const width = ext.maxX - ext.minX;
+    if (width < MIN_BRANCH_WIDTH && ext.count < MIN_DESCENDANTS) continue;
+    if (node.depth < 1) continue;
+    const list = byDepth.get(node.depth) ?? [];
+    list.push(node);
+    byDepth.set(node.depth, list);
+  }
+
+  let bestHeads: ChartTreeNode[] = [];
+  let bestScore = -1;
+  for (const [depth, list] of byDepth) {
+    if (list.length < 2) continue;
+    const n = list.length;
+    const sizeScore = n <= 8 ? n * 3 : Math.max(4, 24 - (n - 8));
+    const score = sizeScore + depth * 0.25;
+    if (score > bestScore) {
+      bestScore = score;
+      bestHeads = list;
+    }
+  }
+  if (bestHeads.length < 2) return [];
+
+  const labels: BranchLabel[] = [];
+  for (const node of bestHeads) {
+    const person = byId.get(node.id);
+    const ext = extents.get(node.id);
+    if (!person || !ext) continue;
+    const { title, subtitle } = branchTitle(person, ext.count);
+    labels.push({
+      id: node.id,
+      title,
+      subtitle: subtitle || displayName(person),
+      x: (ext.minX + ext.maxX) / 2,
+      y: node.y,
+      width: Math.max(ext.maxX - ext.minX, 240),
+      count: ext.count,
+    });
+  }
+  return labels.sort((a, b) => a.x - b.x);
+}
+
+export function pickGenerationBands(nodes: ChartTreeNode[]): GenerationBand[] {
+  const rows = new Map<number, { y: number; ancestry: boolean; depth: number }>();
+  for (const node of nodes) {
+    if (node.isSpouse) continue;
+    const key = node.isAncestry ? -node.depth : node.depth;
+    const prev = rows.get(key);
+    if (!prev || node.y < prev.y) {
+      rows.set(key, {
+        y: node.y,
+        ancestry: node.isAncestry,
+        depth: node.depth,
+      });
+    }
+  }
+  return [...rows.entries()]
+    .sort((a, b) => a[1].y - b[1].y)
+    .map(([, row]) => ({
+      key: `${row.ancestry ? "up" : "down"}-${row.depth}`,
+      y: row.y,
+      label: row.ancestry
+        ? row.depth === 0
+          ? "Pień"
+          : `Przodkowie ${row.depth}`
+        : row.depth === 0
+          ? "Pień"
+          : `Pokolenie ${row.depth}`,
+    }));
+}
+
+export function overviewVisible(zoom: number): boolean {
+  return zoom < 0.48;
+}
+
+export function overviewOpacity(zoom: number): number {
+  if (zoom >= 0.5) return 0;
+  if (zoom <= 0.32) return 1;
+  return (0.5 - zoom) / 0.18;
+}
