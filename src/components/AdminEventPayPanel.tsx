@@ -375,8 +375,8 @@ export function AdminEventPayPanel({
   }
 
   return (
-    <div className="admin-pay">
-      <section className="admin-pay__add">
+    <div className="admin-workspace admin-pay">
+      <section className="admin-card-box admin-pay__add">
         <h2>Dodaj kto zapłacił</h2>
         <p className="empty-hint">
           Wybierz płatnika i osoby, za które wpłata. Bilety są zbiorcze — dorośli
@@ -495,7 +495,7 @@ export function AdminEventPayPanel({
         )}
       </section>
 
-      <section className="admin-pay__list">
+      <section className="admin-card-box admin-pay__list">
         <h2>Wpłaty na spotkanie</h2>
         {stats && (
           <p className="empty-hint">
@@ -518,7 +518,7 @@ export function AdminEventPayPanel({
             placeholder="Kto zapłacił albo za kogo"
           />
         </label>
-        <div className="admin-pay__filters" role="tablist" aria-label="Filtr wpłat">
+        <div className="admin-filters" role="group" aria-label="Filtr wpłat">
           {(
             [
               ["unpaid", "Do zapłaty"],
@@ -529,9 +529,7 @@ export function AdminEventPayPanel({
             <button
               key={id}
               type="button"
-              role="tab"
-              aria-selected={filter === id}
-              className={filter === id ? "is-active" : undefined}
+              aria-pressed={filter === id}
               onClick={() => setFilter(id)}
             >
               {label}

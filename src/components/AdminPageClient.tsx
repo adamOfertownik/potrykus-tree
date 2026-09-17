@@ -92,30 +92,29 @@ function AdminPanel({
   const [pickedFields, setPickedFields] = useState<string[]>([]);
   const errorRef = useRef<HTMLDivElement>(null);
 
-  const load = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/submissions");
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Błąd");
-      setItems(data.submissions || []);
-      const familyRes = await fetch("/api/admin/family");
-      if (familyRes.ok) {
-        const family = (await familyRes.json()) as FamilyPayload;
-        setPeople(family.people);
-        qc.setQueryData(["family"], family);
-      }
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
   useEffect(() => {
-    void load();
-  }, []);
+    const timer = window.setTimeout(async () => {
+      setBusy(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/admin/submissions");
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Błąd");
+        setItems(data.submissions || []);
+        const familyRes = await fetch("/api/admin/family");
+        if (familyRes.ok) {
+          const family = (await familyRes.json()) as FamilyPayload;
+          setPeople(family.people);
+          qc.setQueryData(["family"], family);
+        }
+      } catch (e) {
+        setError((e as Error).message);
+      } finally {
+        setBusy(false);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [qc]);
 
   useEffect(() => {
     if (error) errorRef.current?.focus();
@@ -134,11 +133,6 @@ function AdminPanel({
   const selectedEdits = selected ? graphEditsOf(selected) : [];
   const selectedFieldDiffs =
     selected && !selectedEdits.length ? (selected.preview?.diffs ?? []) : [];
-
-  useEffect(() => {
-    setPickedEdits([]);
-    setPickedFields([]);
-  }, [selected?.id]);
 
   const setStatus = async (
     id: string,
@@ -188,29 +182,33 @@ function AdminPanel({
 
   return (
     <section className="admin-page">
-      <header className="admin-page__intro">
-        <h1>Panel admina</h1>
-        <p>
-          Zalogowany jako <strong>{email}</strong>. Sugestie rodziny są tu
-          widoczne — reszta użytkowników ich nie widzi.
-        </p>
-        <div className="admin-page__toolbar">
-          <Link href="/drzewo" className="btn btn-secondary">
-            ← Do drzewa
-          </Link>
-          <Link href="/spotkanie" className="btn btn-secondary">
-            Spotkanie
-          </Link>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            disabled={logout.isPending}
-            onClick={() => {
-              logout.mutate();
-            }}
-          >
-            Wyloguj
-          </button>
+      <header className="admin-chrome">
+        <div className="admin-chrome__top">
+          <div>
+            <h1>Panel admina</h1>
+            <p>
+              Zalogowany jako <strong>{email}</strong>. Sugestie rodziny są
+              widoczne tylko tutaj.
+            </p>
+          </div>
+          <div className="admin-chrome__actions">
+            <Link href="/drzewo" className="btn btn-secondary">
+              ← Do drzewa
+            </Link>
+            <Link href="/spotkanie" className="btn btn-secondary">
+              Spotkanie
+            </Link>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={logout.isPending}
+              onClick={() => {
+                logout.mutate();
+              }}
+            >
+              Wyloguj
+            </button>
+          </div>
         </div>
         <div className="admin-tabs" role="tablist" aria-label="Panel admina">
           <button
@@ -278,77 +276,95 @@ function AdminPanel({
           onSuccess={setSuccess}
         />
       ) : activeTab === "queue" ? (
-        <>
-          <ul className="admin-metrics">
-            {(
-              [
-                ["new", "Nowe"],
-                ["reviewed", "Przejrzane"],
-                ["accepted", "Zaakceptowane"],
-                ["rejected", "Odrzucone"],
-              ] as const
-            ).map(([key, label]) => (
-              <li key={key}>
+        <div className="admin-workspace">
+          <div className="admin-card-box">
+            <div
+              className="admin-filters"
+              role="group"
+              aria-label="Status zgłoszeń"
+            >
+              {(
+                [
+                  ["new", "Nowe", counts.new],
+                  ["reviewed", "Przejrzane", counts.reviewed],
+                  ["accepted", "Zaakceptowane", counts.accepted],
+                  ["rejected", "Odrzucone", counts.rejected],
+                  ["all", "Wszystkie", items.length],
+                ] as const
+              ).map(([key, label, count]) => (
                 <button
+                  key={key}
                   type="button"
-                  className={statusFilter === key ? "is-active" : undefined}
+                  aria-pressed={statusFilter === key}
                   onClick={() => setStatusFilter(key)}
                 >
-                  <strong>{counts[key]}</strong>
-                  {label}
+                  {label} ({count})
                 </button>
-              </li>
-            ))}
-            <li>
-              <button
-                type="button"
-                className={statusFilter === "all" ? "is-active" : undefined}
-                onClick={() => setStatusFilter("all")}
-              >
-                <strong>{items.length}</strong>
-                Wszystkie
-              </button>
-            </li>
-          </ul>
-
-          <div className="admin-queue">
-            <ul className="admin-list">
+              ))}
+            </div>
+            <ul className="admin-list-box">
               {visible.length === 0 && (
-                <li className="empty-hint">Brak zgłoszeń w tym filtrze.</li>
+                <li className="admin-list-empty">
+                  Brak zgłoszeń w tym widoku.
+                  {statusFilter !== "all" && (
+                    <button
+                      type="button"
+                      className="btn-text"
+                      onClick={() => setStatusFilter("all")}
+                    >
+                      Pokaż wszystkie
+                    </button>
+                  )}
+                </li>
               )}
               {visible.map((s) => (
                 <li key={s.id}>
                   <button
                     type="button"
-                    className={`admin-card${selected?.id === s.id ? " is-selected" : ""}`}
-                    onClick={() => setSelectedId(s.id)}
+                    className={`admin-row${selected?.id === s.id ? " is-selected" : ""}`}
+                    aria-current={selected?.id === s.id ? "true" : undefined}
+                    onClick={() => {
+                      setSelectedId(s.id);
+                      setPickedEdits([]);
+                      setPickedFields([]);
+                    }}
                   >
-                    <div className="admin-card__head">
-                      <strong>{s.reporterName}</strong>
-                      <span>{KIND_LABELS[s.kind]}</span>
-                      <span className={`admin-card__status admin-card__status--${s.status}`}>
+                    <span className="admin-row__title">
+                      {s.reporterName}
+                      <span
+                        className={`admin-role-badge admin-status-badge--${s.status}`}
+                      >
                         {STATUS_LABELS[s.status]}
                       </span>
-                    </div>
-                    <p>{s.preview?.summary || s.message || "(bez opisu)"}</p>
-                    {s.targetPersonName && (
-                      <p className="empty-hint">Dotyczy: {s.targetPersonName}</p>
-                    )}
+                    </span>
+                    <span className="admin-row__meta">
+                      {KIND_LABELS[s.kind]}
+                      {s.targetPersonName ? ` · ${s.targetPersonName}` : ""}
+                    </span>
+                    <span className="admin-row__summary">
+                      {s.preview?.summary || s.message || "(bez opisu)"}
+                    </span>
                     <SubmissionKinship people={people} submission={s} />
                   </button>
                 </li>
               ))}
             </ul>
+          </div>
 
             {selected && (
               <article className="admin-detail" aria-live="polite">
-                <header>
+                <header className="admin-detail__head">
                   <h2>{KIND_LABELS[selected.kind]}</h2>
-                  <p>
-                    {selected.reporterName}
-                    {selected.reporterPhone ? ` · ${selected.reporterPhone}` : ""}
-                  </p>
+                  <span
+                    className={`admin-role-badge admin-status-badge--${selected.status}`}
+                  >
+                    {STATUS_LABELS[selected.status]}
+                  </span>
                 </header>
+                <p>
+                  {selected.reporterName}
+                  {selected.reporterPhone ? ` · ${selected.reporterPhone}` : ""}
+                </p>
                 {selected.targetPersonId && (
                   <p>
                     Dotyczy:{" "}
@@ -365,6 +381,7 @@ function AdminPanel({
                   </p>
                 ))}
                 {selected.preview?.diffs.length ? (
+                  <div className="admin-diff-wrap">
                   <table className="admin-diff">
                     <caption>Podgląd zmian</caption>
                     <thead>
@@ -401,6 +418,7 @@ function AdminPanel({
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 ) : null}
                 {(selected.preview?.photoBefore || selected.preview?.photoAfter || selected.photoUrl) && (
                   <div className="admin-photo-diff">
@@ -480,7 +498,7 @@ function AdminPanel({
                         </button>
                         <button
                           type="button"
-                          className="btn btn-secondary"
+                          className="btn btn-danger"
                           disabled={busy}
                           onClick={() =>
                             setConfirm({
@@ -506,7 +524,7 @@ function AdminPanel({
                     </button>
                     <button
                       type="button"
-                      className="btn btn-secondary"
+                      className="btn btn-danger"
                       disabled={busy}
                       onClick={() =>
                         setConfirm({ id: selected.id, status: "rejected" })
@@ -522,8 +540,7 @@ function AdminPanel({
                 )}
               </article>
             )}
-          </div>
-        </>
+        </div>
       ) : (
         <AdminPeoplePanel
           people={people}
@@ -568,7 +585,11 @@ function AdminPanel({
           <div className="modal-actions">
             <button
               type="button"
-              className="btn btn-primary"
+              className={
+                confirm.status === "accepted"
+                  ? "btn btn-primary"
+                  : "btn btn-danger"
+              }
               disabled={busy}
               onClick={() =>
                 setStatus(
@@ -744,32 +765,39 @@ function AdminPeoplePanel({
   };
 
   return (
-    <div className="admin-people">
-      <div className="admin-people__search">
-        <label className="field-block">
-          Szukaj osoby
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Imię lub nazwisko"
-          />
-        </label>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={() => setCreateOpen(true)}
-        >
-          Nowa osoba
-        </button>
-        <ul className="who-matches">
+    <div className="admin-workspace">
+      <div className="admin-card-box">
+        <div className="admin-toolbar">
+          <label className="field-block">
+            Szukaj osoby
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Imię lub nazwisko"
+            />
+          </label>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setCreateOpen(true)}
+          >
+            Nowa osoba
+          </button>
+        </div>
+        <ul className="admin-list-box">
           {matches.map((p) => (
             <li key={p.id}>
               <button
                 type="button"
-                className={p.id === personId ? "is-active" : undefined}
+                className={`admin-row${p.id === personId ? " is-selected" : ""}`}
+                aria-current={p.id === personId ? "true" : undefined}
                 onClick={() => selectPerson(p.id)}
               >
-                {displayName(p)}
+                <span className="admin-row__title">{displayName(p)}</span>
+                <span className="admin-row__meta">
+                  {genderLabel(p.gender)} · ur.{" "}
+                  {formatPolishDate(p.birthDate) || "—"}
+                </span>
               </button>
             </li>
           ))}
@@ -778,7 +806,7 @@ function AdminPeoplePanel({
 
       {person ? (
         <form
-          className="change-form"
+          className="admin-detail change-form"
           onSubmit={(e) => {
             e.preventDefault();
             void save();
@@ -918,7 +946,9 @@ function AdminPeoplePanel({
           </div>
         </form>
       ) : (
-        <p className="empty-hint">Wybierz osobę z listy.</p>
+        <p className="admin-card-box admin-list-empty">
+          Wybierz osobę z listy.
+        </p>
       )}
 
       {deleteOpen && person && (
