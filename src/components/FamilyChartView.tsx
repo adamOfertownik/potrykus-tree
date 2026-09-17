@@ -281,9 +281,13 @@ export function FamilyChartView({
       }
       const screenX = label.x * k + x;
       const screenY = label.y * k + y - 28;
-      const screenW = Math.min(Math.max(96, label.width * k * 0.45), 210);
+      const fromTitle = Math.ceil(label.title.length * 8.1) + 32;
+      const screenW = Math.min(
+        Math.max(176, fromTitle, label.width * k * 0.45),
+        340,
+      );
       const overlaps = placed.some(
-        (p) => Math.abs(p.x - screenX) < screenW * 0.72 && Math.abs(p.y - screenY) < 36,
+        (p) => Math.abs(p.x - screenX) < screenW * 0.72 && Math.abs(p.y - screenY) < 52,
       );
       if (overlaps && k < 0.4) {
         el.style.visibility = "hidden";

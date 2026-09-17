@@ -1473,9 +1473,12 @@ textarea:focus-visible {
   font-weight: 750;
   line-height: 1.2;
   max-width: 100%;
+  white-space: normal;
+  overflow-wrap: break-word;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .chart-branch-label__meta {
@@ -1483,9 +1486,8 @@ textarea:focus-visible {
   font-weight: 600;
   color: rgba(255, 255, 255, 0.72);
   line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow: visible;
 }
 
 .family-chart-hint {

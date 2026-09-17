@@ -47,6 +47,15 @@ test("zoomed-out tree shows branch headers and zooming into one", async ({
   await expect(labels.first()).toBeVisible({ timeout: 10_000 });
   await expect.poll(async () => labels.count()).toBeGreaterThan(1);
   await expect(page.locator(".chart-gen-label").first()).toBeVisible();
+  const clipped = await labels.evaluateAll((els) =>
+    els
+      .filter((el) => {
+        const name = el.querySelector(".chart-branch-label__name");
+        return Boolean(name && name.scrollWidth > name.clientWidth + 2);
+      })
+      .map((el) => el.textContent?.trim()),
+  );
+  expect(clipped, "branch headers must not ellipsize names").toEqual([]);
 
   const visible = labels.filter({ visible: true });
   const helena = visible.filter({ hasText: /Helena/i });
