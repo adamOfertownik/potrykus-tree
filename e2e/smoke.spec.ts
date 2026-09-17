@@ -275,7 +275,9 @@ test("full tree explains a person missing from the main trunk", async ({
   await page.goto(`/drzewo?root=${encodeURIComponent(jadwiga!.id)}`);
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
   await expect(page.getByTestId("full-tree-back")).toBeVisible();
-  await expect(page.locator(".tree-focus-bar")).toContainText("Pozostałe osoby");
+  await expect(page.getByTestId("tree-detached-caption")).toContainText(
+    "Pozostałe osoby",
+  );
   await expect(page.getByTestId("tree-detached-caption")).toContainText(
     "brak przypisania do głównej gałęzi",
   );

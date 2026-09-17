@@ -75,15 +75,18 @@ export function TreePageClient() {
           highlightPerson && (offTrunk || chartMissing),
         );
 
+        const goFullTreeHref = (() => {
+          const stayOn = highlightId || viewRoot;
+          return stayOn
+            ? `/drzewo?hl=${encodeURIComponent(stayOn)}`
+            : "/drzewo";
+        })();
+
         const goFullTree = () => {
           const stayOn = highlightId || viewRoot;
           setViewRoot(null);
-          if (stayOn) {
-            setHighlightId(stayOn);
-            router.replace(`/drzewo?hl=${encodeURIComponent(stayOn)}`);
-            return;
-          }
-          router.replace("/drzewo");
+          if (stayOn) setHighlightId(stayOn);
+          setChartMissing(false);
         };
 
         const focusBranch = (id: string) => {
@@ -166,14 +169,14 @@ export function TreePageClient() {
                       {focusPerson ? displayName(focusPerson) : "wybranej osoby"}
                     </strong>
                   </p>
-                  <button
-                    type="button"
+                  <Link
+                    href={goFullTreeHref}
                     className="btn btn-primary"
                     data-testid="full-tree-back"
                     onClick={goFullTree}
                   >
                     ← Pełne drzewo
-                  </button>
+                  </Link>
                   {showOffTrunk && !viewingDetachedTree && (
                     <p className="tree-focus-bar__note">
                       Nie ma rodziców w głównym pniu Potrykusów. Na liście ta
