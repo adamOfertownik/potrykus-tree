@@ -226,7 +226,7 @@ test("spotkanie shows live signup count, price 240 and photo drop", async ({
   await expect(page.getByText(/240\s*zł/).first()).toBeVisible();
   await expect(page.getByText(/120\s*zł/).first()).toBeVisible();
   await expect(page.getByText(/\/ 200 miejsc/)).toBeVisible();
-  await expect(page.getByText(/Elżbieta Lieder/)).toBeVisible();
+  await expect(page.getByText("CA Elżbieta Lieder")).toBeVisible();
   await expect(page.getByText(/65 1940 1076 4614 2125 0001 0000/)).toBeVisible();
   await expect(page.getByText(/IMPREZA RODZINNA/).first()).toBeVisible();
   await expect(
