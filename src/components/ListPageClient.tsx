@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
@@ -92,24 +92,38 @@ function ListInner({
         <header className="genealogy-panel__head">
           <h1>Lista rodziny</h1>
           <p>
-            Te same osoby co na drzewie — wszyscy z bazy Neon, w hierarchii
-            od najstarszych przodków. PDF pobierzesz z menu u góry. Plus przy
-            osobie dodaje dziecko, partnera albo przenosi gałąź. Pomarańczowa
-            ramka oznacza zapis na spotkanie rodzinne.
+            Te same osoby co na drzewie — wszyscy z bazy Neon. Numer przy
+            imieniu to pokolenie od najstarszego przodka (jeden pień, jedno
+            „1.”), nie kolejny numer z bazy. PDF pobierzesz z menu u góry.
+            Plus przy osobie dodaje dziecko, partnera albo przenosi gałąź.
+            Pomarańczowa ramka oznacza zapis na spotkanie rodzinne.
           </p>
         </header>
 
         <ol className="genealogy-list">
-          {entries.map((entry) => {
+          {entries.map((entry, index) => {
             const birth = formatPolishDate(entry.person.birthDate);
             const death = formatPolishDate(entry.person.deathDate);
             const depth = Math.floor(entry.railDepth);
             const isHighlight = highlightId === entry.person.id;
             const isAttending = attending.has(entry.person.id);
+            const showDetachedHead =
+              Boolean(entry.detached) && !entries[index - 1]?.detached;
 
             return (
-              <li
+              <Fragment
                 key={`${entry.person.id}-${entry.isSpouse ? "s" : "p"}-${entry.depth}`}
+              >
+              {showDetachedHead && (
+                <li className="genealogy-section">
+                  <h2>Pozostałe osoby</h2>
+                  <p>
+                    Są w bazie, ale nie mają wpisanego rodzica w głównym pniu
+                    — dlatego numeracja pokoleń zaczyna się tu od nowa od 1.
+                  </p>
+                </li>
+              )}
+              <li
                 data-person-id={entry.person.id}
                 id={
                   entry.isSpouse
@@ -201,6 +215,7 @@ function ListInner({
                   </span>
                 </div>
               </li>
+              </Fragment>
             );
           })}
         </ol>

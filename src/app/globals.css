@@ -1687,6 +1687,28 @@ textarea:focus-visible {
   padding: 0.65rem 0.35rem 1.5rem;
 }
 
+.genealogy-section {
+  list-style: none;
+  margin: 1.25rem 0.35rem 0.65rem;
+  padding: 0.85rem 0.95rem;
+  border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  background: color-mix(in srgb, var(--accent) 5%, white);
+  border-radius: 12px;
+}
+
+.genealogy-section h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+  color: var(--accent-strong);
+}
+
+.genealogy-section p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
 .genealogy-item {
   --depth: 0;
   --guide: 1.35rem;

@@ -72,6 +72,17 @@ test("lista shows every person from the family API", async ({ browser }) => {
     ]);
   listedIds.sort();
   expect(listedIds).toEqual(apiIds);
+  const firstName = (await page
+    .locator(".genealogy-item.is-person .genealogy-name")
+    .first()
+    .textContent()) ?? "";
+  expect(firstName.toLowerCase()).not.toContain("bodzińska");
+  expect(firstName.toLowerCase()).not.toContain("borudzki");
+  const firstGen = await page
+    .locator(".genealogy-item.is-person .genealogy-gen")
+    .first()
+    .textContent();
+  expect(firstGen?.trim()).toBe("1.");
   await ctx.close();
 });
 
