@@ -1083,11 +1083,38 @@ textarea:focus-visible {
 .family-chart-host .card_cont.is-chart-highlight.is-attending .card,
 .family-chart-host .card_cont.is-chart-highlight.is-attending .card-inner,
 .family-chart-host .card_cont.is-chart-highlight.is-attending .card-rect {
-  outline: 3px dashed var(--accent-strong);
-  outline-offset: 2px;
-  box-shadow:
-    0 0 0 5px var(--attending),
-    0 0 0 8px color-mix(in srgb, var(--attending) 30%, transparent);
+  outline: none;
+  box-shadow: none;
+}
+
+.family-chart-host div.card_cont.is-chart-highlight.is-attending .card {
+  overflow: visible !important;
+}
+
+.family-chart-host div.card_cont.is-chart-highlight.is-attending .card::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 10px;
+  padding: 3px;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 3;
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 25%, #5ee0b0) 0 11px,
+    var(--attending) 11px 22px
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-clip: content-box, border-box;
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-clip: content-box, border-box;
+  mask-composite: exclude;
 }
 
 .family-chart-host .card_cont.is-chart-highlight {
@@ -1112,9 +1139,9 @@ textarea:focus-visible {
 }
 
 .family-chart-host g.card_cont.is-chart-highlight.is-attending .card-outline {
-  stroke: var(--accent-strong);
+  stroke: color-mix(in srgb, var(--accent) 35%, #5ee0b0);
   stroke-width: 5px;
-  stroke-dasharray: 7 7;
+  stroke-dasharray: 8 8;
 }
 
 @keyframes chart-highlight-pulse {
@@ -1824,7 +1851,7 @@ textarea:focus-visible {
 }
 
 .genealogy-item.is-highlight.is-attending .genealogy-content {
-  outline: 2px dashed var(--accent-strong);
+  outline: 2px dashed color-mix(in srgb, var(--accent) 35%, #5ee0b0);
   box-shadow: 0 0 0 2px var(--attending);
 }
 
