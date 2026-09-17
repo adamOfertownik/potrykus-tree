@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AttendToggle } from "@/components/AttendToggle";
 import { AuthedPage } from "@/components/AuthedPage";
 import { AdminPersonRelsModal } from "@/components/AdminPersonRelsModal";
 import { PersonCard } from "@/components/PersonCard";
+import { PersonEditModal } from "@/components/PersonEditModal";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { useIdentity } from "@/components/IdentityProvider";
 import { useAdminAuthStatus } from "@/lib/hooks";
@@ -24,11 +25,28 @@ function PersonInner({
   people: Person[];
   attendingPersonIds: string[];
 }) {
-  const { identity } = useIdentity();
+  const { identity, promptIdentity } = useIdentity();
   const admin = useAdminAuthStatus();
   const isAdmin = Boolean(admin.data?.loggedIn);
   const [relsOpen, setRelsOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const pendingEdit = useRef(false);
   const person = people.find((p) => p.id === id);
+
+  useEffect(() => {
+    if (!pendingEdit.current || !identity?.name) return;
+    pendingEdit.current = false;
+    setEditOpen(true);
+  }, [identity?.name]);
+
+  const openEdit = () => {
+    if (!isAdmin && !identity?.name) {
+      pendingEdit.current = true;
+      promptIdentity();
+      return;
+    }
+    setEditOpen(true);
+  };
 
   if (!person) {
     return <div className="loading-screen">Nie znaleziono osoby.</div>;
@@ -113,6 +131,13 @@ function PersonInner({
                 Jak jesteśmy spokrewnieni?
               </Link>
             )}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={openEdit}
+            >
+              {meId && meId === person.id ? "Popraw moje dane" : "Popraw dane"}
+            </button>
             {isAdmin ? (
               <button
                 type="button"
@@ -232,26 +257,42 @@ function PersonInner({
         />
       )}
 
-      <dl className="person-facts">
-        <div>
-          <dt>Data urodzenia</dt>
-          <dd>{formatPolishDate(person.birthDate) || "—"}</dd>
-        </div>
-        <div>
-          <dt>Data zgonu</dt>
-          <dd>{formatPolishDate(person.deathDate) || "—"}</dd>
-        </div>
-        <div>
-          <dt>Płeć</dt>
-          <dd>
-            {person.gender === "male"
-              ? "mężczyzna"
-              : person.gender === "female"
-                ? "kobieta"
-                : "—"}
-          </dd>
-        </div>
-      </dl>
+      {editOpen && (
+        <PersonEditModal
+          person={person}
+          isAdmin={isAdmin}
+          reporterName={identity?.name || ""}
+          reporterPersonId={identity?.personId}
+          onClose={() => setEditOpen(false)}
+        />
+      )}
+
+      <section className="person-relations">
+        <h2 className="person-relations__title">
+          <span>Dane</span>
+          <PencilButton label="Popraw dane" onClick={openEdit} />
+        </h2>
+        <dl className="person-facts">
+          <div>
+            <dt>Data urodzenia</dt>
+            <dd>{formatPolishDate(person.birthDate) || "—"}</dd>
+          </div>
+          <div>
+            <dt>Data zgonu</dt>
+            <dd>{formatPolishDate(person.deathDate) || "—"}</dd>
+          </div>
+          <div>
+            <dt>Płeć</dt>
+            <dd>
+              {person.gender === "male"
+                ? "mężczyzna"
+                : person.gender === "female"
+                  ? "kobieta"
+                  : "—"}
+            </dd>
+          </div>
+        </dl>
+      </section>
     </article>
   );
 }
