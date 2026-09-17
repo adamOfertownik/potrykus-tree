@@ -296,6 +296,31 @@ export const adminEventWriteSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
+const adminEmail = z
+  .email("Podaj prawidłowy e-mail.")
+  .trim()
+  .max(160)
+  .toLowerCase();
+
+const adminPassword = z
+  .string()
+  .min(8, "Hasło musi mieć co najmniej 8 znaków.")
+  .max(200);
+
+export const adminUserCreateSchema = z.object({
+  email: adminEmail,
+  password: adminPassword,
+});
+
+export const adminUserPasswordSchema = z.object({
+  id: z.uuid("Nieprawidłowy identyfikator."),
+  password: adminPassword,
+});
+
+export const adminUserDeleteSchema = z.object({
+  id: z.uuid("Nieprawidłowy identyfikator."),
+});
+
 export const adminPersonWriteSchema = z.object({
   action: z.enum(["update", "create", "delete", "graph"]),
   personId: z.string().trim().min(1).max(120).optional(),

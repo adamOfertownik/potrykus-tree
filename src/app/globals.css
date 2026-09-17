@@ -4256,6 +4256,7 @@ textarea:focus-visible {
 
 .admin-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
   margin-top: 0.85rem;
 }
@@ -4614,6 +4615,87 @@ textarea:focus-visible {
   margin: 0.2rem 0 0;
   color: var(--ink-soft);
   font-size: 0.9rem;
+}
+
+.admin-users {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 960px) {
+  .admin-users {
+    grid-template-columns: minmax(16rem, 0.9fr) minmax(20rem, 1.2fr);
+    align-items: start;
+  }
+}
+
+.admin-users h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.admin-users__hint {
+  margin: 0 0 0.85rem;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.admin-users__form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.admin-users-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.admin-users-cards li {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.admin-users-cards li.is-you {
+  background: #e5f5ea;
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.admin-users-cards p {
+  margin: 0.2rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.admin-users__you {
+  display: inline-block;
+  margin-left: 0.45rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.admin-users-cards__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.admin-users__pw {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed var(--line);
 }
 
 .person-photo__hit--static {

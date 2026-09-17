@@ -15,9 +15,10 @@ import { Modal } from "@/components/Modal";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { AdminRelEditor } from "@/components/AdminRelEditor";
 import { AdminEventPayPanel } from "@/components/AdminEventPayPanel";
+import { AdminUsersPanel } from "@/components/AdminUsersPanel";
 
 type AdminSubmission = ChangeSubmission & { preview?: SubmissionPreview };
-type Tab = "queue" | "people" | "pay";
+type Tab = "queue" | "people" | "pay" | "users";
 type StatusFilter = ChangeSubmission["status"] | "all";
 
 function graphEditsOf(s: ChangeSubmission) {
@@ -33,7 +34,13 @@ function AdminPanel({ email }: { email: string }) {
   const startTab = searchParams.get("tab");
   const [people, setPeople] = useState<Person[]>([]);
   const [tab, setTab] = useState<Tab>(() =>
-    focusPersonId ? "people" : startTab === "platnosci" ? "pay" : "queue",
+    focusPersonId
+      ? "people"
+      : startTab === "platnosci"
+        ? "pay"
+        : startTab === "uzytkownicy"
+          ? "users"
+          : "queue",
   );
   const [items, setItems] = useState<AdminSubmission[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -198,6 +205,15 @@ function AdminPanel({ email }: { email: string }) {
           >
             Płatności
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "users"}
+            className={tab === "users" ? "is-active" : undefined}
+            onClick={() => setTab("users")}
+          >
+            Użytkownicy
+          </button>
         </div>
       </header>
 
@@ -215,6 +231,12 @@ function AdminPanel({ email }: { email: string }) {
       {tab === "pay" ? (
         <AdminEventPayPanel
           people={people}
+          onError={setError}
+          onSuccess={setSuccess}
+        />
+      ) : tab === "users" ? (
+        <AdminUsersPanel
+          currentEmail={email}
           onError={setError}
           onSuccess={setSuccess}
         />
