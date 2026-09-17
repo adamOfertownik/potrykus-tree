@@ -2165,6 +2165,17 @@ button.person-card {
   white-space: nowrap;
 }
 
+@media (max-width: 640px) {
+  .person-hop {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .person-hop__pos {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+}
+
 .person-detail__header {
   display: flex;
   gap: 1.25rem;

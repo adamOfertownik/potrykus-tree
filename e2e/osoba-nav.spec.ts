@@ -27,6 +27,13 @@ test("P040 child card opens daughter and hops to next sibling", async ({
 }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
+  });
   const page = await ctx.newPage();
   await page.goto("/osoba/P040");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Matylda", {
