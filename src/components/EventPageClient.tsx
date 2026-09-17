@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AccessGate } from "@/components/AccessGate";
 import { AppShell } from "@/components/AppShell";
+import { GuestTicketSteppers } from "@/components/GuestTicketSteppers";
 import { useAdminAuthStatus, useAuthStatus, useFamily } from "@/lib/hooks";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
@@ -20,8 +21,9 @@ import {
   EARLY_ARRIVAL_UNDER_7_PLN,
   earlyArrivalSurchargePln,
   formatPln,
+  ticketSummary,
   totalGuests,
-  type GuestAgeGroup,
+  type GuestBreakdown,
 } from "@/lib/eventPricing";
 import type { FamilyEvent } from "@/types/event";
 import type { Person } from "@/types/family";
@@ -60,7 +62,6 @@ type PartyMember = {
   key: string;
   personId?: string;
   name: string;
-  ageGroup: GuestAgeGroup;
 };
 
 async function fetchEvent(): Promise<EventApi> {
@@ -86,14 +87,21 @@ function memberFromPerson(person: Person, people: Person[]): PartyMember {
     key: person.id,
     personId: person.id,
     name: displayName(person, people),
-    ageGroup: ageGroupFromBirth(person.birthDate),
   };
 }
 
-function ageLabel(group: GuestAgeGroup, price: number, under7: number): string {
-  if (group === "over7") return `7+ · ${formatPln(price)}`;
-  if (group === "under7") return `do lat 7 · ${formatPln(under7)}`;
-  return "do lat 3 · 0 zł";
+function ticketsFromParty(
+  members: PartyMember[],
+  people: Person[],
+): GuestBreakdown {
+  if (!members.length) {
+    return { adults: 0, children3to12: 0, childrenUnder3: 0 };
+  }
+  return breakdownFromAgeGroups(
+    members.map((m) =>
+      ageGroupFromBirth(people.find((p) => p.id === m.personId)?.birthDate),
+    ),
+  );
 }
 
 function Stepper({
@@ -214,6 +222,12 @@ export function EventPageClient() {
   const [fullName, setFullName] = useState("");
   const [personId, setPersonId] = useState<string | undefined>();
   const [party, setParty] = useState<PartyMember[]>([]);
+  const [tickets, setTickets] = useState<GuestBreakdown>({
+    adults: 0,
+    children3to12: 0,
+    childrenUnder3: 0,
+  });
+  const [ticketsTouched, setTicketsTouched] = useState(false);
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [willTransfer, setWillTransfer] = useState(true);
@@ -257,10 +271,16 @@ export function EventPageClient() {
   const priceUnder7 =
     eventQ.data?.event.priceUnder7Pln ?? DEFAULT_PRICE_UNDER_7_PLN;
 
-  const breakdown = useMemo(
-    () => breakdownFromAgeGroups(party.map((m) => m.ageGroup)),
-    [party],
+  const suggestedTickets = useMemo(
+    () => ticketsFromParty(party, people),
+    [party, people],
   );
+  const breakdown = tickets;
+  const ticketsMismatch =
+    party.length > 0 &&
+    (tickets.adults !== suggestedTickets.adults ||
+      tickets.children3to12 !== suggestedTickets.children3to12 ||
+      tickets.childrenUnder3 !== suggestedTickets.childrenUnder3);
   const early = useMemo(
     () => ({ earlyArrival, earlyArrivalOver7, earlyArrivalUnder7 }),
     [earlyArrival, earlyArrivalOver7, earlyArrivalUnder7],
@@ -276,11 +296,22 @@ export function EventPageClient() {
     titleNames,
   );
 
+  useEffect(() => {
+    if (ticketsTouched) return;
+    const next = ticketsFromParty(party, people);
+    if (totalGuests(next) < 1 && fullName.trim()) {
+      setTickets({ adults: 1, children3to12: 0, childrenUnder3: 0 });
+      return;
+    }
+    setTickets(next);
+  }, [party, people, ticketsTouched, fullName]);
+
   const setPayer = (person: Person) => {
     const next = memberFromPerson(person, people);
     setFullName(next.name);
     setPersonId(person.id);
     setParty([next]);
+    setTicketsTouched(false);
   };
 
   const addMember = (person: Person) => {
@@ -306,12 +337,6 @@ export function EventPageClient() {
       }
       return next;
     });
-  };
-
-  const setAge = (key: string, ageGroup: GuestAgeGroup) => {
-    setParty((cur) =>
-      cur.map((m) => (m.key === key ? { ...m, ageGroup } : m)),
-    );
   };
 
   if (auth.isLoading) return <div className="loading-screen">Ładowanie…</div>;
@@ -371,7 +396,6 @@ export function EventPageClient() {
                 key: "payer",
                 personId,
                 name: fullName.trim(),
-                ageGroup: "over7" as const,
               },
             ]
           : [];
@@ -380,9 +404,8 @@ export function EventPageClient() {
       setError("Wybierz osobę z drzewa albo wpisz imię i nazwisko.");
       return;
     }
-    const counts = breakdownFromAgeGroups(members.map((m) => m.ageGroup));
-    if (totalGuests(counts) < 1) {
-      setError("Zaznacz, za kogo płacisz.");
+    if (totalGuests(tickets) < 1) {
+      setError("Wybierz bilety: ile osób 7+ i ile dzieci.");
       return;
     }
     setBusy(true);
@@ -398,9 +421,9 @@ export function EventPageClient() {
           fullName: payerName,
           personId: payerId,
           phone: phone.trim() || undefined,
-          adults: counts.adults,
-          children3to12: counts.children3to12,
-          childrenUnder3: counts.childrenUnder3,
+          adults: tickets.adults,
+          children3to12: tickets.children3to12,
+          childrenUnder3: tickets.childrenUnder3,
           notes: notes.trim() || undefined,
           willTransfer,
           earlyArrival,
@@ -599,10 +622,10 @@ export function EventPageClient() {
         <section className="event-section" id="zapisz">
           <h2>Zapisz się i policz opłatę</h2>
           <p className="event-section__lead">
-            Wybierz siebie z drzewa (np. Adam Lieske), a potem zaznacz, za kogo
-            jeszcze płacisz. Dorośli i dzieci powyżej 7 lat —{" "}
-            {formatPln(price)}. Dzieci do lat 7 — {formatPln(priceUnder7)}.
-            Dzieci do lat 3 — 0 zł.
+            Wybierz siebie z drzewa (np. Adam Lieske), zaznacz za kogo płacisz,
+            a potem ile biletów: 7+ — {formatPln(price)}, do lat 7 —{" "}
+            {formatPln(priceUnder7)}, do lat 3 — 0 zł. Daty z drzewa
+            podpowiadają, ale nie blokują zapisu.
           </p>
 
           <form className="change-form" onSubmit={submit}>
@@ -630,7 +653,6 @@ export function EventPageClient() {
                             {
                               key: "payer",
                               name: value,
-                              ageGroup: "over7",
                             },
                           ]
                         : [];
@@ -638,7 +660,7 @@ export function EventPageClient() {
                     const [head, ...rest] = cur;
                     if (head.personId) {
                       return [
-                        { key: "payer", name: value, ageGroup: head.ageGroup },
+                        { key: "payer", name: value },
                         ...rest,
                       ];
                     }
@@ -650,9 +672,7 @@ export function EventPageClient() {
 
             {party.length > 0 && (
               <div className="event-party" role="group" aria-label="Za kogo płacisz">
-                <p className="event-party__lead">
-                  Za kogo płacisz — zaznacz grupę wiekową przy każdej osobie
-                </p>
+                <p className="event-party__lead">Za kogo płacisz</p>
                 {party.map((member, index) => (
                   <div key={member.key} className="event-party__member">
                     <div className="event-party__head">
@@ -669,26 +689,6 @@ export function EventPageClient() {
                           Usuń
                         </button>
                       ) : null}
-                    </div>
-                    <div className="event-party__ages" role="radiogroup">
-                      {(["over7", "under7", "under3"] as GuestAgeGroup[]).map(
-                        (group) => (
-                          <label
-                            key={group}
-                            className={
-                              member.ageGroup === group ? "is-on" : undefined
-                            }
-                          >
-                            <input
-                              type="radio"
-                              name={`age-${member.key}`}
-                              checked={member.ageGroup === group}
-                              onChange={() => setAge(member.key, group)}
-                            />
-                            {ageLabel(group, price, priceUnder7)}
-                          </label>
-                        ),
-                      )}
                     </div>
                   </div>
                 ))}
@@ -730,6 +730,32 @@ export function EventPageClient() {
               excludeIds={excludeIds}
               onPick={addMember}
             />
+
+            <fieldset className="event-tickets">
+              <legend>Bilety</legend>
+              <p className="empty-hint">
+                Ile dorosłych i ile dzieci — zbiorczo, nie przy każdej osobie.
+              </p>
+              <GuestTicketSteppers
+                value={tickets}
+                onChange={(next) => {
+                  setTickets(next);
+                  setTicketsTouched(true);
+                }}
+                pricePerPersonPln={price}
+                priceUnder7Pln={priceUnder7}
+              />
+              {ticketsMismatch ? (
+                <p className="event-ticket-warn" role="status">
+                  Z dat urodzenia wychodzi {ticketSummary(suggestedTickets)}.
+                  Zgłoszenie i tak przejdzie — sprawdzimy ręcznie.
+                </p>
+              ) : party.length > 0 && totalGuests(suggestedTickets) > 0 ? (
+                <p className="empty-hint">
+                  Z dat urodzenia: {ticketSummary(suggestedTickets)}.
+                </p>
+              ) : null}
+            </fieldset>
 
             <div className="form-grid">
               <label>
