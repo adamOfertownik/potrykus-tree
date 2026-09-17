@@ -94,10 +94,6 @@ export interface TreeNode {
   children: TreeNode[];
 }
 
-export type { ListEntry } from "@/lib/list";
-export { buildCompleteFamilyList, buildDescendantList } from "@/lib/list";
-export { searchPeople } from "@/lib/search";
-
 /** Build a descendant tree starting from root (blood line through parentIds). */
 export function buildDescendantTree(
   people: Person[],
