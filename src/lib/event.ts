@@ -1,8 +1,10 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import type { EventRsvp, FamilyEvent } from "@/types/event";
+import type { Person } from "@/types/family";
 import { rsvpCoversPerson } from "@/lib/eventAttending";
 import {
+  ageGroupFromBirth,
   amountDuePln,
   breakdownFromAgeGroups,
   DEFAULT_EVENT_CAPACITY,
@@ -663,4 +665,48 @@ export async function setRsvpPaid(
   const rsvp = existing.find((r) => r.id === id);
   if (!rsvp || rsvp.status === "cancelled") return null;
   return updateRsvp({ ...rsvp, paid });
+}
+
+export async function createAdminPayment(opts: {
+  fullName: string;
+  personId?: string;
+  coveredPersonIds: string[];
+  willTransfer: boolean;
+  paid: boolean;
+  people: Person[];
+}): Promise<EventRsvp> {
+  const event = await readEvent();
+  const byId = new Map(opts.people.map((p) => [p.id, p]));
+  const covered = [...new Set(opts.coveredPersonIds.filter((id) => byId.has(id)))];
+  if (opts.personId && byId.has(opts.personId) && !covered.includes(opts.personId)) {
+    covered.unshift(opts.personId);
+  }
+  if (covered.length < 1) {
+    throw new Error("Wybierz, za kogo jest wpłata.");
+  }
+  const groups = covered.map((id) => ageGroupFromBirth(byId.get(id)?.birthDate));
+  const breakdown = breakdownFromAgeGroups(groups);
+  const guests = totalGuests(breakdown);
+  const amountPln = amountDuePln(
+    breakdown,
+    event.pricePerPersonPln,
+    null,
+    event.priceUnder7Pln,
+  );
+  return appendRsvp({
+    id: `rsvp-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    fullName: opts.fullName,
+    personId: opts.personId,
+    guests,
+    adults: breakdown.adults,
+    children3to12: breakdown.children3to12,
+    childrenUnder3: breakdown.childrenUnder3,
+    amountPln,
+    willTransfer: opts.willTransfer,
+    paid: opts.paid,
+    coveredPersonIds: covered,
+    source: "admin",
+    status: "new",
+  });
 }
