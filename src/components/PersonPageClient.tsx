@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -40,6 +40,11 @@ function PersonInner({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const person = people.find((p) => p.id === id);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    document.getElementById("person-heading")?.focus({ preventScroll: true });
+  }, [id]);
+
   const scrollToEdit = () => {
     if (!isAdmin && !identity?.name) promptIdentity();
     document.getElementById("person-edit")?.scrollIntoView({
@@ -58,16 +63,21 @@ function PersonInner({
   const children = people
     .filter((p) => p.parentIds.includes(person.id))
     .sort(comparePeopleByBirth);
-  const siblings =
+  const siblingLine =
     person.parentIds.length === 0
-      ? []
+      ? [person]
       : people
-          .filter(
-            (p) =>
-              p.id !== person.id &&
-              p.parentIds.some((pid) => person.parentIds.includes(pid)),
+          .filter((p) =>
+            p.parentIds.some((pid) => person.parentIds.includes(pid)),
           )
           .sort(comparePeopleByBirth);
+  const siblings = siblingLine.filter((p) => p.id !== person.id);
+  const siblingIndex = siblingLine.findIndex((p) => p.id === person.id);
+  const prevSibling = siblingIndex > 0 ? siblingLine[siblingIndex - 1] : null;
+  const nextSibling =
+    siblingIndex >= 0 && siblingIndex < siblingLine.length - 1
+      ? siblingLine[siblingIndex + 1]
+      : null;
 
   const meId = identity?.personId;
   const kinship =
@@ -111,10 +121,40 @@ function PersonInner({
         ← Wróć do drzewa
       </Link>
 
+      {siblingLine.length > 1 && siblingIndex >= 0 ? (
+        <nav className="person-hop" aria-label="Rodzeństwo">
+          {prevSibling ? (
+            <Link
+              href={`/osoba/${encodeURIComponent(prevSibling.id)}`}
+              className="person-hop__btn"
+            >
+              ← {displayName(prevSibling)}
+            </Link>
+          ) : (
+            <span className="person-hop__btn is-disabled" aria-hidden />
+          )}
+          <span className="person-hop__pos">
+            Rodzeństwo {siblingIndex + 1} / {siblingLine.length}
+          </span>
+          {nextSibling ? (
+            <Link
+              href={`/osoba/${encodeURIComponent(nextSibling.id)}`}
+              className="person-hop__btn person-hop__btn--next"
+            >
+              {displayName(nextSibling)} →
+            </Link>
+          ) : (
+            <span className="person-hop__btn is-disabled" aria-hidden />
+          )}
+        </nav>
+      ) : null}
+
       <header className="person-detail__header">
         <PersonPhotoControl person={person} size="lg" mode={admin.data?.loggedIn ? "admin" : "suggest"} />
         <div>
-          <h1>{displayName(person, people)}</h1>
+          <h1 id="person-heading" tabIndex={-1}>
+            {displayName(person, people)}
+          </h1>
           {attendingPersonIds.includes(person.id) && (
             <p className="attending-banner">Na spotkaniu rodzinnym</p>
           )}
@@ -231,7 +271,13 @@ function PersonInner({
           {parents.length === 0 && <p className="empty-hint">Brak danych</p>}
           {parents.map(
             (p) =>
-              p && <PersonCard key={p.id} person={p} href={`/osoba/${p.id}`} />,
+              p && (
+                <PersonCard
+                  key={p.id}
+                  person={p}
+                  href={`/osoba/${encodeURIComponent(p.id)}`}
+                />
+              ),
           )}
         </div>
       </section>
@@ -241,7 +287,11 @@ function PersonInner({
         <div className="relation-grid">
           {siblings.length === 0 && <p className="empty-hint">Brak danych</p>}
           {siblings.map((p) => (
-            <PersonCard key={p.id} person={p} href={`/osoba/${p.id}`} />
+            <PersonCard
+              key={p.id}
+              person={p}
+              href={`/osoba/${encodeURIComponent(p.id)}`}
+            />
           ))}
         </div>
       </section>
@@ -260,7 +310,13 @@ function PersonInner({
           {spouses.length === 0 && <p className="empty-hint">Brak danych</p>}
           {spouses.map(
             (p) =>
-              p && <PersonCard key={p.id} person={p} href={`/osoba/${p.id}`} />,
+              p && (
+                <PersonCard
+                  key={p.id}
+                  person={p}
+                  href={`/osoba/${encodeURIComponent(p.id)}`}
+                />
+              ),
           )}
         </div>
       </section>
@@ -278,7 +334,11 @@ function PersonInner({
         <div className="relation-grid">
           {children.length === 0 && <p className="empty-hint">Brak danych</p>}
           {children.map((p) => (
-            <PersonCard key={p.id} person={p} href={`/osoba/${p.id}`} />
+            <PersonCard
+              key={p.id}
+              person={p}
+              href={`/osoba/${encodeURIComponent(p.id)}`}
+            />
           ))}
         </div>
       </section>
@@ -384,6 +444,7 @@ export function PersonPageClient({ id }: { id: string }) {
     <AuthedPage loadingLabel="Wczytywanie osoby…">
       {({ people, family }) => (
         <PersonInner
+          key={id}
           id={id}
           people={people}
           attendingPersonIds={family.attendingPersonIds ?? []}
