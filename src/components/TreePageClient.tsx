@@ -6,6 +6,7 @@ import { AuthedPage } from "@/components/AuthedPage";
 import { FamilyChartView } from "@/components/FamilyChartView";
 import { PersonSearch } from "@/components/PersonSearch";
 import { displayName } from "@/lib/db-client";
+import { findApexPersonId } from "@/lib/tree";
 
 export function TreePageClient() {
   const searchParams = useSearchParams();
@@ -29,10 +30,16 @@ export function TreePageClient() {
       immersive
     >
       {({ people, family }) => {
-        const familyRoot = family.meta.rootPersonId || "";
-        const effectiveRoot = viewRoot || familyRoot;
+        const familyRoot = family.meta.rootPersonId || people[0]?.id || "";
+        const apexId = familyRoot
+          ? findApexPersonId(people, familyRoot)
+          : "";
+        const defaultMain = apexId || familyRoot;
+        const effectiveRoot = viewRoot || defaultMain;
         const focusedAway =
-          Boolean(viewRoot) && Boolean(familyRoot) && viewRoot !== familyRoot;
+          Boolean(viewRoot) &&
+          Boolean(defaultMain) &&
+          viewRoot !== defaultMain;
         const focusPerson = focusedAway
           ? people.find((p) => p.id === viewRoot) ?? null
           : null;
@@ -116,6 +123,7 @@ export function TreePageClient() {
                   people={people}
                   mainId={effectiveRoot}
                   highlightId={highlightId}
+                  overview={!viewRoot}
                   onHighlight={setHighlightId}
                   onFocusBranch={focusBranch}
                   onHighlightMissing={focusBranch}

@@ -16,6 +16,8 @@ type Props = {
   mainId: string;
   /** Person to highlight without changing what the tree shows */
   highlightId?: string | null;
+  /** Full-tree view: fit every generation instead of centering on main */
+  overview?: boolean;
   /** Called when a card is tapped — the tree itself stays untouched */
   onHighlight?: (id: string) => void;
   /** Called only when user explicitly focuses a branch (modal action) */
@@ -73,6 +75,7 @@ export function FamilyChartView({
   people,
   mainId,
   highlightId = null,
+  overview = false,
   onHighlight,
   onFocusBranch,
   onHighlightMissing,
@@ -96,7 +99,7 @@ export function FamilyChartView({
   const peopleSig = people
     .map(
       (p) =>
-        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.photoUrl ?? ""}`,
+        `${p.id}:${p.parentIds.join(",")}:${p.spouseIds.join(",")}:${p.firstName}:${p.lastName}:${p.birthDate ?? ""}:${p.deathDate ?? ""}:${p.photoUrl ?? ""}`,
     )
     .join("|");
 
@@ -230,6 +233,9 @@ export function FamilyChartView({
     const chart = f3.createChart(el, data);
     chart.setTransitionTime(250);
     chart.setSingleParentEmptyCard(false);
+    chart.setShowSiblingsOfMain(true);
+    chart.setAncestryDepth(100);
+    chart.setProgenyDepth(100);
     chart.setCardXSpacing(layout.xSpace);
     chart.setCardYSpacing(layout.ySpace);
     chart.afterUpdate = () => {
@@ -342,8 +348,12 @@ export function FamilyChartView({
       }, 280);
       return () => window.clearTimeout(timer);
     }
-    chart.updateTree({ tree_position: "main_to_middle" });
-  }, [mainId]);
+    chart.updateTree({
+      tree_position: overview ? "fit" : "main_to_middle",
+    });
+    // applyHighlight / panToCard close over DOM nodes rebuilt with the chart
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainId, overview]);
 
   // Highlight — mark the card and slide the view onto it
   useEffect(() => {

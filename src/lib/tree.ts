@@ -28,6 +28,66 @@ export function getPersonMap(people: Person[]): Map<string, Person> {
   return new Map(people.map((p) => [p.id, p]));
 }
 
+function countBloodRelatives(people: Person[], rootId: string): number {
+  const seen = new Set<string>([rootId]);
+  const queue = [rootId];
+  while (queue.length) {
+    const id = queue.shift()!;
+    for (const childId of getChildrenIds(people, id)) {
+      if (seen.has(childId)) continue;
+      seen.add(childId);
+      queue.push(childId);
+    }
+  }
+  return seen.size;
+}
+
+/**
+ * Oldest progenitor of `startId` whose descendant tree covers the most people.
+ * family-chart hides siblings of `main` unless they sit below the root as children,
+ * so the default view must start at this apex — not at meta.rootPersonId.
+ */
+export function findApexPersonId(
+  people: Person[],
+  startId: string,
+): string {
+  const map = getPersonMap(people);
+  if (!map.has(startId)) return people[0]?.id ?? startId;
+
+  const ancestorIds = new Set<string>();
+  const stack = [startId];
+  while (stack.length) {
+    const id = stack.pop()!;
+    if (ancestorIds.has(id)) continue;
+    ancestorIds.add(id);
+    const person = map.get(id);
+    if (!person) continue;
+    for (const parentId of person.parentIds) {
+      if (map.has(parentId)) stack.push(parentId);
+    }
+  }
+
+  const progenitors = [...ancestorIds].filter((id) => {
+    const person = map.get(id);
+    if (!person) return false;
+    return !person.parentIds.some((pid) => map.has(pid));
+  });
+  if (!progenitors.length) return startId;
+
+  const start = map.get(startId);
+  const ranked = progenitors.map((id) => ({
+    id,
+    relatives: countBloodRelatives(people, id),
+    sameName: start && map.get(id)?.lastName === start.lastName ? 1 : 0,
+  }));
+  ranked.sort((a, b) => {
+    if (b.relatives !== a.relatives) return b.relatives - a.relatives;
+    if (b.sameName !== a.sameName) return b.sameName - a.sameName;
+    return a.id.localeCompare(b.id);
+  });
+  return ranked[0]!.id;
+}
+
 export interface TreeNode {
   person: Person;
   spouses: Person[];

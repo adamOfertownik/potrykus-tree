@@ -98,6 +98,38 @@ test("tree is fullscreen with navbar links and wind overlay", async ({
   await ctx.close();
 });
 
+test("default tree shows Ludwik without focusing his father", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as {
+    people: { id: string; firstName: string; lastName: string }[];
+  };
+  const ludwik = payload.people.find(
+    (p) => p.firstName === "Ludwik" && p.lastName === "Potrykus",
+  );
+  expect(ludwik, "Ludwik Potrykus must exist in family payload").toBeTruthy();
+
+  await page.goto("/drzewo");
+  await expect(page).toHaveURL(/\/drzewo$/);
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45000 });
+  await expect(page.getByTestId("full-tree-back")).toHaveCount(0);
+  await expect(
+    page.locator("#htmlSvg .card_cont").filter({ hasText: "Ludwik" }).first(),
+  ).toBeVisible({ timeout: 15_000 });
+  await ctx.close();
+});
+
 test("returning to full tree keeps the highlighted person", async ({
   browser,
 }) => {
