@@ -6,6 +6,7 @@ import * as f3 from "family-chart";
 import "family-chart/styles/family-chart.css";
 import type { Person } from "@/types/family";
 import { peopleToFamilyChartData } from "@/lib/familyChartData";
+import { separateChartLinks } from "@/lib/chartLinks";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { GraphEditHost } from "@/components/GraphEditHost";
 import { TreeWind } from "@/components/TreeWind";
@@ -32,9 +33,9 @@ const SCALE_LAYOUT: Record<
   TextScaleId,
   { w: number; h: number; xSpace: number; ySpace: number; font: number }
 > = {
-  normal: { w: 220, h: 78, xSpace: 250, ySpace: 250, font: 13 },
-  large: { w: 260, h: 96, xSpace: 300, ySpace: 290, font: 16 },
-  xlarge: { w: 300, h: 112, xSpace: 350, ySpace: 330, font: 18 },
+  normal: { w: 220, h: 78, xSpace: 270, ySpace: 300, font: 13 },
+  large: { w: 260, h: 96, xSpace: 320, ySpace: 340, font: 16 },
+  xlarge: { w: 300, h: 112, xSpace: 370, ySpace: 380, font: 18 },
 };
 
 /** Minimum zoom when jumping to a searched person, so the card stays readable */
@@ -275,12 +276,21 @@ export function FamilyChartView({
     chart.setProgenyDepth(100);
     chart.setCardXSpacing(layout.xSpace);
     chart.setCardYSpacing(layout.ySpace);
-    chart.afterUpdate = () => {
+    let linkTimer = 0;
+    const paintLinks = () => {
       el.querySelectorAll("path.link").forEach((path) => {
-        path.setAttribute("stroke", "#5f7a6a");
-        path.setAttribute("stroke-width", "2.5");
+        if (!path.classList.contains("f3-path-to-main")) {
+          path.setAttribute("stroke", "#8aa392");
+          path.setAttribute("stroke-width", "2.25");
+        }
         path.setAttribute("fill", "none");
       });
+      separateChartLinks(el);
+    };
+    chart.afterUpdate = () => {
+      paintLinks();
+      window.clearTimeout(linkTimer);
+      linkTimer = window.setTimeout(paintLinks, 280);
       applyHighlight();
       applyAttending();
     };
@@ -355,6 +365,7 @@ export function FamilyChartView({
     el.addEventListener("pointerleave", onPlusPointerLeave);
 
     return () => {
+      window.clearTimeout(linkTimer);
       el.removeEventListener("pointerdown", onPlusPointerDown, true);
       el.removeEventListener("pointerleave", onPlusPointerLeave);
       chartRef.current = null;

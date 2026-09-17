@@ -1253,12 +1253,14 @@ textarea:focus-visible {
   font-size: var(--f3-card-font, 13px) !important;
 }
 
-/* Relationship lines — visible on light background */
+/* Relationship lines — lanes get their own stroke in JS so they stay separable */
 .family-chart-host svg.main_svg .link,
 .family-chart-host svg .link {
-  stroke: #5f7a6a !important;
-  stroke-width: 2.5px;
+  stroke: #8aa392;
+  stroke-width: 2.25px;
   fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
 }
 
 .family-chart-host svg.main_svg .link.f3-path-to-main,
