@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useUnlock } from "@/lib/hooks";
+import { TermsAccept, useStoredLegalAccept } from "@/components/TermsAccept";
 
 type Props = {
   /** Where to go after a successful unlock (full navigation — reliable on mobile). */
@@ -11,10 +12,12 @@ type Props = {
 export function AccessGate({ afterUnlockHref = "/" }: Props) {
   const [code, setCode] = useState("");
   const [showCode, setShowCode] = useState(false);
+  const [accepted, setAccepted] = useStoredLegalAccept();
   const unlock = useUnlock();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!accepted) return;
     unlock.mutate(code, {
       onSuccess: () => {
         // Full reload into the unlocked app (avoids soft-router + stale SW)
@@ -30,8 +33,8 @@ export function AccessGate({ afterUnlockHref = "/" }: Props) {
         <p className="gate-brand">Drzewo Potrykus</p>
         <h1 className="gate-title">Rodzinne archiwum</h1>
         <p className="gate-lead">
-          Dane genealogiczne i numery telefonów są chronione kodem rodzinnym —
-          bez konta, ale też bez publicznego dostępu.
+          Prywatne archiwum Rodu Potrykus, złożone z papierów rodzinnych.
+          Chronione kodem — bez konta, bez publicznego dostępu.
         </p>
         <form className="gate-form" onSubmit={onSubmit}>
           <label htmlFor="family-code" className="field-block">
@@ -58,7 +61,16 @@ export function AccessGate({ afterUnlockHref = "/" }: Props) {
               </button>
             </span>
           </label>
-          <button type="submit" className="gate-cta" disabled={unlock.isPending}>
+          <TermsAccept
+            id="family-legal"
+            accepted={accepted}
+            onChange={setAccepted}
+          />
+          <button
+            type="submit"
+            className="gate-cta"
+            disabled={unlock.isPending || !accepted}
+          >
             {unlock.isPending ? "Sprawdzam…" : "Wejdź do drzewa"}
           </button>
         </form>
@@ -68,9 +80,16 @@ export function AccessGate({ afterUnlockHref = "/" }: Props) {
           </p>
         )}
         <footer className="gate-footer">
-          Twórca: <strong>Adam Lieske</strong>
-          <span className="gate-footer__sep">·</span>
-          <a href="/login">Logowanie administratora</a>
+          <p>
+            Twórca: <strong>Adam Lieske</strong>
+          </p>
+          <p>
+            <a href="/regulamin">Regulamin</a>
+            <span className="gate-footer__sep">·</span>
+            <a href="/polityka-prywatnosci">Prywatność</a>
+            <span className="gate-footer__sep">·</span>
+            <a href="/login">Logowanie administratora</a>
+          </p>
         </footer>
       </section>
     </main>

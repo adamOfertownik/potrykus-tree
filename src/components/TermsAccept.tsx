@@ -1,0 +1,61 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  LEGAL_STORAGE_KEY,
+  LEGAL_VERSION,
+  parseLegalAccept,
+} from "@/lib/legal";
+
+export function TermsAccept({
+  id,
+  accepted,
+  onChange,
+}: {
+  id: string;
+  accepted: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  return (
+    <label className="gate-accept" htmlFor={id}>
+      <input
+        id={id}
+        type="checkbox"
+        checked={accepted}
+        required
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span>
+        Akceptuję{" "}
+        <Link href="/regulamin">regulamin</Link> i{" "}
+        <Link href="/polityka-prywatnosci">politykę prywatności</Link>.
+        Wiem, że to prywatne archiwum Rodu Potrykus. Zgłaszając zmiany, biorę
+        na siebie dane swojej najbliższej rodziny.
+      </span>
+    </label>
+  );
+}
+
+/** Restore a previous acceptance of the current legal version. */
+export function useStoredLegalAccept(): [boolean, (next: boolean) => void] {
+  const [accepted, setAccepted] = useState(false);
+
+  useEffect(() => {
+    setAccepted(Boolean(parseLegalAccept(localStorage.getItem(LEGAL_STORAGE_KEY))));
+  }, []);
+
+  const update = (next: boolean) => {
+    setAccepted(next);
+    if (next) {
+      localStorage.setItem(
+        LEGAL_STORAGE_KEY,
+        JSON.stringify({ version: LEGAL_VERSION, at: new Date().toISOString() }),
+      );
+    } else {
+      localStorage.removeItem(LEGAL_STORAGE_KEY);
+    }
+  };
+
+  return [accepted, update];
+}

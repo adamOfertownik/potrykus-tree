@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAdminLogin } from "@/lib/hooks";
+import { TermsAccept, useStoredLegalAccept } from "@/components/TermsAccept";
 
 type Props = {
   /** Where to go after successful login. */
@@ -19,6 +20,7 @@ export function AdminLoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [accepted, setAccepted] = useStoredLegalAccept();
   const login = useAdminLogin();
 
   return (
@@ -35,6 +37,7 @@ export function AdminLoginForm({
           className="gate-form"
           onSubmit={(e) => {
             e.preventDefault();
+            if (!accepted) return;
             login.mutate(
               { email, password },
               {
@@ -83,7 +86,16 @@ export function AdminLoginForm({
               </button>
             </span>
           </label>
-          <button type="submit" className="gate-cta" disabled={login.isPending}>
+          <TermsAccept
+            id="admin-legal"
+            accepted={accepted}
+            onChange={setAccepted}
+          />
+          <button
+            type="submit"
+            className="gate-cta"
+            disabled={login.isPending || !accepted}
+          >
             {login.isPending ? "Loguję…" : "Zaloguj"}
           </button>
         </form>
@@ -95,6 +107,10 @@ export function AdminLoginForm({
         {showBackLink && (
           <footer className="gate-footer">
             <Link href="/drzewo">← Wróć do drzewa</Link>
+            <span className="gate-footer__sep">·</span>
+            <Link href="/regulamin">Regulamin</Link>
+            <span className="gate-footer__sep">·</span>
+            <Link href="/polityka-prywatnosci">Prywatność</Link>
           </footer>
         )}
       </section>
