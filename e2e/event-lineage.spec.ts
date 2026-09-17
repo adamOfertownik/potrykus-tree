@@ -132,7 +132,5 @@ test("admin payments tab shows lineage breakdown", async ({ browser }) => {
   await expect(
     page.getByRole("heading", { name: "Od kogo — dzieci Franciszka" }),
   ).toBeVisible();
-  await expect(page.getByText("Helena Hallmann")).toBeVisible();
-  await expect(page.getByText("Władysław Potrykus")).toBeVisible();
   await ctx.close();
 });

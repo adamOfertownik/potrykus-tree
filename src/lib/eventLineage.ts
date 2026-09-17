@@ -1,6 +1,5 @@
 import type { Person } from "@/types/family";
 import { displayName } from "@/lib/db-client";
-import { resolveAttendingPersonIds } from "@/lib/eventAttending";
 import { getChildrenIds, getPersonMap } from "@/lib/tree";
 
 /** Spotkanie jest głównie z linii Franciszka Potrykus. */
@@ -196,6 +195,14 @@ function addPersonToBucket(
   if (!row.names.includes(name)) row.names.push(name);
 }
 
+function collectAttendingIds(rsvps: RsvpLike[], knownIds: Set<string>): string[] {
+  const attending = new Set<string>();
+  for (const rsvp of rsvps) {
+    for (const id of rsvpPersonIds(rsvp, knownIds)) attending.add(id);
+  }
+  return [...attending];
+}
+
 export function summarizeMeetingLineage(
   people: Person[],
   rsvps: RsvpLike[],
@@ -212,7 +219,7 @@ export function summarizeMeetingLineage(
 
   const active = rsvps.filter((r) => r.status !== "cancelled");
   const knownIds = new Set(people.map((p) => p.id));
-  const attendingIds = resolveAttendingPersonIds(active, people);
+  const attendingIds = collectAttendingIds(active, knownIds);
   const classified = new Map<string, PersonLineage>();
   for (const id of attendingIds) {
     classified.set(id, classifyPersonLineage(id, people, rootId));
