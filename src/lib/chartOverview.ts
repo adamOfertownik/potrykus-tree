@@ -15,6 +15,8 @@ export type BranchLabel = {
   id: string;
   title: string;
   subtitle: string;
+  /** Pokolenie od pnia Franciszka (P018), jak na liście. */
+  generation?: number;
   x: number;
   y: number;
   width: number;
@@ -137,7 +139,19 @@ function plPeople(n: number): string {
   return `${n} osób`;
 }
 
-function branchTitle(person: Person, count: number): {
+/** Jak na liście rodziny — jeden pień, jedno „1.” */
+export function formatBranchGeneration(gen: number | undefined): string {
+  if (gen == null) return "";
+  if (gen === 0) return "Pień";
+  if (gen < 0) return `Przodkowie ${-gen}`;
+  return `${gen}. pokolenie`;
+}
+
+function branchTitle(
+  person: Person,
+  count: number,
+  generation?: number,
+): {
   title: string;
   subtitle: string;
 } {
@@ -222,6 +236,8 @@ export function pickBranchLabels(
   if (bestHeads.length < 1) return [];
   if (mode === "overview" && bestHeads.length < 2) return [];
 
+  const genByPerson = generationIndexByPersonId(people);
+
   const chosen = new Set(bestHeads.map((n) => n.id));
   if (mode === "overview") {
     const extraDepth = bestHeads[0] ? bestHeads[0].depth + 1 : -1;
@@ -239,11 +255,13 @@ export function pickBranchLabels(
     const person = byId.get(node.id);
     const ext = extents.get(node.id);
     if (!person || !ext) continue;
-    const { title, subtitle } = branchTitle(person, ext.count);
+    const generation = genByPerson.get(node.id);
+    const { title, subtitle } = branchTitle(person, ext.count, generation);
     labels.push({
       id: node.id,
       title,
       subtitle: subtitle || displayName(person),
+      generation,
       x: (ext.minX + ext.maxX) / 2,
       y: node.y,
       width: Math.max(ext.maxX - ext.minX, 240),

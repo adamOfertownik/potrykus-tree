@@ -10,6 +10,7 @@ import { separateChartLinks } from "@/lib/chartLinks";
 import {
   nodesFromChartTree,
   overviewOpacity,
+  formatBranchGeneration,
   pickBranchLabels,
   pickGenerationBands,
   type BranchLabel,
@@ -985,10 +986,19 @@ export function FamilyChartView({
             className="chart-branch-label"
             data-branch-id={label.id}
             data-testid="chart-branch-label"
-            title={`Wejdź głębiej: ${label.title}`}
+            title={`Wejdź głębiej: ${label.title}${
+              label.generation != null
+                ? ` (${formatBranchGeneration(label.generation)})`
+                : ""
+            }`}
             onClick={() => zoomToBranch(label)}
           >
             <span className="chart-branch-label__name">{label.title}</span>
+            {label.generation != null ? (
+              <span className="chart-branch-label__gen">
+                {formatBranchGeneration(label.generation)}
+              </span>
+            ) : null}
             {label.subtitle ? (
               <span className="chart-branch-label__meta">{label.subtitle}</span>
             ) : null}

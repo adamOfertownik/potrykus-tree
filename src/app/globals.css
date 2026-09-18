@@ -1652,6 +1652,14 @@ textarea:focus-visible {
   -webkit-line-clamp: 2;
 }
 
+.chart-branch-label__gen {
+  font-size: 0.68rem;
+  font-weight: 750;
+  color: color-mix(in srgb, var(--accent) 55%, white);
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+}
+
 .chart-branch-label__meta {
   font-size: 0.62rem;
   font-weight: 600;
