@@ -1,3 +1,4 @@
+import { generationTrunkSearchHaystack } from "@/lib/chartOverview";
 import { personBranchSearchHaystack } from "@/lib/meetingBranches";
 import type { Person } from "@/types/family";
 
@@ -25,6 +26,7 @@ export function searchPeople(people: Person[], query: string): Person[] {
           p.birthDate ?? "",
           p.weddingDate ?? "",
           personBranchSearchHaystack(p, people),
+          generationTrunkSearchHaystack(p.id, people),
         ].join(" "),
       );
       return tokens.every((token) => hay.includes(token));

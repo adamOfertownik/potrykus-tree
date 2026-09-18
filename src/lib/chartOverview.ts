@@ -36,6 +36,48 @@ const MIN_DESCENDANTS = 2;
 /** Franciszek Xawery Potrykus — stały pień numeracji pokoleń. */
 export const GENERATION_TRUNK_ID = "P018";
 
+const TRUNK_SEARCH_ALIASES = [
+  "pien",
+  "pień",
+  "pien rodziny",
+  "pień rodziny",
+  "franciszek xawery",
+  "xawery potrykus",
+  "pien franciszka xawerego",
+  "pień franciszka xawerego",
+];
+
+/** Podpowiedź w wyszukiwarce dla pnia i jego małżonka. */
+export function generationTrunkHint(
+  personId: string,
+  people: Person[],
+): string {
+  if (personId === GENERATION_TRUNK_ID) {
+    return "pień rodziny · Franciszek Xawery Potrykus";
+  }
+  const person = getPersonMap(people).get(personId);
+  if (!person) return "";
+  if (person.spouseIds.includes(GENERATION_TRUNK_ID)) {
+    return "małżonek pnia Franciszka Xawerego";
+  }
+  const gen = generationIndexByPersonId(people).get(personId);
+  if (gen != null && gen < 0) {
+    return `przodek pnia (${-gen} pok. w górę)`;
+  }
+  return "";
+}
+
+/** Słowa trafiające do wyszukiwania po pniu Franciszka Xawerego. */
+export function generationTrunkSearchHaystack(
+  personId: string,
+  people: Person[],
+): string {
+  if (personId === GENERATION_TRUNK_ID) {
+    return TRUNK_SEARCH_ALIASES.join(" ");
+  }
+  return generationTrunkHint(personId, people);
+}
+
 export function generationIndexByPersonId(
   people: Person[],
   trunkId = GENERATION_TRUNK_ID,
@@ -268,7 +310,56 @@ export function pickBranchLabels(
       count: ext.count,
     });
   }
-  return labels.sort((a, b) => a.x - b.x);
+  const sorted = labels.sort((a, b) => a.x - b.x);
+  if (mode !== "overview") return sorted;
+  return ensureGenerationTrunkBranchLabel(sorted, nodes, people, extents, nodeById);
+}
+
+function ensureGenerationTrunkBranchLabel(
+  labels: BranchLabel[],
+  nodes: ChartTreeNode[],
+  people: Person[],
+  extents: Map<string, { minX: number; maxX: number; y: number; count: number }>,
+  nodeById: Map<string, ChartTreeNode>,
+): BranchLabel[] {
+  const trunkId = GENERATION_TRUNK_ID;
+  const person = people.find((p) => p.id === trunkId);
+  const node = nodes.find((n) => n.id === trunkId && !n.isSpouse);
+  if (!person || !node) return labels;
+
+  let ext = extents.get(trunkId);
+  if (!ext) {
+    const ids = descendantIds(people, trunkId);
+    let minX = node.x;
+    let maxX = node.x;
+    let count = 0;
+    for (const id of ids) {
+      const other = nodeById.get(id);
+      if (!other) continue;
+      count += 1;
+      minX = Math.min(minX, other.x);
+      maxX = Math.max(maxX, other.x);
+    }
+    ext = { minX, maxX, y: node.y, count };
+  }
+
+  const trunkLabel: BranchLabel = {
+    id: trunkId,
+    title: displayName(person, people),
+    subtitle: ext.count > 1 ? `${plPeople(ext.count)} w gałęzi` : "",
+    generation: 0,
+    x: (ext.minX + ext.maxX) / 2,
+    y: node.y,
+    width: Math.max(ext.maxX - ext.minX, 240),
+    count: ext.count,
+  };
+
+  const idx = labels.findIndex((label) => label.id === trunkId);
+  if (idx >= 0) {
+    labels[idx] = { ...labels[idx], ...trunkLabel, generation: 0 };
+    return labels;
+  }
+  return [...labels, trunkLabel].sort((a, b) => a.x - b.x);
 }
 
 export function pickGenerationBands(

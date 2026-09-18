@@ -11,6 +11,7 @@ import {
   nodesFromChartTree,
   overviewOpacity,
   formatBranchGeneration,
+  GENERATION_TRUNK_ID,
   pickBranchLabels,
   pickGenerationBands,
   type BranchLabel,
@@ -983,7 +984,9 @@ export function FamilyChartView({
           <button
             key={label.id}
             type="button"
-            className="chart-branch-label"
+            className={`chart-branch-label${
+              label.id === GENERATION_TRUNK_ID ? " chart-branch-label--trunk" : ""
+            }`}
             data-branch-id={label.id}
             data-testid="chart-branch-label"
             title={`Wejdź głębiej: ${label.title}${

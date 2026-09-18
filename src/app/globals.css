@@ -1639,6 +1639,17 @@ textarea:focus-visible {
   border-color: color-mix(in srgb, var(--accent) 50%, white);
 }
 
+.chart-branch-label--trunk {
+  border-color: color-mix(in srgb, var(--accent) 45%, white);
+  box-shadow:
+    0 6px 18px rgba(8, 16, 10, 0.28),
+    0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.chart-branch-label--trunk .chart-branch-label__gen {
+  color: color-mix(in srgb, var(--accent) 70%, white);
+}
+
 .chart-branch-label__name {
   font-size: 0.78rem;
   font-weight: 750;

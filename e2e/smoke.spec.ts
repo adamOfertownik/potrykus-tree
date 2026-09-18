@@ -45,6 +45,37 @@ test("search highlights without filtering tree", async ({ browser }) => {
   await ctx.close();
 });
 
+test("search finds Franciszek Xawery trunk by pień or xawery", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
+
+  const input = page.locator(".person-search input").first();
+  for (const query of ["pień rodziny", "Franciszek Xawery"]) {
+    await input.fill("");
+    await input.fill(query);
+    const item = page
+      .locator(".person-search__item")
+      .filter({ hasText: /Franciszek Xawery/i })
+      .first();
+    await expect(item).toBeVisible({ timeout: 10_000 });
+    await expect(item.locator(".person-search__meta")).toContainText(
+      /pień rodziny/i,
+    );
+  }
+  await ctx.close();
+});
+
 test("search with identity set pans on full tree without opening a branch", async ({
   browser,
 }) => {
