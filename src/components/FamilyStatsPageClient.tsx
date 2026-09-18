@@ -85,13 +85,12 @@ function FamilyStatsBody({
         <h2>Gałęzie od dzieci Franciszka</h2>
         <p className="event-section__lead">
           Ile osób z drzewa zapisało się na spotkanie, na ile osób jest w
-          tej gałęzi. Helena i Władek są wyróżnieni.
+          tej gałęzi.
         </p>
         <ul className="meeting-branch-counts" data-testid="meeting-family-groups">
           {stats.livingByBranch.map((branch) => (
             <li
               key={branch.key}
-              className={branch.featured ? "is-featured" : undefined}
               data-testid="meeting-branch-count"
             >
               <span>{branch.label}</span>

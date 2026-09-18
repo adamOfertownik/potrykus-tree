@@ -21,7 +21,6 @@ export type MeetingBranch = {
   headId?: string;
   short: string;
   label: string;
-  featured: boolean;
   personIds: string[];
 };
 
@@ -149,7 +148,6 @@ export function groupAttendingByMeetingBranch(
     key: string,
     kind: MeetingBranchKind,
     names: { short: string; label: string },
-    featured: boolean,
     headId?: string,
   ): MeetingBranch => {
     const existing = byKey.get(key);
@@ -160,7 +158,6 @@ export function groupAttendingByMeetingBranch(
       headId,
       short: names.short,
       label: names.label,
-      featured,
       personIds: [],
     };
     byKey.set(key, next);
@@ -169,10 +166,10 @@ export function groupAttendingByMeetingBranch(
 
   for (const head of heads) {
     const names = branchNames(head);
-    ensure(`branch:${head.id}`, "branch", names, head.id === HELENA_BRANCH_ID || head.id === WLADEK_BRANCH_ID, head.id);
+    ensure(`branch:${head.id}`, "branch", names, head.id);
   }
-  ensure("root", "root", { short: "Franciszek", label: "pień Franciszka" }, false);
-  ensure("outside", "outside", { short: "poza linią", label: "poza linią Franciszka" }, false);
+  ensure("root", "root", { short: "Franciszek", label: "pień Franciszka" });
+  ensure("outside", "outside", { short: "poza linią", label: "poza linią Franciszka" });
 
   const known = new Set(people.map((p) => p.id));
   for (const id of attendingPersonIds) {
@@ -184,16 +181,11 @@ export function groupAttendingByMeetingBranch(
         : attr.kind === "root"
           ? "root"
           : "outside";
-    const row = ensure(key, attr.kind, { short: attr.short, label: attr.label }, key === `branch:${HELENA_BRANCH_ID}` || key === `branch:${WLADEK_BRANCH_ID}`, attr.head?.id);
+    const row = ensure(key, attr.kind, { short: attr.short, label: attr.label }, attr.head?.id);
     if (!row.personIds.includes(id)) row.personIds.push(id);
   }
 
-  const featuredOrder = [HELENA_BRANCH_ID, WLADEK_BRANCH_ID];
-  const featured = featuredOrder
-    .map((id) => byKey.get(`branch:${id}`))
-    .filter((row): row is MeetingBranch => Boolean(row));
-  const restHeads = heads
-    .filter((h) => !featuredOrder.includes(h.id))
+  const branchRows = heads
     .map((h) => byKey.get(`branch:${h.id}`))
     .filter((row): row is MeetingBranch => row !== undefined);
   const root = byKey.get("root");
@@ -203,7 +195,7 @@ export function groupAttendingByMeetingBranch(
       row !== undefined && row.personIds.length > 0,
   );
 
-  return [...featured, ...restHeads, ...extra];
+  return [...branchRows, ...extra];
 }
 
 export function namedPeopleOnBranch(

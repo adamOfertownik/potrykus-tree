@@ -41,6 +41,10 @@ test("statystyki show Franciszek branches and insights", async ({ browser }) => 
   await expect(page.getByTestId("family-stats")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole("heading", { name: "Statystyki rodzin" })).toBeVisible();
   await expect(page.getByTestId("meeting-family-groups")).toBeVisible();
+  await expect(page.locator(".is-featured")).toHaveCount(0);
+  await expect(
+    page.getByText(/Helena i Władek są wyróżnieni/),
+  ).toHaveCount(0);
   await expect(
     page.getByTestId("meeting-branch-count").filter({ hasText: /Heleny/ }),
   ).toBeVisible();
@@ -70,6 +74,7 @@ test("statystyki show Franciszek branches and insights", async ({ browser }) => 
   ]) {
     await expect(bar.locator(".meeting-branch-chips li").filter({ hasText: name })).toHaveCount(1);
   }
+  await expect(bar.locator(".meeting-branch-chips li.is-featured")).toHaveCount(0);
   await page.getByTestId("meeting-who-toggle").click();
   await expect(bar).toHaveAttribute("data-who-visible", "false");
   await expect(bar).toContainText("Kto będzie na spotkaniu");
@@ -100,6 +105,9 @@ test("spotkanie lists signup branches at the bottom only", async ({
     timeout: 20_000,
   });
   await expect(page.getByRole("heading", { name: "Zapisy od kogo" })).toBeVisible();
+  await expect(page.locator(".meeting-branch-counts li.is-featured")).toHaveCount(
+    0,
+  );
   await expect(page.getByTestId("meeting-family-groups")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Gałęzie od dzieci Franciszka" })).toHaveCount(0);
   await expect(page.getByText("Kto będzie — od kogo")).toBeVisible();

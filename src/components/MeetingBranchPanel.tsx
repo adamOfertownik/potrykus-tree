@@ -138,10 +138,7 @@ export function MeetingBranchPanel({
             {going
               .filter((branch) => branch.kind === "branch")
               .map((branch) => (
-                <li
-                  key={branch.key}
-                  className={branch.featured ? "is-featured" : undefined}
-                >
+                <li key={branch.key}>
                   <span>{branch.short}</span>
                   <strong>{ratio(branch)}</strong>
                 </li>
@@ -170,7 +167,6 @@ export function MeetingBranchPanel({
         {goingCounts.map((branch) => (
           <li
             key={branch.key}
-            className={branch.featured ? "is-featured" : undefined}
             data-testid="meeting-going-count"
             data-branch={branch.short}
           >
