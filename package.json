@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --test --experimental-strip-types src/lib/*.test.ts",
     "seed": "node scripts/generate-seed.mjs",
     "db:migrate": "node scripts/migrate.mjs",
     "db:seed-family": "node scripts/seed-family-db.mjs",

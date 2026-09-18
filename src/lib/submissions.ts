@@ -163,7 +163,11 @@ export async function appendSubmission(
   submission: ChangeSubmission,
 ): Promise<ChangeSubmission> {
   const saved = await insertSubmission(submission, "new");
-  void notifyAdminOfSubmission(saved, "zgłoszenie");
+  try {
+    await notifyAdminOfSubmission(saved, "zgłoszenie");
+  } catch {
+    /* mail is best-effort; zapis zgłoszenia już się udał */
+  }
   return saved;
 }
 
@@ -229,12 +233,20 @@ export async function upsertSketch(
     };
     const saved = (await saveSubmission(next)) ?? next;
     if (saved.message !== match.message) {
-      void notifyAdminOfSubmission(saved, "szkic");
+      try {
+        await notifyAdminOfSubmission(saved, "szkic");
+      } catch {
+        /* mail is best-effort */
+      }
     }
     return saved;
   }
   const saved = await insertSubmission(submission, "sketch");
-  void notifyAdminOfSubmission(saved, "szkic");
+  try {
+    await notifyAdminOfSubmission(saved, "szkic");
+  } catch {
+    /* mail is best-effort */
+  }
   return saved;
 }
 
