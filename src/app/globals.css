@@ -2914,11 +2914,6 @@ button.person-card {
   font-weight: 700;
 }
 
-.person-photo .confirm-email {
-  margin-top: 0.45rem;
-  max-width: 18rem;
-}
-
 .draft-graph-bar__error {
   flex: 1 1 100%;
   margin: 0;
