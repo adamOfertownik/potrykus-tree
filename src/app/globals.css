@@ -1722,6 +1722,89 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--attending) 12%, white);
 }
 
+.tree-who-btn {
+  flex-shrink: 0;
+  min-height: 2.2rem;
+  padding: 0.25rem 0.7rem;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.chart-nav-pad {
+  position: absolute;
+  left: 1.25rem;
+  top: 42%;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.chart-nav-pad > * {
+  pointer-events: auto;
+}
+
+.chart-nav-pad__toggle,
+.chart-nav-pad__key {
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(6px);
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chart-nav-pad__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.4rem;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.chart-nav-pad__zoom {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: center;
+}
+
+.chart-nav-pad__compass {
+  display: grid;
+  grid-template-columns: 2.2rem 2.2rem 2.2rem;
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
+  gap: 0.25rem;
+  justify-items: center;
+}
+
+.chart-nav-pad__key--up {
+  grid-area: up;
+}
+
+.chart-nav-pad__compass [data-testid="chart-nav-left"] {
+  grid-area: left;
+}
+
+.chart-nav-pad__compass [data-testid="chart-nav-right"] {
+  grid-area: right;
+}
+
+.chart-nav-pad__key--down {
+  grid-area: down;
+}
+
 .pending-legend {
   pointer-events: auto;
   align-self: center;
@@ -4648,6 +4731,12 @@ button.person-card {
     top: auto;
     bottom: 2.4rem;
     right: 0.55rem;
+  }
+
+  .chart-nav-pad {
+    top: auto;
+    bottom: 6.4rem;
+    left: 0.55rem;
   }
 
   .tree-page__meeting-bar {

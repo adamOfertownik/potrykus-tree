@@ -22,6 +22,66 @@ async function sessionCookie() {
   };
 }
 
+test("start centers a readable card, not the whole tree", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
+  const highlight = page.locator(".card_cont.is-chart-highlight .card-label").first();
+  await expect(highlight).toBeVisible({ timeout: 15_000 });
+  await expect(highlight).toContainText(/Franciszek/i);
+  const k = await page.evaluate(() => {
+    type Z = { __zoom?: { k?: number }; parentElement?: Z | null };
+    const svg = document.querySelector("#FamilyChart svg") as Z | null;
+    const parent = svg?.parentElement ?? null;
+    return svg?.__zoom?.k ?? parent?.__zoom?.k ?? 0;
+  });
+  expect(k).toBeGreaterThan(0.5);
+  await expect(page.getByTestId("change-who")).toBeVisible();
+  await ctx.close();
+});
+
+test("nav pad jumps to a neighboring person", async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont.is-chart-highlight", {
+    timeout: 45_000,
+  });
+  const before = await page
+    .locator(".card_cont.is-chart-highlight .card-label")
+    .first()
+    .innerText();
+  await page.getByTestId("chart-nav-pad-toggle").click();
+  await expect(page.getByTestId("chart-nav-pad")).toBeVisible();
+  await page.getByTestId("chart-nav-down").click();
+  await expect
+    .poll(async () =>
+      page.locator(".card_cont.is-chart-highlight .card-label").first().innerText(),
+    )
+    .not.toBe(before);
+  await page.getByTestId("chart-nav-zoom-in").click();
+  await ctx.close();
+});
+
 test("zoomed-out tree shows branch headers and drilling into one", async ({
   browser,
 }) => {
@@ -203,5 +263,28 @@ test("phone portrait width-fits and keeps one-finger taps off the map", async ({
   await visible.first().click({ force: true });
   await expect(page).toHaveURL(/[?&]root=/);
   await expect(page.getByTestId("chart-gen-label").first()).toBeVisible();
+  await ctx.close();
+});
+
+test("Ja opens identity picker with son-of-father label", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.getByTestId("change-who").click();
+  await expect(
+    page.getByRole("heading", { name: "Kim jesteś w rodzinie?" }),
+  ).toBeVisible();
+  await page.locator("#who-search").fill("Franciszek Xawery");
+  await expect(page.locator(".who-matches__pick").first()).toContainText(/syn /i);
   await ctx.close();
 });

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
+import { childOfParentHint, identityChoiceLabel } from "@/lib/personIdentity";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { Modal } from "@/components/Modal";
 
@@ -94,6 +95,11 @@ export function WhoAreYouDialog({
           </header>
           <div className="who-confirm">
             <p className="who-confirm__name">{displayName(pending, people)}</p>
+            {childOfParentHint(pending, people) ? (
+              <p className="who-confirm__meta">
+                {childOfParentHint(pending, people)}
+              </p>
+            ) : null}
             {personDates(pending) ? (
               <p className="who-confirm__meta">{personDates(pending)}</p>
             ) : null}
@@ -149,7 +155,7 @@ export function WhoAreYouDialog({
                       }}
                     >
                       <span className="who-matches__text">
-                        <span>{displayName(p, people)}</span>
+                        <span>{identityChoiceLabel(p, people)}</span>
                         {dates ? (
                           <span className="who-matches__dates">{dates}</span>
                         ) : null}

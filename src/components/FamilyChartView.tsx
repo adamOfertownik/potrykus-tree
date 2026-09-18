@@ -15,6 +15,7 @@ import {
   type BranchLabel,
   type GenerationBand,
 } from "@/lib/chartOverview";
+import { neighborInDirection, type NavDirection } from "@/lib/chartNav";
 import {
   chartZoomFilter,
   fitTreeView,
@@ -167,6 +168,7 @@ export function FamilyChartView({
   const gensRef = useRef<GenerationBand[]>([]);
   const [branchLabels, setBranchLabels] = useState<BranchLabel[]>([]);
   const [generationBands, setGenerationBands] = useState<GenerationBand[]>([]);
+  const [padOpen, setPadOpen] = useState(false);
 
   const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
@@ -625,11 +627,10 @@ export function FamilyChartView({
     // still fit the subtree so the next-generation hints stay visible.
     const distinctHighlight =
       keepHighlight && keepHighlight !== safeMain ? keepHighlight : null;
-    const fitWhole = overviewRef.current && !distinctHighlight;
     try {
       chart.updateTree({
         initial: false,
-        tree_position: fitWhole ? "inherit" : "main_to_middle",
+        tree_position: "main_to_middle",
       });
     } catch (err) {
       console.error("family-chart updateTree failed", err);
@@ -638,7 +639,21 @@ export function FamilyChartView({
         tree_position: "main_to_middle",
       });
     }
-    if (fitWhole) applyWholeTreeFit(false);
+    const focusId = distinctHighlight || keepHighlight || safeMain;
+    if (focusId) {
+      const k = currentView()?.k;
+      if (!k || k < READABLE_ZOOM) {
+        const datum = chart.store.getTreeDatum?.(focusId);
+        const rect = viewportRect();
+        if (datum && rect) {
+          setViewTransform(
+            READABLE_ZOOM,
+            rect.width / 2 - datum.x * READABLE_ZOOM,
+            rect.height / 2 - datum.y * READABLE_ZOOM,
+          );
+        }
+      }
+    }
     chart.setTransitionTime(250);
     const host = zoomHost();
     const zoomObj = host?.__zoomObj;
@@ -656,8 +671,8 @@ export function FamilyChartView({
     });
     const view = currentView();
     if (view) paintOverviewOverlay(view.k, view.x, view.y);
-    const cancelInitialFocus = distinctHighlight
-      ? scheduleFocus(distinctHighlight, true)
+    const cancelInitialFocus = focusId
+      ? scheduleFocus(focusId, Boolean(distinctHighlight))
       : undefined;
 
     /** Neighbor cards sit in later stacking contexts and steal taps from the plus. */
@@ -763,16 +778,13 @@ export function FamilyChartView({
       chart.setTransitionTime(250);
       return scheduleFocus(keep, true);
     }
-    const fitWhole = Boolean(overview);
     try {
-      chart.updateTree({
-        tree_position: fitWhole ? "inherit" : "main_to_middle",
-      });
+      chart.updateTree({ tree_position: "main_to_middle" });
     } catch (err) {
       console.error("family-chart updateTree failed", err);
       chart.updateTree({ tree_position: "main_to_middle" });
     }
-    if (fitWhole) applyWholeTreeFit(false);
+    if (keep) return scheduleFocus(keep, true);
     // applyHighlight / panToCard close over DOM nodes rebuilt with the chart
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainId, overview]);
@@ -789,12 +801,6 @@ export function FamilyChartView({
       skipPanRef.current = null;
       return;
     }
-    if (
-      overviewRef.current &&
-      highlightId === mainIdRef.current
-    ) {
-      return;
-    }
     return scheduleFocus(highlightId, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightId, peopleSig, scale, mainId]);
@@ -809,6 +815,31 @@ export function FamilyChartView({
     if (view) paintOverviewOverlay(view.k, view.x, view.y);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchLabels, generationBands]);
+
+  const zoomBy = (factor: number) => {
+    const view = currentView();
+    const rect = viewportRect();
+    const chart = chartRef.current;
+    if (!view || !rect || !chart) return;
+    const nextK = Math.min(1.6, Math.max(0.18, view.k * factor));
+    const focusId = highlightRef.current;
+    const datum = focusId ? chart.store.getTreeDatum?.(focusId) : null;
+    const cx = datum ? datum.x : (rect.width / 2 - view.x) / view.k;
+    const cy = datum ? datum.y : (rect.height / 2 - view.y) / view.k;
+    animateView(nextK, rect.width / 2 - cx * nextK, rect.height / 2 - cy * nextK);
+  };
+
+  const jumpNeighbor = (dir: NavDirection) => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    const nodes = nodesFromChartTree(
+      chart.store.getTree?.() as { data?: unknown[] } | undefined,
+    );
+    const from = highlightRef.current || mainIdRef.current;
+    const next = neighborInDirection(nodes, peopleRef.current, from, dir);
+    if (!next) return;
+    onHighlight?.(next);
+  };
 
   const zoomToBranch = (label: BranchLabel) => {
     skipPanRef.current = label.id;
@@ -912,6 +943,85 @@ export function FamilyChartView({
             ) : null}
           </button>
         ))}
+      </div>
+
+      <div className={`chart-nav-pad${padOpen ? " is-open" : ""}`}>
+        <button
+          type="button"
+          className="chart-nav-pad__toggle"
+          data-testid="chart-nav-pad-toggle"
+          aria-expanded={padOpen}
+          aria-controls="chart-nav-pad-keys"
+          onClick={() => setPadOpen((open) => !open)}
+        >
+          {padOpen ? "Zwiń" : "Navi"}
+        </button>
+        {padOpen ? (
+          <div
+            id="chart-nav-pad-keys"
+            className="chart-nav-pad__panel"
+            data-testid="chart-nav-pad"
+          >
+            <div className="chart-nav-pad__zoom">
+              <button
+                type="button"
+                className="chart-nav-pad__key"
+                data-testid="chart-nav-zoom-in"
+                aria-label="Przybliż"
+                onClick={() => zoomBy(1.35)}
+              >
+                +
+              </button>
+              <button
+                type="button"
+                className="chart-nav-pad__key"
+                data-testid="chart-nav-zoom-out"
+                aria-label="Oddal"
+                onClick={() => zoomBy(1 / 1.35)}
+              >
+                −
+              </button>
+            </div>
+            <div className="chart-nav-pad__compass">
+              <button
+                type="button"
+                className="chart-nav-pad__key chart-nav-pad__key--up"
+                data-testid="chart-nav-up"
+                aria-label="Przeskocz do osoby wyżej"
+                onClick={() => jumpNeighbor("up")}
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                className="chart-nav-pad__key"
+                data-testid="chart-nav-left"
+                aria-label="Przeskocz do osoby w lewo"
+                onClick={() => jumpNeighbor("left")}
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                className="chart-nav-pad__key"
+                data-testid="chart-nav-right"
+                aria-label="Przeskocz do osoby w prawo"
+                onClick={() => jumpNeighbor("right")}
+              >
+                →
+              </button>
+              <button
+                type="button"
+                className="chart-nav-pad__key chart-nav-pad__key--down"
+                data-testid="chart-nav-down"
+                aria-label="Przeskocz do osoby niżej"
+                onClick={() => jumpNeighbor("down")}
+              >
+                ↓
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="family-chart-tools">

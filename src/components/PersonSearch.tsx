@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
+import { childOfParentHint } from "@/lib/personIdentity";
 import { useIdentity } from "@/components/IdentityProvider";
 import { MissingPersonForm } from "@/components/MissingPersonForm";
 
@@ -155,6 +156,7 @@ export function PersonSearch({
       <ul id={listId} role="listbox" className="person-search__results">
         {matches.map((p, i) => {
           const dates = [
+            childOfParentHint(p, people),
             formatPolishDate(p.birthDate),
             formatPolishDate(p.deathDate),
           ]
