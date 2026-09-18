@@ -13,7 +13,7 @@ import {
   isOnMainFamilyTree,
   treeChoiceForPerson,
 } from "@/lib/list";
-import { MEETING_ROOT_ID, MEETING_TREE_HREF } from "@/lib/meetingBranches";
+import { MEETING_ROOT_ID } from "@/lib/meetingBranches";
 import { findApexPersonId } from "@/lib/tree";
 
 export function TreePageClient() {
@@ -137,24 +137,6 @@ export function TreePageClient() {
                 </label>
               )}
 
-              {viewRoot !== MEETING_ROOT_ID && (
-                <Link
-                  href={MEETING_TREE_HREF}
-                  className="btn btn-primary meeting-franciszek-btn meeting-franciszek-btn--compact"
-                  data-testid="spotkanie-od-franciszka"
-                >
-                  Spotkanie od Franciszka
-                </Link>
-              )}
-
-              {viewRoot === MEETING_ROOT_ID && (
-                <MeetingBranchPanel
-                  people={people}
-                  attendingPersonIds={family.attendingPersonIds ?? []}
-                  variant="bar"
-                />
-              )}
-
               {focusedAway && (
                 <div className="tree-focus-bar" role="status">
                   <p>
@@ -264,6 +246,16 @@ export function TreePageClient() {
                 </div>
               )}
             </section>
+
+            {viewRoot === MEETING_ROOT_ID && (
+              <div className="tree-page__meeting-bar">
+                <MeetingBranchPanel
+                  people={people}
+                  attendingPersonIds={family.attendingPersonIds ?? []}
+                  variant="bar"
+                />
+              </div>
+            )}
 
             <div className="tree-scroll tree-scroll--chart">
               {effectiveRoot ? (

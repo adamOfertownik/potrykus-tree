@@ -934,8 +934,12 @@ export function FamilyChartView({
           </button>
         )}
         {attendingPersonIds.length > 0 && (
-          <span className="attending-legend" title="Osoby zapisane na spotkanie rodzinne">
-            Pomarańczowa ramka — idą na spotkanie
+          <span
+            className="attending-legend"
+            title="Pomarańczowa ramka — idą na spotkanie"
+            aria-label="Pomarańczowa ramka — idą na spotkanie"
+          >
+            <span className="attending-legend__swatch" aria-hidden />
           </span>
         )}
         {people.some((p) => p.pending) && (
