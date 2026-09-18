@@ -88,6 +88,8 @@ export interface ChangeSubmission {
   reporterName: string;
   reporterPersonId?: string;
   reporterPhone?: string;
+  /** Optional; used only to send a confirmation copy of this submission. */
+  reporterEmail?: string;
   targetPersonId?: string;
   targetPersonName?: string;
   message: string;
@@ -116,6 +118,8 @@ export interface SubmissionPayload {
   reporterName: string;
   reporterPersonId?: string;
   reporterPhone?: string;
+  /** Optional; used only to send a confirmation copy of this submission. */
+  reporterEmail?: string;
   targetPersonId?: string;
   targetPersonName?: string;
   message: string;

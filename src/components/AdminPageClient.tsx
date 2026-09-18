@@ -78,6 +78,9 @@ function AdminKnownFacts({
             submission.reporterName
           )}
           {submission.reporterPhone ? ` · ${submission.reporterPhone}` : ""}
+          {submission.reporterEmail
+            ? ` · ${submission.reporterEmail} (tylko potwierdzenie)`
+            : ""}
         </dd>
         {submission.targetPersonId ? (
           <>
@@ -530,6 +533,9 @@ function AdminPanel({
                 <p>
                   {selected.reporterName}
                   {selected.reporterPhone ? ` · ${selected.reporterPhone}` : ""}
+                  {selected.reporterEmail
+                    ? ` · ${selected.reporterEmail} (tylko potwierdzenie)`
+                    : ""}
                 </p>
                 {selected.targetPersonId && (
                   <p>

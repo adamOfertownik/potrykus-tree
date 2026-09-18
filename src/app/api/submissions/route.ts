@@ -67,6 +67,7 @@ export async function POST(request: Request) {
       reporterName: sanitizePlainText(body.reporterName, 120),
       reporterPersonId: body.reporterPersonId,
       reporterPhone: body.reporterPhone || undefined,
+      reporterEmail: body.reporterEmail,
       targetPersonId: body.targetPersonId,
       targetPersonName: body.targetPersonName
         ? sanitizePlainText(body.targetPersonName, 160)

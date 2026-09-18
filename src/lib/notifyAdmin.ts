@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import type { ChangeSubmission } from "@/types/submissions";
+import { adminMailContent, submitterMailContent } from "@/lib/submissionMail";
 
 const DEFAULT_TO = "adam199711@gmail.com";
 
@@ -14,50 +15,60 @@ function notifyFrom(): string {
   );
 }
 
-export async function notifyAdminOfSubmission(
-  submission: ChangeSubmission,
-  kindLabel: "zgłoszenie" | "szkic",
-): Promise<void> {
+async function sendResend(opts: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  idempotencyKey: string;
+}): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  if (!apiKey) return;
+  if (!apiKey) return false;
 
   const resend = new Resend(apiKey);
-  const subject =
-    kindLabel === "szkic"
-      ? `[Szkic] ${submission.reporterName}: ${submission.message.slice(0, 80)}`
-      : `[Zgłoszenie] ${submission.reporterName}: ${submission.message.slice(0, 80)}`;
-
-  const text = [
-    kindLabel === "szkic"
-      ? "Ktoś edytuje drzewo, ale jeszcze nie kliknął „Wyślij do admina”."
-      : "Nowe zgłoszenie czeka w panelu admina.",
-    "",
-    `Kto: ${submission.reporterName}`,
-    submission.targetPersonName
-      ? `Dotyczy: ${submission.targetPersonName}`
-      : "",
-    `Treść: ${submission.message}`,
-    `Status: ${submission.status}`,
-    `Czas: ${submission.createdAt}`,
-    "",
-    "Panel: /admin",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
   const { error } = await resend.emails.send(
     {
       from: notifyFrom(),
-      to: [notifyTo()],
-      subject,
-      text,
+      to: [opts.to],
+      subject: opts.subject,
+      html: opts.html,
+      text: opts.text,
     },
-    {
-      idempotencyKey: `potrykus-${kindLabel}-${submission.id}-${submission.status}`,
-    },
+    { idempotencyKey: opts.idempotencyKey },
   );
 
   if (error) {
     console.error("Nie udało się wysłać maila o zgłoszeniu.");
+    return false;
   }
+  return true;
+}
+
+export async function notifyAdminOfSubmission(
+  submission: ChangeSubmission,
+  kindLabel: "zgłoszenie" | "szkic",
+): Promise<void> {
+  const admin = adminMailContent(submission, kindLabel);
+  await sendResend({
+    to: notifyTo(),
+    subject: admin.subject,
+    html: admin.html,
+    text: admin.text,
+    idempotencyKey: `potrykus-${kindLabel}-${submission.id}-${submission.status}`,
+  });
+}
+
+export async function notifySubmitterOfSubmission(
+  submission: ChangeSubmission,
+): Promise<boolean> {
+  const to = submission.reporterEmail?.trim();
+  if (!to) return false;
+  const mail = submitterMailContent(submission);
+  return sendResend({
+    to,
+    subject: mail.subject,
+    html: mail.html,
+    text: mail.text,
+    idempotencyKey: `potrykus-confirm-${submission.id}`,
+  });
 }

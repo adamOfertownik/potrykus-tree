@@ -21,7 +21,7 @@ export type PhotoDeleteResult = {
 export async function uploadPersonPhoto(
   file: File,
   personId?: string,
-  opts?: { skipSubmission?: boolean },
+  opts?: { skipSubmission?: boolean; reporterEmail?: string },
 ): Promise<PhotoUploadResult> {
   const body = new FormData();
   body.append("file", file);
@@ -30,6 +30,7 @@ export async function uploadPersonPhoto(
   const reporter = loadReporter();
   if (reporter?.name) body.append("reporterName", reporter.name);
   if (reporter?.personId) body.append("reporterPersonId", reporter.personId);
+  if (opts?.reporterEmail) body.append("reporterEmail", opts.reporterEmail);
 
   const res = await fetch("/api/photos/upload", {
     method: "POST",
@@ -44,11 +45,13 @@ export async function uploadPersonPhoto(
 
 export async function removePersonPhoto(
   personId: string,
+  opts?: { reporterEmail?: string },
 ): Promise<PhotoDeleteResult> {
   const reporter = loadReporter();
   const params = new URLSearchParams({ personId });
   if (reporter?.name) params.set("reporterName", reporter.name);
   if (reporter?.personId) params.set("reporterPersonId", reporter.personId);
+  if (opts?.reporterEmail) params.set("reporterEmail", opts.reporterEmail);
 
   const res = await fetch(`/api/photos/upload?${params.toString()}`, {
     method: "DELETE",

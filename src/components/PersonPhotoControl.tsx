@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { FamilyPayload, Person } from "@/types/family";
 import { displayName } from "@/lib/db-client";
+import { ConfirmEmailField } from "@/components/ConfirmEmailField";
 import { removePersonPhoto, uploadPersonPhoto } from "@/lib/upload-photo";
 
 type Size = "sm" | "md" | "lg";
@@ -30,6 +31,7 @@ export function PersonPhotoControl({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [broken, setBroken] = useState(false);
+  const [confirmEmail, setConfirmEmail] = useState("");
   const name = displayName(person);
   const hasPhotoUrl = Boolean(person.photoUrl);
   const showPhoto = hasPhotoUrl && !broken;
@@ -57,11 +59,17 @@ export function PersonPhotoControl({
     setError(null);
     setNotice(null);
     try {
-      const data = await uploadPersonPhoto(file, person.id);
+      const data = await uploadPersonPhoto(file, person.id, {
+        reporterEmail: confirmEmail.trim() || undefined,
+      });
       await applyFamily(data.family);
       setBroken(false);
       if (!data.applied) {
-        setNotice("Zdjęcie wysłane jako sugestia. Admin musi je zaakceptować.");
+        setNotice(
+          confirmEmail.trim()
+            ? "Zdjęcie wysłane jako sugestia. Potwierdzenie wyślemy na podany adres."
+            : "Zdjęcie wysłane jako sugestia. Admin musi je zaakceptować.",
+        );
       }
     } catch (err) {
       setError((err as Error).message);
@@ -81,7 +89,9 @@ export function PersonPhotoControl({
     setError(null);
     setNotice(null);
     try {
-      const data = await removePersonPhoto(person.id);
+      const data = await removePersonPhoto(person.id, {
+        reporterEmail: confirmEmail.trim() || undefined,
+      });
       await applyFamily(data.family);
       if (data.applied) setBroken(true);
       else setNotice("Prośba o usunięcie zdjęcia czeka na admina.");
@@ -150,6 +160,13 @@ export function PersonPhotoControl({
           className="sr-only"
           tabIndex={-1}
           onChange={(e) => void onFile(e.target.files?.[0])}
+        />
+      ) : null}
+      {editable && mode === "suggest" ? (
+        <ConfirmEmailField
+          id={`photo-confirm-email-${person.id}`}
+          value={confirmEmail}
+          onChange={setConfirmEmail}
         />
       ) : null}
       {notice ? (

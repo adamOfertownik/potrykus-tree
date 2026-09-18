@@ -37,10 +37,11 @@ type DraftGraphValue = {
     summary: string;
   };
   discard: () => void;
-  submitAll: () => Promise<{ summary: string }>;
+  submitAll: (opts?: { reporterEmail?: string }) => Promise<{ summary: string }>;
   submitIncluding: (
     input: GraphMutationInput,
     currentPeople: Person[],
+    opts?: { reporterEmail?: string },
   ) => Promise<{ summary: string }>;
 };
 
@@ -159,7 +160,10 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
   }, [replaceEdits]);
 
   const postEdits = useCallback(
-    async (payload: GraphMutationInput[]) => {
+    async (
+      payload: GraphMutationInput[],
+      reporterEmail?: string,
+    ) => {
       const reporter = loadReporter();
       if (!reporter?.name?.trim()) {
         throw new Error(
@@ -173,6 +177,7 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
           edits: payload,
           reporterName: reporter.name,
           reporterPersonId: reporter.personId,
+          reporterEmail: reporterEmail?.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -182,7 +187,8 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const submitAll = useCallback(async () => {
+  const submitAll = useCallback(
+    async (opts?: { reporterEmail?: string }) => {
     if (edits.length === 0) return { summary: "" };
     setSubmitting(true);
     setError(null);
@@ -192,6 +198,7 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
           void _summary;
           return edit;
         }),
+        opts?.reporterEmail,
       );
       replaceEdits([]);
       return { summary };
@@ -205,7 +212,11 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
   }, [edits, postEdits, replaceEdits]);
 
   const submitIncluding = useCallback(
-    async (input: GraphMutationInput, currentPeople: Person[]) => {
+    async (
+      input: GraphMutationInput,
+      currentPeople: Person[],
+      opts?: { reporterEmail?: string },
+    ) => {
       setSubmitting(true);
       setError(null);
       try {
@@ -223,13 +234,16 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
           [input],
           { keepClientIds: true, markPending: true },
         );
-        const summary = await postEdits([
-          ...edits.map(({ summary: _summary, ...edit }) => {
-            void _summary;
-            return edit;
-          }),
-          input,
-        ]);
+        const summary = await postEdits(
+          [
+            ...edits.map(({ summary: _summary, ...edit }) => {
+              void _summary;
+              return edit;
+            }),
+            input,
+          ],
+          opts?.reporterEmail,
+        );
         void preview.summary;
         replaceEdits([]);
         return { summary };

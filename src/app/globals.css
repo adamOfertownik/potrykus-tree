@@ -2817,6 +2817,65 @@ button.person-card {
   gap: 0.4rem;
 }
 
+.draft-graph-bar__send {
+  display: grid;
+  gap: 0.55rem;
+  flex: 1 1 16rem;
+}
+
+.draft-graph-bar .confirm-email {
+  max-width: 28rem;
+}
+
+.confirm-email {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.confirm-email label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.86rem;
+  font-weight: 650;
+  color: var(--ink-soft);
+}
+
+.confirm-email__opt {
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.confirm-email input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 400;
+  font-size: 1rem;
+  min-height: var(--touch);
+}
+
+.confirm-email__hint {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.confirm-email__hint strong {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.person-photo .confirm-email {
+  margin-top: 0.45rem;
+  max-width: 18rem;
+}
+
 .draft-graph-bar__error {
   flex: 1 1 100%;
   margin: 0;

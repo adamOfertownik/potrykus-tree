@@ -18,6 +18,7 @@ import {
 import { loadReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
 import { useAdminAuthStatus } from "@/lib/hooks";
+import { ConfirmEmailField } from "@/components/ConfirmEmailField";
 import type { FamilyPayload, Gender, Person } from "@/types/family";
 
 export type GraphEditOp = GraphOp;
@@ -74,6 +75,7 @@ export function GraphEditWizard({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmEmail, setConfirmEmail] = useState("");
   const onCloseRef = useRef(onClose);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const firstNameRef = useRef<HTMLInputElement>(null);
@@ -186,6 +188,7 @@ export function GraphEditWizard({
           ...stagedInput,
           reporterName: reporter?.name || "Edycja grafu",
           reporterPersonId: reporter?.personId,
+          reporterEmail: confirmEmail.trim() || undefined,
         }),
       });
       const data = await res.json();
@@ -216,7 +219,9 @@ export function GraphEditWizard({
     try {
       const stagedInput = buildStagedInput();
       if (useDrafts && draft) {
-        const result = await draft.submitIncluding(stagedInput, people);
+        const result = await draft.submitIncluding(stagedInput, people, {
+          reporterEmail: confirmEmail.trim() || undefined,
+        });
         onApplied?.({
           summary: result.summary,
           createdPersonId: undefined,
@@ -521,6 +526,13 @@ export function GraphEditWizard({
                 ? "Jesteś adminem — zmiana zapisze się od razu w drzewie (bez zgłoszenia)."
                 : "«Dodaj roboczo» — tylko u Ciebie na szaro. «Wyślij do admina» trafia od razu do zakładki Zgłoszenia."}
             </p>
+            {admin.data?.loggedIn ? null : (
+              <ConfirmEmailField
+                id="graph-confirm-email"
+                value={confirmEmail}
+                onChange={setConfirmEmail}
+              />
+            )}
           </div>
         )}
 

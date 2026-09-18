@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { ConfirmEmailField } from "@/components/ConfirmEmailField";
 import { useOptionalDraftGraph } from "@/components/DraftGraphProvider";
 
 export function DraftGraphBanner() {
   const draft = useOptionalDraftGraph();
   const [notice, setNotice] = useState<string | null>(null);
+  const [confirmEmail, setConfirmEmail] = useState("");
   if (!draft || draft.edits.length === 0) {
     if (!notice) return null;
     return (
@@ -28,31 +30,45 @@ export function DraftGraphBanner() {
         <strong>Admin jeszcze tego nie widzi</strong> — wyślij całość, żeby
         trafiło do zakładki Zgłoszenia.
       </p>
-      <div className="draft-graph-bar__actions">
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={draft.submitting}
-          onClick={async () => {
-            try {
-              const result = await draft.submitAll();
-              setNotice(result.summary);
-              window.setTimeout(() => setNotice(null), 7000);
-            } catch {
-              /* error shown below */
-            }
-          }}
-        >
-          {draft.submitting ? "Wysyłam…" : "Wyślij całość"}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary"
-          disabled={draft.submitting}
-          onClick={draft.discard}
-        >
-          Porzuć
-        </button>
+      <div className="draft-graph-bar__send">
+        <ConfirmEmailField
+          id="draft-confirm-email"
+          value={confirmEmail}
+          onChange={setConfirmEmail}
+        />
+        <div className="draft-graph-bar__actions">
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={draft.submitting}
+            onClick={async () => {
+              try {
+                const result = await draft.submitAll({
+                  reporterEmail: confirmEmail.trim() || undefined,
+                });
+                setNotice(
+                  confirmEmail.trim()
+                    ? `${result.summary} Potwierdzenie wyślemy na podany adres.`
+                    : result.summary,
+                );
+                setConfirmEmail("");
+                window.setTimeout(() => setNotice(null), 7000);
+              } catch {
+                /* error shown below */
+              }
+            }}
+          >
+            {draft.submitting ? "Wysyłam…" : "Wyślij całość"}
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled={draft.submitting}
+            onClick={draft.discard}
+          >
+            Porzuć
+          </button>
+        </div>
       </div>
       {draft.error && (
         <p className="draft-graph-bar__error" role="alert">

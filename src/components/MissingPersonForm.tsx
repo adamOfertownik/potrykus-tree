@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { RelativeDraft, SubmissionPayload } from "@/types/submissions";
 import { DateField } from "@/components/DateField";
+import { ConfirmEmailField } from "@/components/ConfirmEmailField";
 import { Modal } from "@/components/Modal";
 
 type Props = {
@@ -43,6 +44,7 @@ export function MissingPersonForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [confirmEmail, setConfirmEmail] = useState("");
 
   useEffect(() => {
     if (!open) return;
@@ -71,6 +73,7 @@ export function MissingPersonForm({
         reporterName,
         reporterPersonId,
         reporterPhone: phone || undefined,
+        reporterEmail: confirmEmail.trim() || undefined,
         message,
         self: {
           firstName: firstName.trim(),
@@ -115,7 +118,12 @@ export function MissingPersonForm({
 
       {done ? (
         <div className="modal-success">
-          <p>Dzięki! Zapisaliśmy zgłoszenie.</p>
+          <p>
+            Dzięki! Zapisaliśmy zgłoszenie.
+            {confirmEmail.trim()
+              ? " Kopia poszła na podany adres — tylko jako potwierdzenie."
+              : ""}
+          </p>
           <button type="button" className="btn btn-primary" onClick={onClose}>
             Zamknij
           </button>
@@ -240,6 +248,12 @@ export function MissingPersonForm({
               placeholder="Np. jestem dzieckiem Marii Lieske…"
             />
           </label>
+
+          <ConfirmEmailField
+            id="missing-confirm-email"
+            value={confirmEmail}
+            onChange={setConfirmEmail}
+          />
 
           {error && (
             <p className="banner-error" role="alert">

@@ -3,6 +3,7 @@
 import { useState, type ChangeEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { DateField } from "@/components/DateField";
+import { ConfirmEmailField } from "@/components/ConfirmEmailField";
 import { Modal } from "@/components/Modal";
 import { displayName } from "@/lib/db-client";
 import { genderLabel } from "@/lib/submissionLabels";
@@ -95,6 +96,7 @@ export function PersonEditForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [confirmEmail, setConfirmEmail] = useState("");
 
   const set =
     (key: keyof FormState) =>
@@ -160,6 +162,7 @@ export function PersonEditForm({
         kind: correction ? "correction" : "other",
         reporterName: reporterName.trim(),
         reporterPersonId,
+        reporterEmail: confirmEmail.trim() || undefined,
         targetPersonId: person.id,
         targetPersonName: displayName(person),
         message:
@@ -176,7 +179,9 @@ export function PersonEditForm({
       if (!res.ok) throw new Error(data.error || "Błąd zapisu");
       setSuccess(
         data.warning ||
-          "Wysłano do zatwierdzenia. Drzewo zmieni się, gdy admin przyjmie poprawkę.",
+          (confirmEmail.trim()
+            ? "Wysłano do zatwierdzenia. Kopia zmian idzie na podany adres — tylko jako potwierdzenie."
+            : "Wysłano do zatwierdzenia. Drzewo zmieni się, gdy admin przyjmie poprawkę."),
       );
     } catch (e) {
       setError((e as Error).message);
@@ -281,15 +286,22 @@ export function PersonEditForm({
         <textarea rows={3} value={form.notes} onChange={set("notes")} />
       </label>
       {isAdmin ? null : (
-        <label className="field-block">
-          Co poprawić? (opcjonalnie)
-          <textarea
-            rows={3}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Np. data urodzenia to 12 maj 1964, a nie 1965…"
+        <>
+          <label className="field-block">
+            Co poprawić? (opcjonalnie)
+            <textarea
+              rows={3}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Np. data urodzenia to 12 maj 1964, a nie 1965…"
+            />
+          </label>
+          <ConfirmEmailField
+            id={`person-confirm-email-${person.id}`}
+            value={confirmEmail}
+            onChange={setConfirmEmail}
           />
-        </label>
+        </>
       )}
       <div className="modal-actions">
         <button

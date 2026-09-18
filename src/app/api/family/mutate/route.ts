@@ -11,7 +11,7 @@ import {
   graphMutationSchema,
   graphMutateRequestSchema,
 } from "@/lib/validation";
-import { sanitizePlainText } from "@/lib/sanitize";
+import { sanitizePlainText, sanitizeConfirmEmail } from "@/lib/sanitize";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
 import type { ChangeSubmission, GraphEditPayload } from "@/types/submissions";
 
@@ -85,6 +85,9 @@ export async function POST(request: Request) {
     );
     const reporterPersonId = (json as { reporterPersonId?: string })
       ?.reporterPersonId;
+    const reporterEmail = sanitizeConfirmEmail(
+      (json as { reporterEmail?: string })?.reporterEmail,
+    );
 
     const db = await readFamilyDb();
     const result = applyGraphMutations(db, edits);
@@ -112,6 +115,7 @@ export async function POST(request: Request) {
       kind: "graph_edit",
       reporterName,
       reporterPersonId,
+      reporterEmail,
       targetPersonId: result.targetPersonId,
       targetPersonName: result.targetPersonName,
       message: result.summary,

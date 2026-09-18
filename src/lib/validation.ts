@@ -100,12 +100,18 @@ export const graphEditPayloadSchema = z
   })
   .superRefine(refineGraphEdit);
 
+const optionalConfirmEmailSchema = z
+  .union([z.email("Podaj prawidłowy e-mail.").trim().toLowerCase().max(254), z.literal("")])
+  .optional()
+  .transform((v) => (v ? v : undefined));
+
 export const graphMutationSchema = z
   .object({
     ...graphEditFields,
     replaceParentIds: z.boolean().optional().default(true),
     reporterName: z.string().trim().min(1).max(120).optional(),
     reporterPersonId: z.string().trim().max(120).optional(),
+    reporterEmail: optionalConfirmEmailSchema,
   })
   .superRefine(refineGraphEdit);
 
@@ -114,6 +120,7 @@ export const graphMutateRequestSchema = z
     edits: z.array(graphMutationSchema).min(1).max(40).optional(),
     reporterName: z.string().trim().min(1).max(120).optional(),
     reporterPersonId: z.string().trim().max(120).optional(),
+    reporterEmail: optionalConfirmEmailSchema,
     op: z.enum(["add_child", "link_spouse", "reparent"]).optional(),
     anchorPersonId: z.string().trim().min(1).max(120).optional(),
     relatedPersonId: z.string().trim().max(120).optional(),
@@ -145,6 +152,7 @@ export const submissionPayloadSchema = z
       .max(40)
       .optional()
       .transform((v) => (v ? sanitizePhone(v) : undefined)),
+    reporterEmail: optionalConfirmEmailSchema,
     targetPersonId: z.string().trim().max(120).optional(),
     targetPersonName: z.string().trim().max(160).optional(),
     message: z.string().trim().max(4000).default(""),

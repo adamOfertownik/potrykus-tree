@@ -2,7 +2,10 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import type { ChangeSubmission } from "@/types/submissions";
 import { getSql, hasDb } from "@/lib/sql";
-import { notifyAdminOfSubmission } from "@/lib/notifyAdmin";
+import {
+  notifyAdminOfSubmission,
+  notifySubmitterOfSubmission,
+} from "@/lib/notifyAdmin";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const SUBMISSIONS_PATH = path.join(DATA_DIR, "submissions.json");
@@ -42,6 +45,7 @@ type Row = {
   reporter_name: string;
   reporter_person_id: string | null;
   reporter_phone: string | null;
+  reporter_email?: string | null;
   target_person_id: string | null;
   target_person_name: string | null;
   message: string;
@@ -89,6 +93,7 @@ function rowToSubmission(row: Row): ChangeSubmission {
     reporterName: row.reporter_name,
     reporterPersonId: row.reporter_person_id || undefined,
     reporterPhone: row.reporter_phone || undefined,
+    reporterEmail: row.reporter_email || undefined,
     targetPersonId: row.target_person_id || undefined,
     targetPersonName: row.target_person_name || undefined,
     message: row.message,
@@ -112,21 +117,32 @@ export async function readSubmissions(): Promise<ChangeSubmission[]> {
   try {
     const rows = (await sql`
       SELECT id, created_at, kind, reporter_name, reporter_person_id,
-             reporter_phone, target_person_id, target_person_name,
+             reporter_phone, reporter_email, target_person_id, target_person_name,
              message, payload, status, reviewed_at, reviewed_by_admin_id
       FROM submissions
       ORDER BY created_at DESC
     `) as Row[];
     return rows.map(rowToSubmission);
   } catch {
-    const rows = (await sql`
-      SELECT id, created_at, kind, reporter_name, reporter_person_id,
-             reporter_phone, target_person_id, target_person_name,
-             message, payload, status
-      FROM submissions
-      ORDER BY created_at DESC
-    `) as Row[];
-    return rows.map(rowToSubmission);
+    try {
+      const rows = (await sql`
+        SELECT id, created_at, kind, reporter_name, reporter_person_id,
+               reporter_phone, target_person_id, target_person_name,
+               message, payload, status, reviewed_at, reviewed_by_admin_id
+        FROM submissions
+        ORDER BY created_at DESC
+      `) as Row[];
+      return rows.map(rowToSubmission);
+    } catch {
+      const rows = (await sql`
+        SELECT id, created_at, kind, reporter_name, reporter_person_id,
+               reporter_phone, target_person_id, target_person_name,
+               message, payload, status
+        FROM submissions
+        ORDER BY created_at DESC
+      `) as Row[];
+      return rows.map(rowToSubmission);
+    }
   }
 }
 
@@ -141,21 +157,32 @@ export async function getSubmissionById(
   try {
     const rows = (await sql`
       SELECT id, created_at, kind, reporter_name, reporter_person_id,
-             reporter_phone, target_person_id, target_person_name,
+             reporter_phone, reporter_email, target_person_id, target_person_name,
              message, payload, status, reviewed_at, reviewed_by_admin_id
       FROM submissions
       WHERE id = ${id}::uuid
     `) as Row[];
     return rows[0] ? rowToSubmission(rows[0]) : null;
   } catch {
-    const rows = (await sql`
-      SELECT id, created_at, kind, reporter_name, reporter_person_id,
-             reporter_phone, target_person_id, target_person_name,
-             message, payload, status
-      FROM submissions
-      WHERE id = ${id}::uuid
-    `) as Row[];
-    return rows[0] ? rowToSubmission(rows[0]) : null;
+    try {
+      const rows = (await sql`
+        SELECT id, created_at, kind, reporter_name, reporter_person_id,
+               reporter_phone, target_person_id, target_person_name,
+               message, payload, status, reviewed_at, reviewed_by_admin_id
+        FROM submissions
+        WHERE id = ${id}::uuid
+      `) as Row[];
+      return rows[0] ? rowToSubmission(rows[0]) : null;
+    } catch {
+      const rows = (await sql`
+        SELECT id, created_at, kind, reporter_name, reporter_person_id,
+               reporter_phone, target_person_id, target_person_name,
+               message, payload, status
+        FROM submissions
+        WHERE id = ${id}::uuid
+      `) as Row[];
+      return rows[0] ? rowToSubmission(rows[0]) : null;
+    }
   }
 }
 
@@ -164,6 +191,7 @@ export async function appendSubmission(
 ): Promise<ChangeSubmission> {
   const saved = await insertSubmission(submission, "new");
   void notifyAdminOfSubmission(saved, "zgłoszenie");
+  void notifySubmitterOfSubmission(saved);
   return saved;
 }
 
@@ -183,27 +211,56 @@ async function insertSubmission(
   }
 
   const sql = getSql();
-  const rows = (await sql`
-    INSERT INTO submissions (
-      kind, reporter_name, reporter_person_id, reporter_phone,
-      target_person_id, target_person_name, message, payload, status
-    ) VALUES (
-      ${submission.kind},
-      ${submission.reporterName},
-      ${submission.reporterPersonId ?? null},
-      ${submission.reporterPhone ?? null},
-      ${submission.targetPersonId ?? null},
-      ${submission.targetPersonName ?? null},
-      ${submission.message},
-      ${payloadFrom(submission)},
-      ${status}
-    )
-    RETURNING id, created_at, kind, reporter_name, reporter_person_id,
-              reporter_phone, target_person_id, target_person_name,
-              message, payload, status
-  `) as Row[];
-
-  return rowToSubmission(rows[0]);
+  try {
+    const rows = (await sql`
+      INSERT INTO submissions (
+        kind, reporter_name, reporter_person_id, reporter_phone, reporter_email,
+        target_person_id, target_person_name, message, payload, status
+      ) VALUES (
+        ${submission.kind},
+        ${submission.reporterName},
+        ${submission.reporterPersonId ?? null},
+        ${submission.reporterPhone ?? null},
+        ${submission.reporterEmail ?? null},
+        ${submission.targetPersonId ?? null},
+        ${submission.targetPersonName ?? null},
+        ${submission.message},
+        ${payloadFrom(submission)},
+        ${status}
+      )
+      RETURNING id, created_at, kind, reporter_name, reporter_person_id,
+                reporter_phone, reporter_email, target_person_id, target_person_name,
+                message, payload, status
+    `) as Row[];
+    return {
+      ...rowToSubmission(rows[0]),
+      reporterEmail: rows[0].reporter_email || submission.reporterEmail,
+    };
+  } catch {
+    const rows = (await sql`
+      INSERT INTO submissions (
+        kind, reporter_name, reporter_person_id, reporter_phone,
+        target_person_id, target_person_name, message, payload, status
+      ) VALUES (
+        ${submission.kind},
+        ${submission.reporterName},
+        ${submission.reporterPersonId ?? null},
+        ${submission.reporterPhone ?? null},
+        ${submission.targetPersonId ?? null},
+        ${submission.targetPersonName ?? null},
+        ${submission.message},
+        ${payloadFrom(submission)},
+        ${status}
+      )
+      RETURNING id, created_at, kind, reporter_name, reporter_person_id,
+                reporter_phone, target_person_id, target_person_name,
+                message, payload, status
+    `) as Row[];
+    return {
+      ...rowToSubmission(rows[0]),
+      reporterEmail: submission.reporterEmail,
+    };
+  }
 }
 
 export async function upsertSketch(
@@ -285,6 +342,7 @@ export async function saveSubmission(
           reporter_name = ${submission.reporterName},
           reporter_person_id = ${submission.reporterPersonId ?? null},
           reporter_phone = ${submission.reporterPhone ?? null},
+          reporter_email = ${submission.reporterEmail ?? null},
           target_person_id = ${submission.targetPersonId ?? null},
           target_person_name = ${submission.targetPersonName ?? null},
           message = ${submission.message},
@@ -294,10 +352,15 @@ export async function saveSubmission(
           reviewed_by_admin_id = ${submission.reviewedByAdminId ?? null}
       WHERE id = ${submission.id}::uuid
       RETURNING id, created_at, kind, reporter_name, reporter_person_id,
-                reporter_phone, target_person_id, target_person_name,
+                reporter_phone, reporter_email, target_person_id, target_person_name,
                 message, payload, status, reviewed_at, reviewed_by_admin_id
     `) as Row[];
-    return rows[0] ? rowToSubmission(rows[0]) : null;
+    return rows[0]
+      ? {
+          ...rowToSubmission(rows[0]),
+          reporterEmail: rows[0].reporter_email || submission.reporterEmail,
+        }
+      : null;
   } catch {
     const rows = (await sql`
       UPDATE submissions

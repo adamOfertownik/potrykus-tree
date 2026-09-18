@@ -7,6 +7,7 @@ import { deleteBlobUrl } from "@/lib/blobPhotos";
 import { snapshotPeople, patchPerson } from "@/lib/familyMutations";
 import {
   isAllowedImageType,
+  sanitizeConfirmEmail,
   sanitizeFilename,
   sanitizePlainText,
 } from "@/lib/sanitize";
@@ -80,6 +81,11 @@ export async function POST(request: Request) {
       typeof reporterPersonIdRaw === "string" && reporterPersonIdRaw.trim()
         ? reporterPersonIdRaw.trim()
         : undefined;
+    const reporterEmail = sanitizeConfirmEmail(
+      typeof form.get("reporterEmail") === "string"
+        ? String(form.get("reporterEmail"))
+        : undefined,
+    );
     const skipSubmission = form.get("skipSubmission") === "1";
 
     const safeName = sanitizeFilename(file.name);
@@ -134,6 +140,7 @@ export async function POST(request: Request) {
           kind: "photo",
           reporterName,
           reporterPersonId,
+          reporterEmail,
           targetPersonId: personId,
           targetPersonName,
           message: `Propozycja zdjęcia dla ${targetPersonName}.`,
@@ -179,6 +186,9 @@ export async function DELETE(request: Request) {
   );
   const reporterPersonId =
     url.searchParams.get("reporterPersonId")?.trim() || undefined;
+  const reporterEmail = sanitizeConfirmEmail(
+    url.searchParams.get("reporterEmail"),
+  );
 
   try {
     const db = await readFamilyDb();
@@ -209,6 +219,7 @@ export async function DELETE(request: Request) {
       kind: "photo",
       reporterName,
       reporterPersonId,
+      reporterEmail,
       targetPersonId: personId,
       targetPersonName: displayName(person),
       message: `Propozycja usunięcia zdjęcia: ${displayName(person)}.`,

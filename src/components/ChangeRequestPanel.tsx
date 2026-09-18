@@ -8,6 +8,7 @@ import type {
   SubmissionPayload,
 } from "@/types/submissions";
 import { DateField } from "@/components/DateField";
+import { ConfirmEmailField } from "@/components/ConfirmEmailField";
 import { displayName } from "@/lib/db-client";
 import { personPickerSubline } from "@/lib/personPickerMeta";
 import { loadReporter, saveReporter } from "@/lib/reporter";
@@ -34,6 +35,7 @@ export function ChangeRequestPanel({ people }: Props) {
   const [reporterName, setReporterName] = useState("");
   const [reporterPersonId, setReporterPersonId] = useState<string | undefined>();
   const [reporterPhone, setReporterPhone] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
   const [targetQuery, setTargetQuery] = useState("");
   const [targetPersonId, setTargetPersonId] = useState<string | undefined>();
   const [targetPersonName, setTargetPersonName] = useState("");
@@ -115,6 +117,7 @@ export function ChangeRequestPanel({ people }: Props) {
         reporterName: reporterName.trim(),
         reporterPersonId,
         reporterPhone: reporterPhone.trim() || undefined,
+        reporterEmail: confirmEmail.trim() || undefined,
         targetPersonId,
         targetPersonName: targetPersonName.trim() || undefined,
         message: message.trim(),
@@ -131,7 +134,9 @@ export function ChangeRequestPanel({ people }: Props) {
       if (!res.ok) throw new Error(data.error || "Błąd zapisu");
       setSuccess(
         data.warning ||
-          "Wysłano sugestię. Admin zobaczy podgląd i może ją zaakceptować albo odrzucić.",
+          (confirmEmail.trim()
+            ? "Wysłano sugestię. Kopia zmian idzie na podany adres — tylko jako potwierdzenie."
+            : "Wysłano sugestię. Admin zobaczy podgląd i może ją zaakceptować albo odrzucić."),
       );
       setMessage("");
       setPhotoUrl(null);
@@ -204,6 +209,8 @@ export function ChangeRequestPanel({ people }: Props) {
             />
           </label>
         </div>
+
+        <ConfirmEmailField value={confirmEmail} onChange={setConfirmEmail} />
 
         <label className="field-block">
           Kogo dotyczy zmiana?

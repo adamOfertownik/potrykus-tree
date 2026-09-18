@@ -26,6 +26,19 @@ export function sanitizePhone(value: string): string {
   return kept.slice(0, 40);
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Optional address used only to confirm a submission. Empty → undefined. */
+export function sanitizeConfirmEmail(
+  value: string | undefined | null,
+): string | undefined {
+  if (!value) return undefined;
+  const cleaned = sanitizePlainText(value, 254).toLowerCase();
+  if (!cleaned) return undefined;
+  if (!EMAIL_RE.test(cleaned)) return undefined;
+  return cleaned;
+}
+
 const DATE_RE = /^\d{4}(-\d{2}(-\d{2})?)?$/;
 
 export function sanitizeDate(value: string): string | undefined {
