@@ -3,41 +3,9 @@ import type { ChangeSubmission } from "@/types/submissions";
 import { KIND_LABELS } from "@/lib/submissionLabels";
 import {
   buildSubmissionNotifyEmail,
+  resolveNotifyConfig,
   type NotifyChannel,
 } from "@/lib/notifyAdminEmail";
-
-const DEFAULT_TO = "adam199711@gmail.com";
-const DEFAULT_FROM = "Drzewo Potrykus <onboarding@resend.dev>";
-const DEFAULT_ORIGIN = "https://potrykus.vercel.app";
-
-function notifyTo(): string {
-  return (
-    process.env.NOTIFY_EMAIL?.trim() ||
-    process.env.ADMIN_NOTIFY_EMAIL?.trim() ||
-    DEFAULT_TO
-  );
-}
-
-function notifyFrom(): string {
-  return (
-    process.env.EMAIL_FROM?.trim() ||
-    process.env.RESEND_FROM?.trim() ||
-    DEFAULT_FROM
-  );
-}
-
-export function appOrigin(): string {
-  const explicit =
-    process.env.APP_URL?.trim() || process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (explicit) return explicit.replace(/\/$/, "");
-  const vercel =
-    process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
-    process.env.VERCEL_URL?.trim();
-  if (vercel) {
-    return `https://${vercel.replace(/^https?:\/\//, "")}`;
-  }
-  return DEFAULT_ORIGIN;
-}
 
 /**
  * Best-effort admin mail. Missing Resend/key or send errors must not
@@ -48,8 +16,8 @@ export async function notifyAdminOfSubmission(
   channel: NotifyChannel,
 ): Promise<void> {
   try {
-    const apiKey = process.env.RESEND_API_KEY?.trim();
-    if (!apiKey) {
+    const config = resolveNotifyConfig(process.env);
+    if (!config.apiKey) {
       console.warn(
         "RESEND_API_KEY nie jest ustawiony — pomijam mail o zgłoszeniu.",
       );
@@ -63,14 +31,14 @@ export async function notifyAdminOfSubmission(
       kindLabel: KIND_LABELS[submission.kind] ?? submission.kind,
       message: submission.message,
       targetPersonName: submission.targetPersonName,
-      origin: appOrigin(),
+      origin: config.origin,
     });
 
-    const resend = new Resend(apiKey);
+    const resend = new Resend(config.apiKey);
     const { error } = await resend.emails.send(
       {
-        from: notifyFrom(),
-        to: [notifyTo()],
+        from: config.from,
+        to: [config.to],
         subject: email.subject,
         text: email.text,
         html: email.html,

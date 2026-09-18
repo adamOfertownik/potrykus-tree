@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  DEFAULT_NOTIFY_FROM,
+  DEFAULT_NOTIFY_TO,
   adminUrls,
   buildSubmissionNotifyEmail,
   escapeHtml,
   messageSnippet,
+  resolveNotifyConfig,
 } from "./notifyAdminEmail.ts";
 
 const sample = {
@@ -78,4 +81,45 @@ test("adminUrls point at /admin and /login", () => {
   const urls = adminUrls("https://potrykus.vercel.app/");
   assert.equal(urls.adminUrl, "https://potrykus.vercel.app/admin");
   assert.equal(urls.loginUrl, "https://potrykus.vercel.app/login");
+});
+
+test("missing RESEND_API_KEY skips send but keeps default recipient", () => {
+  const config = resolveNotifyConfig({});
+  assert.equal(config.apiKey, null);
+  assert.equal(config.to, DEFAULT_NOTIFY_TO);
+  assert.equal(config.from, DEFAULT_NOTIFY_FROM);
+});
+
+test("NOTIFY_EMAIL and EMAIL_FROM win over aliases", () => {
+  const config = resolveNotifyConfig({
+    RESEND_API_KEY: " re_test ",
+    NOTIFY_EMAIL: "new@example.com",
+    ADMIN_NOTIFY_EMAIL: "old@example.com",
+    EMAIL_FROM: "Potrykus <mail@potrykus.app>",
+    RESEND_FROM: "Old <old@potrykus.app>",
+  });
+  assert.equal(config.apiKey, "re_test");
+  assert.equal(config.to, "new@example.com");
+  assert.equal(config.from, "Potrykus <mail@potrykus.app>");
+});
+
+test("legacy ADMIN_NOTIFY_EMAIL and RESEND_FROM still work", () => {
+  const config = resolveNotifyConfig({
+    RESEND_API_KEY: "re_legacy",
+    ADMIN_NOTIFY_EMAIL: "adam199711@gmail.com",
+    RESEND_FROM: "Drzewo <from@example.com>",
+  });
+  assert.equal(config.to, "adam199711@gmail.com");
+  assert.equal(config.from, "Drzewo <from@example.com>");
+});
+
+test("origin falls back to potrykus.vercel.app, then Vercel host", () => {
+  assert.equal(
+    resolveNotifyConfig({}).origin,
+    "https://potrykus.vercel.app",
+  );
+  assert.equal(
+    resolveNotifyConfig({ VERCEL_URL: "potrykus-git-preview.vercel.app" }).origin,
+    "https://potrykus-git-preview.vercel.app",
+  );
 });

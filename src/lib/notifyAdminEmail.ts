@@ -1,5 +1,39 @@
 export type NotifyChannel = "zgłoszenie" | "szkic";
 
+export const DEFAULT_NOTIFY_TO = "adam199711@gmail.com";
+export const DEFAULT_NOTIFY_FROM = "Drzewo Potrykus <onboarding@resend.dev>";
+export const DEFAULT_ORIGIN = "https://potrykus.vercel.app";
+
+export function resolveNotifyConfig(env: Record<string, string | undefined>): {
+  apiKey: string | null;
+  to: string;
+  from: string;
+  origin: string;
+} {
+  const apiKey = env.RESEND_API_KEY?.trim() || null;
+  const explicitOrigin =
+    env.APP_URL?.trim() || env.NEXT_PUBLIC_APP_URL?.trim();
+  const vercelHost =
+    env.VERCEL_PROJECT_PRODUCTION_URL?.trim() || env.VERCEL_URL?.trim();
+  const origin = explicitOrigin
+    ? explicitOrigin.replace(/\/$/, "")
+    : vercelHost
+      ? `https://${vercelHost.replace(/^https?:\/\//, "")}`
+      : DEFAULT_ORIGIN;
+  return {
+    apiKey,
+    to:
+      env.NOTIFY_EMAIL?.trim() ||
+      env.ADMIN_NOTIFY_EMAIL?.trim() ||
+      DEFAULT_NOTIFY_TO,
+    from:
+      env.EMAIL_FROM?.trim() ||
+      env.RESEND_FROM?.trim() ||
+      DEFAULT_NOTIFY_FROM,
+    origin,
+  };
+}
+
 export type SubmissionNotifyInput = {
   channel: NotifyChannel;
   id: string;
