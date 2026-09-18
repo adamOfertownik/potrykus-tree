@@ -3,8 +3,7 @@ import path from "path";
 import type { ChangeSubmission } from "@/types/submissions";
 import { getSql, hasDb } from "@/lib/sql";
 import {
-  notifyAdminOfSubmission,
-  notifySubmitterOfSubmission,
+  notifyMailsForSubmission,
 } from "@/lib/notifyAdmin";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -190,8 +189,7 @@ export async function appendSubmission(
   submission: ChangeSubmission,
 ): Promise<ChangeSubmission> {
   const saved = await insertSubmission(submission, "new");
-  void notifyAdminOfSubmission(saved, "zgłoszenie");
-  void notifySubmitterOfSubmission(saved);
+  await notifyMailsForSubmission(saved, "zgłoszenie");
   return saved;
 }
 
@@ -286,12 +284,12 @@ export async function upsertSketch(
     };
     const saved = (await saveSubmission(next)) ?? next;
     if (saved.message !== match.message) {
-      void notifyAdminOfSubmission(saved, "szkic");
+      await notifyMailsForSubmission(saved, "szkic");
     }
     return saved;
   }
   const saved = await insertSubmission(submission, "sketch");
-  void notifyAdminOfSubmission(saved, "szkic");
+  await notifyMailsForSubmission(saved, "szkic");
   return saved;
 }
 
