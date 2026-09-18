@@ -43,6 +43,10 @@ export default function PolitykaPrywatnosciPage() {
         </li>
         <li>zgłoszenia poprawek (kto zgłasza i czego dotyczy),</li>
         <li>
+          opcjonalny e-mail przy wysyłce zgłoszenia — tylko jeśli ktoś sam
+          go wpisze, żeby dostać kopię swoich zmian,
+        </li>
+        <li>
           dane logowania administratorów (e-mail i skrót hasła, nie hasło
           jawnym tekstem),
         </li>
@@ -63,8 +67,17 @@ export default function PolitykaPrywatnosciPage() {
         <li>pobranie aktualnego grafu albo listy (PDF),</li>
         <li>urodziny i pokrewieństwo,</li>
         <li>organizacja spotkania rodzinnego,</li>
-        <li>przyjmowanie i nadzór zgłoszeń przez administratorów.</li>
+        <li>przyjmowanie i nadzór zgłoszeń przez administratorów,</li>
+        <li>
+          wysłanie potwierdzenia zgłoszenia na podany przy wysyłce adres
+          (kopia zmian, żeby nic nie zaginęło).
+        </li>
       </ul>
+      <p>
+        Opcjonalnego e-maila nie zapisujemy na drzewie, nie używamy do
+        newslettera ani reklam i nie przekazujemy dalej poza to, co trzeba,
+        żeby mail doszedł (dostawca poczty).
+      </p>
       <p>
         Danych nie sprzedajemy, nie wysyłamy reklam i nie udostępniamy
         publicznie w wyszukiwarkach (strona prosi roboty, żeby jej nie
@@ -75,8 +88,14 @@ export default function PolitykaPrywatnosciPage() {
       <p>
         Osobom z rodu, które znają kod rodzinny, oraz administratorom. Te
         osoby mogą też pobrać aktualny graf albo listę na swój komputer.
-        Dostawcy techniczni (hosting, baza, pliki ze zdjęciami) mogą
-        przetwarzać dane wyłącznie po to, żeby aplikacja działała.
+        Dostawcy techniczni (hosting, baza, pliki ze zdjęciami, wysyłka
+        poczty) mogą przetwarzać dane wyłącznie po to, żeby aplikacja
+        działała.
+      </p>
+      <p>
+        Jeśli przy zgłoszeniu podasz e-mail, administratorzy widzą, że poszło
+        potwierdzenie (żeby wiedzieć, iż kopia nie zaginęła). Adres nie jest
+        publikowany na drzewie.
       </p>
       <p>
         Nie mamy wpływu na to, czy ktoś z rodziny zrobi zrzut ekranu, zapisze
@@ -97,6 +116,11 @@ export default function PolitykaPrywatnosciPage() {
         kodem. Administratorzy nadzorują zmiany. To nie gwarantuje
         absolutnego bezpieczeństwa — żaden serwis w internecie go nie ma.
       </p>
+      <p>
+        E-mail z potwierdzenia trzymamy przy tym zgłoszeniu, żeby wysłać kopię
+        i ewentualnie sprawdzić, czy doszła. Nie budujemy z niego listy
+        mailingowej.
+      </p>
 
       <h2>8. Twoje wybory</h2>
       <p>
@@ -108,6 +132,8 @@ export default function PolitykaPrywatnosciPage() {
       <p>
         W przeglądarce zostaje sesja po podaniu kodu oraz informacja, że
         zaakceptowałeś ten dokument. Bez tego nie da się wejść do drzewa.
+        Opcjonalnego e-maila z potwierdzenia w przeglądarce nie zapisujemy —
+        wpisujesz go przy konkretnej wysyłce.
       </p>
 
       <h2>9. Dzieci</h2>

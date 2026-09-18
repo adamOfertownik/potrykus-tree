@@ -64,6 +64,11 @@ export default function RegulaminPage() {
         je tu umieścić i czy bliscy się na to zgadzają.
       </p>
       <p>
+        Przy wysyłce możesz podać e-mail na potwierdzenie. To nie jest
+        obowiązek. Adres służy wyłącznie do kopii tej wysyłki, nie do
+        newslettera i nie trafia na drzewo.
+      </p>
+      <p>
         Rodzina sama uzupełnia drzewo: osoby, pokrewieństwo, daty, zdjęcia,
         telefony, zapisy na spotkanie. Wpisy mogą być niekompletne albo
         błędne — zgłoś poprawkę, zamiast kłócić się w komentarzach poza

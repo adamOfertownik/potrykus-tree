@@ -14,6 +14,9 @@ test("regulamin and privacy are public and mention private family use", async ({
   ).toBeVisible();
   await expect(page.getByText(/najbliższej rodziny/).first()).toBeVisible();
   await expect(page.getByText(/nie odpowiadają/i)).toBeVisible();
+  await expect(
+    page.getByText(/e-mail na potwierdzenie/i),
+  ).toBeVisible();
 
   await page.goto("/polityka-prywatnosci");
   await expect(
@@ -22,6 +25,9 @@ test("regulamin and privacy are public and mention private family use", async ({
   await expect(page.getByText(/prywatne archiwum/i).first()).toBeVisible();
   await expect(page.getByText(/nie sprzedajemy/i)).toBeVisible();
   await expect(page.getByText(/najbliższej rodziny/).first()).toBeVisible();
+  await expect(
+    page.getByText(/opcjonalny e-mail przy wysyłce/i),
+  ).toBeVisible();
 });
 
 test("gate requires legal acceptance before enter", async ({ page }) => {
