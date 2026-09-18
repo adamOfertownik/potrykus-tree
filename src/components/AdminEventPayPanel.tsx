@@ -230,12 +230,13 @@ export function AdminEventPayPanel({
   const payer = people.find((p) => p.id === payerId) ?? null;
   const household = payer ? householdSuggestions(payer.id, people) : [];
   const householdIds = new Set(household.map((p) => p.id));
-  const extraCovered = coveredIds
-    .map((id) => people.find((p) => p.id === id))
-    .filter(
-      (p): p is Person =>
-        Boolean(p) && p.id !== payer?.id && !householdIds.has(p.id),
-    );
+  const extraCovered = coveredIds.flatMap((id) => {
+    const person = people.find((p) => p.id === id);
+    if (!person || person.id === payer?.id || householdIds.has(person.id)) {
+      return [];
+    }
+    return [person];
+  });
   const coveredExclude = useMemo(() => new Set(coveredIds), [coveredIds]);
 
   const visible = useMemo(() => {
