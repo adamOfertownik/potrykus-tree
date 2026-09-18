@@ -15,15 +15,41 @@ function notifyFrom(): string {
   );
 }
 
+function asciiIdempotencyKey(parts: string[]): string {
+  return parts
+    .join("-")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ł/g, "l")
+    .replace(/Ł/g, "l")
+    .replace(/[^a-zA-Z0-9._:-]+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 256);
+}
+
+function resendErrorText(error: unknown): string {
+  if (!error || typeof error !== "object") return "unknown";
+  const rec = error as {
+    message?: string;
+    name?: string;
+    statusCode?: number;
+  };
+  return [rec.name, rec.statusCode, rec.message].filter(Boolean).join(" ");
+}
+
 async function sendResend(opts: {
   to: string;
   subject: string;
   html: string;
   text: string;
   idempotencyKey: string;
+  replyTo?: string;
 }): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  if (!apiKey) return false;
+  if (!apiKey) {
+    console.error("Brak RESEND_API_KEY — mail o zgłoszeniu nie poszedł.");
+    return false;
+  }
 
   const resend = new Resend(apiKey);
   const { error } = await resend.emails.send(
@@ -33,12 +59,13 @@ async function sendResend(opts: {
       subject: opts.subject,
       html: opts.html,
       text: opts.text,
+      ...(opts.replyTo ? { replyTo: opts.replyTo } : {}),
     },
     { idempotencyKey: opts.idempotencyKey },
   );
 
   if (error) {
-    console.error("Nie udało się wysłać maila o zgłoszeniu.");
+    console.error("Nie udało się wysłać maila o zgłoszeniu.", resendErrorText(error));
     return false;
   }
   return true;
@@ -47,14 +74,20 @@ async function sendResend(opts: {
 export async function notifyAdminOfSubmission(
   submission: ChangeSubmission,
   kindLabel: "zgłoszenie" | "szkic",
-): Promise<void> {
+): Promise<boolean> {
   const admin = adminMailContent(submission, kindLabel);
-  await sendResend({
+  const kindKey = kindLabel === "szkic" ? "sketch" : "submission";
+  return sendResend({
     to: notifyTo(),
     subject: admin.subject,
     html: admin.html,
     text: admin.text,
-    idempotencyKey: `potrykus-${kindLabel}-${submission.id}-${submission.status}`,
+    idempotencyKey: asciiIdempotencyKey([
+      "potrykus",
+      kindKey,
+      submission.id,
+      submission.status,
+    ]),
   });
 }
 
@@ -69,6 +102,19 @@ export async function notifySubmitterOfSubmission(
     subject: mail.subject,
     html: mail.html,
     text: mail.text,
-    idempotencyKey: `potrykus-confirm-${submission.id}`,
+    replyTo: notifyTo(),
+    idempotencyKey: asciiIdempotencyKey(["potrykus", "confirm", submission.id]),
   });
+}
+
+/** Wait for both mails so a Vercel function does not freeze before Resend. */
+export async function notifyMailsForSubmission(
+  submission: ChangeSubmission,
+  kindLabel: "zgłoszenie" | "szkic",
+): Promise<void> {
+  const jobs = [notifyAdminOfSubmission(submission, kindLabel)];
+  if (kindLabel === "zgłoszenie" && submission.reporterEmail?.trim()) {
+    jobs.push(notifySubmitterOfSubmission(submission));
+  }
+  await Promise.all(jobs);
 }
