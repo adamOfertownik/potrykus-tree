@@ -273,7 +273,14 @@ function AdminPanel({
   }, [error]);
 
   const counts = useMemo(() => {
-    const next = { new: 0, reviewed: 0, accepted: 0, rejected: 0, local_only: 0 };
+    const next = {
+      new: 0,
+      reviewed: 0,
+      accepted: 0,
+      rejected: 0,
+      local_only: 0,
+      sketch: 0,
+    };
     for (const item of items) next[item.status] += 1;
     return next;
   }, [items]);
@@ -438,6 +445,7 @@ function AdminPanel({
               {(
                 [
                   ["new", "Nowe", counts.new],
+                  ["sketch", "Szkice", counts.sketch],
                   ["reviewed", "Przejrzane", counts.reviewed],
                   ["accepted", "Zaakceptowane", counts.accepted],
                   ["rejected", "Odrzucone", counts.rejected],
@@ -513,6 +521,12 @@ function AdminPanel({
                     {STATUS_LABELS[selected.status]}
                   </span>
                 </header>
+                {selected.status === "sketch" ? (
+                  <p className="banner-error" role="status">
+                    To szkic — ktoś edytował drzewo i jeszcze nie kliknął
+                    „Wyślij do admina”. Nie wgrywaj tego jako gotowego zgłoszenia.
+                  </p>
+                ) : null}
                 <p>
                   {selected.reporterName}
                   {selected.reporterPhone ? ` · ${selected.reporterPhone}` : ""}

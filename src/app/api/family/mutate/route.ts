@@ -6,7 +6,7 @@ import {
   snapshotPeople,
   type GraphMutationInput,
 } from "@/lib/familyMutations";
-import { appendSubmission } from "@/lib/submissions";
+import { appendSubmission, discardSketchesForReporter } from "@/lib/submissions";
 import {
   graphMutationSchema,
   graphMutateRequestSchema,
@@ -127,6 +127,10 @@ export async function POST(request: Request) {
       status: "new",
     };
     const saved = await appendSubmission(submission);
+    await discardSketchesForReporter({
+      reporterName,
+      reporterPersonId,
+    });
 
     return NextResponse.json({
       ok: true,

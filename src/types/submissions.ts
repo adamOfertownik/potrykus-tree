@@ -106,7 +106,7 @@ export interface ChangeSubmission {
   photoUrl?: string;
   photoAction?: "set" | "remove";
   before?: PersonSnapshot[];
-  status: "new" | "reviewed" | "accepted" | "rejected" | "local_only";
+  status: "new" | "reviewed" | "accepted" | "rejected" | "local_only" | "sketch";
   reviewedAt?: string;
   reviewedByAdminId?: string;
 }

@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import type { ChangeSubmission } from "@/types/submissions";
 import { getSql, hasDb } from "@/lib/sql";
+import { notifyAdminOfSubmission } from "@/lib/notifyAdmin";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const SUBMISSIONS_PATH = path.join(DATA_DIR, "submissions.json");
@@ -161,9 +162,21 @@ export async function getSubmissionById(
 export async function appendSubmission(
   submission: ChangeSubmission,
 ): Promise<ChangeSubmission> {
+  const saved = await insertSubmission(submission, "new");
+  void notifyAdminOfSubmission(saved, "zgłoszenie");
+  return saved;
+}
+
+async function insertSubmission(
+  submission: ChangeSubmission,
+  status: ChangeSubmission["status"],
+): Promise<ChangeSubmission> {
   if (!hasDb()) {
     const existing = await readFileSubmissions();
-    const saved = { ...submission, status: "local_only" as const };
+    const saved = {
+      ...submission,
+      status: status === "new" ? ("local_only" as const) : status,
+    };
     existing.unshift(saved);
     await writeFileSubmissions(existing);
     return saved;
@@ -183,7 +196,7 @@ export async function appendSubmission(
       ${submission.targetPersonName ?? null},
       ${submission.message},
       ${payloadFrom(submission)},
-      ${"new"}
+      ${status}
     )
     RETURNING id, created_at, kind, reporter_name, reporter_person_id,
               reporter_phone, target_person_id, target_person_name,
@@ -191,6 +204,65 @@ export async function appendSubmission(
   `) as Row[];
 
   return rowToSubmission(rows[0]);
+}
+
+export async function upsertSketch(
+  submission: ChangeSubmission,
+): Promise<ChangeSubmission> {
+  const existing = await readSubmissions();
+  const match = existing.find(
+    (row) =>
+      row.status === "sketch" &&
+      ((submission.reporterPersonId &&
+        row.reporterPersonId === submission.reporterPersonId) ||
+        (!submission.reporterPersonId &&
+          row.reporterName === submission.reporterName &&
+          !row.reporterPersonId)),
+  );
+  if (match) {
+    const next: ChangeSubmission = {
+      ...match,
+      ...submission,
+      id: match.id,
+      createdAt: match.createdAt,
+      status: "sketch",
+    };
+    const saved = (await saveSubmission(next)) ?? next;
+    if (saved.message !== match.message) {
+      void notifyAdminOfSubmission(saved, "szkic");
+    }
+    return saved;
+  }
+  const saved = await insertSubmission(submission, "sketch");
+  void notifyAdminOfSubmission(saved, "szkic");
+  return saved;
+}
+
+export async function discardSketchesForReporter(opts: {
+  reporterPersonId?: string;
+  reporterName: string;
+}): Promise<void> {
+  const existing = await readSubmissions();
+  const ids = existing
+    .filter(
+      (row) =>
+        row.status === "sketch" &&
+        ((opts.reporterPersonId &&
+          row.reporterPersonId === opts.reporterPersonId) ||
+          row.reporterName === opts.reporterName),
+    )
+    .map((row) => row.id);
+  if (!ids.length) return;
+  if (!hasDb()) {
+    await writeFileSubmissions(
+      existing.filter((row) => !ids.includes(row.id)),
+    );
+    return;
+  }
+  const sql = getSql();
+  for (const id of ids) {
+    await sql`DELETE FROM submissions WHERE id = ${id}::uuid AND status = 'sketch'`;
+  }
 }
 
 export async function saveSubmission(

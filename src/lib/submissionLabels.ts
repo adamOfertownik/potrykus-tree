@@ -25,6 +25,7 @@ export const STATUS_LABELS: Record<ChangeSubmission["status"], string> = {
   accepted: "Zaakceptowane",
   rejected: "Odrzucone",
   local_only: "Tylko lokalnie",
+  sketch: "Szkic (nie wysłane)",
 };
 
 export const PERSON_FIELD_LABELS: Record<string, string> = {

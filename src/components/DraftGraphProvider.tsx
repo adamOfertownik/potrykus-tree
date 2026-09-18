@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -66,6 +67,29 @@ function persistEdits(edits: DraftGraphEdit[]) {
   sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ edits }));
 }
 
+function postSketch(edits: DraftGraphEdit[], discarded = false) {
+  if (typeof window === "undefined") return;
+  const reporter = loadReporter();
+  void fetch("/api/family/sketch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      discarded,
+      reporterName: reporter?.name || "Gość",
+      reporterPersonId: reporter?.personId,
+      message: edits.map((edit) => edit.summary).filter(Boolean).join("; "),
+      edits: discarded
+        ? []
+        : edits.map(({ summary: _summary, ...edit }) => {
+            void _summary;
+            return edit;
+          }),
+    }),
+  }).catch(() => {
+    /* szkic jest dodatkiem — nie blokuje edycji */
+  });
+}
+
 let draftSeq = 0;
 
 export function nextDraftPersonId(): string {
@@ -78,9 +102,15 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const sketchTimer = useRef<number>(0);
+
   const replaceEdits = useCallback((next: DraftGraphEdit[]) => {
     setEdits(next);
     persistEdits(next);
+    window.clearTimeout(sketchTimer.current);
+    sketchTimer.current = window.setTimeout(() => {
+      postSketch(next, next.length === 0);
+    }, 1500);
   }, []);
 
   const overlayPeople = useCallback(
