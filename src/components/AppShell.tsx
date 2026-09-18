@@ -10,6 +10,7 @@ import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
 import { IdentityProvider, useIdentity } from "@/components/IdentityProvider";
 import { PwaInstallModal, usePwaAutoPrompt } from "@/components/PwaInstallGuide";
 import { resetPageScrollLockIfIdle } from "@/lib/scroll-lock";
+import { MEETING_TREE_HREF } from "@/lib/meetingBranches";
 import type { Person } from "@/types/family";
 
 function AppShellInner({
@@ -190,6 +191,29 @@ function AppShellInner({
                     ? `${identity.name} · zmień`
                     : "Kim jesteś?"}
                 </button>
+                {pathname.startsWith("/drzewo") ? (
+                  <>
+                    <div className="nav-menu__sep" />
+                    <p className="nav-menu__label">Widok drzewa</p>
+                    <Link
+                      href={MEETING_TREE_HREF}
+                      role="menuitem"
+                      className="nav-menu__link"
+                      data-testid="spotkanie-od-franciszka"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Spotkanie od Franciszka
+                    </Link>
+                    <Link
+                      href="/drzewo"
+                      role="menuitem"
+                      className="nav-menu__link"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Pełne drzewo
+                    </Link>
+                  </>
+                ) : null}
                 <div className="nav-menu__sep" />
                 <p className="nav-menu__label">Wielkość tekstu</p>
                 {(

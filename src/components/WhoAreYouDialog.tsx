@@ -5,7 +5,6 @@ import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import { personPickerSubline } from "@/lib/personPickerMeta";
-import { meetingLineHint } from "@/lib/meetingBranches";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { Modal } from "@/components/Modal";
 
@@ -96,11 +95,13 @@ export function WhoAreYouDialog({
           </header>
           <div className="who-confirm">
             <p className="who-confirm__name">{displayName(pending, people)}</p>
-            <p className="who-confirm__meta">
-              {[meetingLineHint(pending.id, people), personDates(pending)]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
+            {personPickerSubline(pending, people) ? (
+              <p className="who-confirm__meta">
+                {personPickerSubline(pending, people)}
+              </p>
+            ) : personDates(pending) ? (
+              <p className="who-confirm__meta">{personDates(pending)}</p>
+            ) : null}
           </div>
           <div className="modal-actions modal-actions--stack">
             <button

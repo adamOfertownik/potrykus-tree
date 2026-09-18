@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { SignJWT } from "jose";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -22,6 +22,84 @@ async function sessionCookie() {
   };
 }
 
+function inViewBranchLabels(page: Page) {
+  return page.getByTestId("chart-branch-label").evaluateAll((els) =>
+    els
+      .filter((el) => {
+        const style = getComputedStyle(el);
+        if (style.visibility === "hidden" || Number(style.opacity) < 0.15) {
+          return false;
+        }
+        const r = el.getBoundingClientRect();
+        return r.width > 8 && r.height > 8;
+      })
+      .map((el) => ({
+        id: el.getAttribute("data-branch-id") || "",
+        text: (el.textContent || "").trim(),
+      })),
+  );
+}
+
+test("start centers a readable card, not the whole tree", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
+  const highlight = page.locator(".card_cont.is-chart-highlight .card-label").first();
+  await expect(highlight).toBeVisible({ timeout: 15_000 });
+  await expect(highlight).toContainText(/Franciszek/i);
+  const k = await page.evaluate(() => {
+    type Z = { __zoom?: { k?: number }; parentElement?: Z | null };
+    const svg = document.querySelector("#FamilyChart svg") as Z | null;
+    const parent = svg?.parentElement ?? null;
+    return svg?.__zoom?.k ?? parent?.__zoom?.k ?? 0;
+  });
+  expect(k).toBeGreaterThan(0.5);
+  await expect(page.getByTestId("change-who")).toBeVisible();
+  await ctx.close();
+});
+
+test("nav pad jumps to a neighboring person", async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont.is-chart-highlight", {
+    timeout: 45_000,
+  });
+  const before = await page
+    .locator(".card_cont.is-chart-highlight .card-label")
+    .first()
+    .innerText();
+  await page.getByTestId("chart-nav-pad-toggle").click();
+  await expect(page.getByTestId("chart-nav-pad")).toBeVisible();
+  await page.getByTestId("chart-nav-down").click();
+  await expect
+    .poll(async () =>
+      page.locator(".card_cont.is-chart-highlight .card-label").first().innerText(),
+    )
+    .not.toBe(before);
+  await page.getByTestId("chart-nav-zoom-in").click();
+  await ctx.close();
+});
+
 test("zoomed-out tree shows branch headers and drilling into one", async ({
   browser,
 }) => {
@@ -38,14 +116,17 @@ test("zoomed-out tree shows branch headers and drilling into one", async ({
   await page.goto("/drzewo");
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
   await page.getByRole("button", { name: /Całe drzewo/ }).click();
-  await page.waitForTimeout(700);
-  await expect(page.locator("#family-tree-canvas")).toHaveAttribute(
-    "data-tree-fit",
-    "contain",
-  );
+  await expect.poll(async () => {
+    return page.evaluate(() => {
+      type Z = { __zoom?: { k?: number }; parentElement?: Z | null };
+      const svg = document.querySelector("#FamilyChart svg") as Z | null;
+      return svg?.__zoom?.k ?? svg?.parentElement?.__zoom?.k ?? 1;
+    });
+  }, { timeout: 8_000 }).toBeLessThan(0.25);
   const labels = page.getByTestId("chart-branch-label");
-  await expect(labels.first()).toBeVisible({ timeout: 10_000 });
-  await expect.poll(async () => labels.count()).toBeGreaterThan(1);
+  await expect.poll(async () => (await inViewBranchLabels(page)).length, {
+    timeout: 10_000,
+  }).toBeGreaterThan(1);
   const genLabel = page.locator(".chart-gen-label").first();
   await expect(genLabel).toBeVisible();
   await expect
@@ -61,6 +142,8 @@ test("zoomed-out tree shows branch headers and drilling into one", async ({
   const clipped = await labels.evaluateAll((els) =>
     els
       .filter((el) => {
+        const style = getComputedStyle(el);
+        if (style.visibility === "hidden") return false;
         const name = el.querySelector(".chart-branch-label__name");
         return Boolean(name && name.scrollWidth > name.clientWidth + 2);
       })
@@ -68,16 +151,15 @@ test("zoomed-out tree shows branch headers and drilling into one", async ({
   );
   expect(clipped, "branch headers must not ellipsize names").toEqual([]);
 
-  const visible = labels.filter({ visible: true });
-  const franciszek = visible.filter({ hasText: /Franciszek Potrykus/i });
-  const helena = visible.filter({ hasText: /Helena/i });
-  const target = (await franciszek.count())
-    ? franciszek.first()
-    : (await helena.count())
-      ? helena.first()
-      : visible.first();
-  const before = ((await target.innerText()) ?? "").split("\n")[0]!.trim();
-  await target.click({ force: true });
+  const inView = await inViewBranchLabels(page);
+  const targetMeta =
+    inView.find((row) => /Franciszek Potrykus/i.test(row.text)) ||
+    inView.find((row) => /Helena/i.test(row.text)) ||
+    inView[0]!;
+  const before = targetMeta.text.split("\n")[0]!.trim();
+  await page.locator(`[data-branch-id="${targetMeta.id}"]`).evaluate((el) =>
+    (el as HTMLButtonElement).click(),
+  );
   await expect(page.locator(".tree-focus-bar")).toContainText(
     before.split(" ")[0]!,
     { timeout: 8_000 },
@@ -115,9 +197,10 @@ test("Franciszek branch view shows next-generation headers", async ({
   await page.goto("/drzewo?root=P060");
   await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
   await page.getByRole("button", { name: /Całe drzewo/ }).click();
-  await page.waitForTimeout(700);
   const labels = page.getByTestId("chart-branch-label");
-  await expect.poll(async () => labels.filter({ visible: true }).count()).toBeGreaterThan(1);
+  await expect.poll(async () => (await inViewBranchLabels(page)).length, {
+    timeout: 10_000,
+  }).toBeGreaterThan(1);
   await expect(labels.filter({ hasText: /Helena/i }).first()).toBeVisible({
     timeout: 10_000,
   });
@@ -157,9 +240,9 @@ test("phone portrait width-fits and keeps one-finger taps off the map", async ({
   );
   await expect(page.locator(".family-chart-hint__touch")).toBeVisible();
   await expect(page.getByTestId("chart-gesture-gutter")).toBeVisible();
-  await expect(page.getByTestId("chart-branch-label").first()).toBeVisible({
+  await expect.poll(async () => (await inViewBranchLabels(page)).length, {
     timeout: 10_000,
-  });
+  }).toBeGreaterThan(0);
 
   const zoomOf = () =>
     page.evaluate(() => {
@@ -196,12 +279,35 @@ test("phone portrait width-fits and keeps one-finger taps off the map", async ({
   expect(Math.abs(after.y - before.y)).toBeLessThan(12);
   expect(Math.abs(after.k - before.k)).toBeLessThan(0.01);
 
-  const labels = page.getByTestId("chart-branch-label");
-  const visible = labels.filter({ visible: true });
-  await expect(visible.first()).toBeVisible();
-  await expect(page.getByTestId("chart-gen-label").first()).toBeVisible();
-  await visible.first().click({ force: true });
+  const inView = await inViewBranchLabels(page);
+  expect(inView.length).toBeGreaterThan(0);
+  await page.locator(`[data-branch-id="${inView[0]!.id}"]`).evaluate((el) =>
+    (el as HTMLButtonElement).click(),
+  );
   await expect(page).toHaveURL(/[?&]root=/);
   await expect(page.getByTestId("chart-gen-label").first()).toBeVisible();
+  await ctx.close();
+});
+
+test("Ja opens identity picker with son-of-father label", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+    localStorage.setItem("potrykus_pwa_hint_v1", "1");
+  });
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.getByTestId("change-who").click();
+  await expect(
+    page.getByRole("heading", { name: "Kim jesteś w rodzinie?" }),
+  ).toBeVisible();
+  await page.locator("#who-search").fill("Franciszek Xawery");
+  await expect(page.locator(".who-matches__pick").first()).toContainText(/syn /i);
   await ctx.close();
 });

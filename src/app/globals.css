@@ -727,6 +727,19 @@ textarea:focus-visible {
   pointer-events: auto;
 }
 
+.tree-page__meeting-bar {
+  position: absolute;
+  z-index: 6;
+  left: 0.45rem;
+  right: 4.5rem;
+  bottom: 2.35rem;
+  pointer-events: none;
+}
+
+.tree-page__meeting-bar > * {
+  pointer-events: auto;
+}
+
 .person-search--overlay {
   flex: 0 1 auto;
   width: 100%;
@@ -735,16 +748,6 @@ textarea:focus-visible {
 
 .person-search--overlay .person-search__top {
   display: none;
-}
-
-.person-search--overlay .person-search__top:has(.person-search__who) {
-  display: flex;
-  margin: 0 0 0.28rem;
-  padding: 0.2rem 0.45rem;
-  width: 100%;
-  background: color-mix(in srgb, var(--panel) 92%, transparent);
-  backdrop-filter: blur(8px);
-  border-radius: 999px;
 }
 
 .person-search--overlay .person-search__label {
@@ -1700,16 +1703,93 @@ textarea:focus-visible {
 
 .attending-legend {
   pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   align-self: center;
-  padding: 0.32rem 0.7rem;
-  font-size: 0.72rem;
-  font-weight: 650;
-  color: #9a4b12;
-  background: color-mix(in srgb, var(--attending) 18%, white);
-  border: 1px solid color-mix(in srgb, var(--attending) 50%, white);
+  padding: 0.28rem;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(4px);
+  border-radius: 8px;
+}
+
+.attending-legend__swatch {
+  display: block;
+  width: 1.35rem;
+  height: 0.85rem;
+  border: 2.5px solid var(--attending);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--attending) 12%, white);
+}
+
+.tree-who-btn {
+  flex-shrink: 0;
+  min-height: 2.2rem;
+  padding: 0.25rem 0.7rem;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.chart-nav-pad {
+  position: absolute;
+  left: 1.25rem;
+  top: 42%;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  pointer-events: none;
+}
+
+.chart-nav-pad > * {
+  pointer-events: auto;
+}
+
+.chart-nav-pad__toggle,
+.chart-nav-pad__key {
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--line);
   border-radius: 999px;
-  max-width: 16rem;
-  line-height: 1.25;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter: blur(6px);
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chart-nav-pad__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.4rem;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.chart-nav-pad__zoom {
+  display: flex;
+  gap: 0.3rem;
+  justify-content: center;
+}
+
+.chart-nav-pad__compass {
+  display: grid;
+  grid-template-columns: 2.2rem 2.2rem 2.2rem;
+  grid-template-rows: 2.2rem 2.2rem 2.2rem;
+  gap: 0.25rem;
+  justify-items: center;
+  align-items: center;
+}
+
+.chart-nav-pad__spacer {
+  width: 2.2rem;
+  height: 2.2rem;
 }
 
 .pending-legend {
@@ -4648,6 +4728,19 @@ button.person-card {
     bottom: 2.4rem;
     right: 0.55rem;
   }
+
+  .chart-nav-pad {
+    top: auto;
+    bottom: 6.4rem;
+    left: 0.55rem;
+  }
+
+  .tree-page__meeting-bar {
+    left: 0.45rem;
+    right: 0.45rem;
+    bottom: 4.6rem;
+    max-width: calc(100% - 7rem);
+  }
 }
 
 @media (min-width: 721px) {
@@ -4655,9 +4748,11 @@ button.person-card {
     display: none;
   }
 
-  /* Desktop tree: keep the field at the old spot — identity is in Menu. */
-  .person-search--overlay .person-search__top:has(.person-search__who) {
-    display: none;
+  .tree-page__meeting-bar {
+    left: 0.7rem;
+    right: auto;
+    bottom: 2.5rem;
+    max-width: min(420px, calc(100% - 8rem));
   }
 }
 
