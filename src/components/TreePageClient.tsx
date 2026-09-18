@@ -79,11 +79,15 @@ function TreePageBody({
       setHighlightId(urlRoot);
       return;
     }
+    if (identity?.personId) {
+      setHighlightId(identity.personId);
+      return;
+    }
     if (urlHighlight) {
       setHighlightId(urlHighlight);
       return;
     }
-    setHighlightId(identity?.personId || GENERATION_TRUNK_ID);
+    setHighlightId(GENERATION_TRUNK_ID);
   }, [urlRoot, urlHighlight, identity?.personId]);
 
   useEffect(() => {

@@ -56,8 +56,8 @@ export function WhoAreYouDialog({
     onIdentified(name, p.id);
   };
 
-  const confirmManual = () => {
-    const name = manual.trim();
+  const confirmTyped = () => {
+    const name = (manual.trim() || query.trim());
     if (!name) return;
     const hit =
       searchPeople(people, name).find(
@@ -134,9 +134,19 @@ export function WhoAreYouDialog({
             id="who-search"
             className="field-input"
             placeholder="Np. Adam Lieske…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
             autoComplete="off"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setManual(e.target.value);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (matches[0]) setPending(matches[0]);
+                else confirmTyped();
+              }
+            }}
           />
 
           {matches.length > 0 && (
@@ -182,7 +192,7 @@ export function WhoAreYouDialog({
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                confirmManual();
+                confirmTyped();
               }
             }}
           />
@@ -196,8 +206,8 @@ export function WhoAreYouDialog({
             <button
               type="button"
               className="btn btn-primary"
-              disabled={!manual.trim()}
-              onClick={confirmManual}
+              disabled={!(manual.trim() || query.trim())}
+              onClick={confirmTyped}
             >
               Zapamiętaj
             </button>

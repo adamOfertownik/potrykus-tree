@@ -7,7 +7,7 @@ import { useFamily, useLogout, useAdminAuthStatus, useAdminLogout } from "@/lib/
 import { exportListPdf, exportTreeA0Pdf } from "@/lib/pdf";
 import { PrototypeBanner } from "@/components/PrototypeBanner";
 import { useTextScale, type TextScaleId } from "@/components/TextScaleProvider";
-import { IdentityProvider, useIdentity } from "@/components/IdentityProvider";
+import { useIdentity } from "@/components/IdentityProvider";
 import { PwaInstallModal, usePwaAutoPrompt } from "@/components/PwaInstallGuide";
 import { resetPageScrollLockIfIdle } from "@/lib/scroll-lock";
 import { MEETING_TREE_HREF } from "@/lib/meetingBranches";
@@ -366,20 +366,17 @@ export function AppShell({
 }) {
   const family = useFamily(true);
   const people = family.data?.people ?? [];
-  const enabled = Boolean(family.data && !family.isLoading);
 
   return (
-    <IdentityProvider people={people} enabled={enabled}>
-      <AppShellInner
-        people={people}
-        peopleCount={peopleCount}
-        exportRootId={exportRootId}
-        metaTitle={family.data?.meta?.title}
-        metaRootId={family.data?.meta?.rootPersonId}
-        immersive={immersive}
-      >
-        {children}
-      </AppShellInner>
-    </IdentityProvider>
+    <AppShellInner
+      people={people}
+      peopleCount={peopleCount}
+      exportRootId={exportRootId}
+      metaTitle={family.data?.meta?.title}
+      metaRootId={family.data?.meta?.rootPersonId}
+      immersive={immersive}
+    >
+      {children}
+    </AppShellInner>
   );
 }

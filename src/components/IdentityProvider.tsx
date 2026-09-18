@@ -7,9 +7,8 @@ import {
   useEffect,
   useState,
 } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import type { Person } from "@/types/family";
 import { resolveReporterIdentity } from "@/lib/resolvePerson";
+import { useAuthStatus, useFamily } from "@/lib/hooks";
 import {
   clearReporter,
   loadReporter,
@@ -27,68 +26,56 @@ type Ctx = {
 
 const IdentityContext = createContext<Ctx | null>(null);
 
-export function IdentityProvider({
-  people,
-  enabled,
-  children,
-}: {
-  people: Person[];
-  enabled: boolean;
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [identity, setIdentityState] = useState<ReporterIdentity | null>(null);
-  const [ready, setReady] = useState(false);
+export function IdentityProvider({ children }: { children: React.ReactNode }) {
+  const auth = useAuthStatus();
+  const unlocked = Boolean(auth.data?.unlocked);
+  const family = useFamily(unlocked);
+  const people = family.data?.people ?? [];
+  const enabled = Boolean(unlocked && family.data && !family.isLoading);
+
+  const [identity, setIdentityState] = useState<ReporterIdentity | null>(() =>
+    loadReporter(),
+  );
+  const [ready, setReady] = useState(() => typeof window !== "undefined");
   const [promptOpen, setPromptOpen] = useState(false);
 
   useEffect(() => {
     const saved = loadReporter();
-    setIdentityState(saved);
+    if (saved) setIdentityState(saved);
     setReady(true);
-    if (!saved?.name) setPromptOpen(true);
   }, []);
 
   useEffect(() => {
     if (!people.length) return;
     setIdentityState((cur) => {
       const base = cur ?? loadReporter();
-      if (!base) return null;
+      if (!base) return cur;
       const resolved = resolveReporterIdentity(people, base);
+      if (!resolved) return base;
       if (
-        resolved &&
-        (resolved.personId !== base.personId || resolved.name !== base.name)
+        resolved.personId !== base.personId ||
+        resolved.name !== base.name
       ) {
         saveReporter(resolved);
       }
       return resolved;
     });
-  }, [people]);
+  }, [people.length, family.dataUpdatedAt]);
 
   useEffect(() => {
-    if (!enabled || !ready || !people.length) return;
+    if (!enabled || !ready) return;
     if (identity?.name) {
       setPromptOpen(false);
       return;
     }
     setPromptOpen(true);
-  }, [enabled, ready, people.length, identity?.name]);
+  }, [enabled, ready, identity?.name]);
 
-  const applyIdentity = useCallback(
-    (next: ReporterIdentity) => {
-      saveReporter(next);
-      setIdentityState(next);
-      setPromptOpen(false);
-
-      const onTree = pathname === "/" || pathname.startsWith("/drzewo");
-      if (onTree && next.personId) {
-        // Highlight in the full tree — do not re-root (?root=) or "Widok wokół"
-        // covers the mobile screen.
-        router.replace(`/drzewo?hl=${encodeURIComponent(next.personId)}`);
-      }
-    },
-    [pathname, router],
-  );
+  const applyIdentity = useCallback((next: ReporterIdentity) => {
+    saveReporter(next);
+    setIdentityState(next);
+    setPromptOpen(false);
+  }, []);
 
   const clearIdentity = useCallback(() => {
     clearReporter();

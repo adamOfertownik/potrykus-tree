@@ -11,34 +11,38 @@ export type ReporterIdentity = {
 export function loadReporter(): ReporterIdentity | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(REPORTER_KEY);
-    if (!raw) {
-      // migrate from older sessionStorage key if present
-      const legacy = sessionStorage.getItem(REPORTER_KEY);
-      if (legacy) {
-        localStorage.setItem(REPORTER_KEY, legacy);
-        sessionStorage.removeItem(REPORTER_KEY);
-        return JSON.parse(legacy) as ReporterIdentity;
-      }
-      return null;
-    }
-    return JSON.parse(raw) as ReporterIdentity;
+    const raw =
+      localStorage.getItem(REPORTER_KEY) ||
+      sessionStorage.getItem(REPORTER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ReporterIdentity;
+    if (!parsed?.name && !parsed?.personId) return null;
+    return parsed;
   } catch {
     return null;
   }
 }
 
 export function saveReporter(identity: ReporterIdentity) {
-  localStorage.setItem(REPORTER_KEY, JSON.stringify(identity));
+  const raw = JSON.stringify(identity);
   try {
-    sessionStorage.removeItem(REPORTER_KEY);
+    localStorage.setItem(REPORTER_KEY, raw);
+  } catch {
+    /* private mode */
+  }
+  try {
+    sessionStorage.setItem(REPORTER_KEY, raw);
   } catch {
     /* ignore */
   }
 }
 
 export function clearReporter() {
-  localStorage.removeItem(REPORTER_KEY);
+  try {
+    localStorage.removeItem(REPORTER_KEY);
+  } catch {
+    /* ignore */
+  }
   try {
     sessionStorage.removeItem(REPORTER_KEY);
   } catch {
