@@ -113,7 +113,9 @@ function AppShellInner({
 
   return (
     <div
-      className={`app-shell${immersive ? " app-shell--immersive" : ""}`}
+      className={`app-shell${immersive ? " app-shell--immersive" : ""}${
+        menuOpen ? " app-shell--menu-open" : ""
+      }`}
       ref={shellRef}
     >
       <PrototypeBanner />
