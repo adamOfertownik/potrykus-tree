@@ -23,8 +23,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = (await request.json()) as { code?: string };
+    const body = (await request.json()) as {
+      code?: string;
+      remember?: boolean;
+    };
     const code = body.code?.trim() ?? "";
+    const remember = body.remember === true;
     if (!code) {
       return NextResponse.json(
         { ok: false, error: "Podaj kod rodzinny." },
@@ -40,9 +44,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const token = await createSessionToken();
-    const response = NextResponse.json({ ok: true });
-    await attachSessionCookie(response, token);
+    const token = await createSessionToken({ remember });
+    const response = NextResponse.json({ ok: true, remember });
+    await attachSessionCookie(response, token, { remember });
     return response;
   } catch {
     return NextResponse.json(

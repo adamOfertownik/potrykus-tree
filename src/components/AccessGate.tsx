@@ -12,13 +12,14 @@ type Props = {
 export function AccessGate({ afterUnlockHref = "/" }: Props) {
   const [code, setCode] = useState("");
   const [showCode, setShowCode] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [accepted, setAccepted] = useStoredLegalAccept();
   const unlock = useUnlock();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!accepted) return;
-    unlock.mutate(code, {
+    unlock.mutate({ code, remember }, {
       onSuccess: () => {
         // Full reload into the unlocked app (avoids soft-router + stale SW)
         window.location.assign(afterUnlockHref);
@@ -66,6 +67,19 @@ export function AccessGate({ afterUnlockHref = "/" }: Props) {
             accepted={accepted}
             onChange={setAccepted}
           />
+          <label className="gate-accept" htmlFor="family-remember">
+            <input
+              id="family-remember"
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+            />
+            <span>
+              <strong>Zapamiętaj mnie na tym urządzeniu</strong> (do ok. 30
+              dni). Bez zaznaczenia — po ok. 4 godzinach bezczynności poprosimy
+              ponownie o kod.
+            </span>
+          </label>
           <button
             type="submit"
             className="gate-cta"

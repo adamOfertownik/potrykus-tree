@@ -5,8 +5,12 @@ import type { NextResponse } from "next/server";
 import { findAdminById } from "@/lib/adminUsers";
 import type { AdminUserRole } from "@/types/admin";
 import { readConfig } from "@/lib/db";
+import {
+  ADMIN_MAX_AGE_SEC,
+  FAMILY_REMEMBER_MAX_AGE_SEC,
+  FAMILY_SHORT_MAX_AGE_SEC,
+} from "@/lib/sessionPolicy";
 
-const SESSION_TTL = "30d";
 const ADMIN_COOKIE = "potrykus_admin_session";
 
 function secretKey(secret: string) {
@@ -18,12 +22,15 @@ export async function verifyAccessCode(code: string): Promise<boolean> {
   return compare(code.trim(), config.accessCodeHash);
 }
 
-export async function createSessionToken(): Promise<string> {
+export async function createSessionToken(opts?: {
+  remember?: boolean;
+}): Promise<string> {
+  const remember = opts?.remember === true;
   const config = await readConfig();
-  return new SignJWT({ role: "family" })
+  return new SignJWT({ role: "family", remember })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(SESSION_TTL)
+    .setExpirationTime(remember ? `${FAMILY_REMEMBER_MAX_AGE_SEC}s` : `${FAMILY_SHORT_MAX_AGE_SEC}s`)
     .sign(secretKey(config.sessionSecret));
 }
 
@@ -35,21 +42,32 @@ export async function createAdminSessionToken(admin: {
   return new SignJWT({ role: "admin", adminId: admin.id, email: admin.email })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(SESSION_TTL)
+    .setExpirationTime(`${ADMIN_MAX_AGE_SEC}s`)
     .sign(secretKey(config.sessionSecret));
 }
 
-export async function isSessionValid(): Promise<boolean> {
+export type FamilySession = {
+  remember: boolean;
+};
+
+export async function getFamilySession(): Promise<FamilySession | null> {
   try {
     const config = await readConfig();
     const jar = await cookies();
     const token = jar.get(config.cookieName)?.value;
-    if (!token) return false;
-    await jwtVerify(token, secretKey(config.sessionSecret));
-    return true;
+    if (!token) return null;
+    const { payload } = await jwtVerify(token, secretKey(config.sessionSecret));
+    if (payload.role !== "family") return null;
+    // Older tokens without the claim behaved like long sessions.
+    const remember = payload.remember !== false;
+    return { remember };
   } catch {
-    return false;
+    return null;
   }
+}
+
+export async function isSessionValid(): Promise<boolean> {
+  return (await getFamilySession()) !== null;
 }
 
 export type AdminSession = {
@@ -87,19 +105,36 @@ export async function isAdminSessionValid(): Promise<boolean> {
 export async function attachSessionCookie(
   response: NextResponse,
   token: string,
+  opts?: { remember?: boolean },
 ): Promise<void> {
   const config = await readConfig();
-  response.cookies.set(config.cookieName, token, sessionCookieOptions(false));
+  const remember = opts?.remember === true;
+  response.cookies.set(
+    config.cookieName,
+    token,
+    sessionCookieOptions(false, {
+      maxAgeSec: remember
+        ? FAMILY_REMEMBER_MAX_AGE_SEC
+        : FAMILY_SHORT_MAX_AGE_SEC,
+    }),
+  );
 }
 
 export async function attachAdminSessionCookie(
   response: NextResponse,
   token: string,
 ): Promise<void> {
-  response.cookies.set(ADMIN_COOKIE, token, sessionCookieOptions(false));
+  response.cookies.set(
+    ADMIN_COOKIE,
+    token,
+    sessionCookieOptions(false, { maxAgeSec: ADMIN_MAX_AGE_SEC }),
+  );
 }
 
-function sessionCookieOptions(expired: boolean) {
+function sessionCookieOptions(
+  expired: boolean,
+  opts?: { maxAgeSec?: number },
+) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
@@ -107,7 +142,9 @@ function sessionCookieOptions(expired: boolean) {
     path: "/",
     ...(expired
       ? { maxAge: 0, expires: new Date(0) }
-      : { maxAge: 60 * 60 * 24 * 30 }),
+      : opts?.maxAgeSec != null
+        ? { maxAge: opts.maxAgeSec }
+        : {}),
   };
 }
 

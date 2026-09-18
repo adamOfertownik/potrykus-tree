@@ -31,7 +31,8 @@ export function AdminLoginForm({
         <h1 className="gate-title">Logowanie</h1>
         <p className="gate-lead">
           Konto administratora do przeglądania i zatwierdzania zgłoszeń od
-          rodziny.
+          rodziny. Po ok. 30 minutach bezczynności wylogujemy Cię automatycznie
+          — to ochrona przed pozostawionym otwartym panelem.
         </p>
         <form
           className="gate-form"

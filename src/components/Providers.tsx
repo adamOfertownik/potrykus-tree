@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { DraftGraphProvider } from "@/components/DraftGraphProvider";
 import { IdentityProvider } from "@/components/IdentityProvider";
+import { SessionIdleGuard } from "@/components/SessionIdleGuard";
 import { TextScaleProvider } from "@/components/TextScaleProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -23,7 +24,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={client}>
       <TextScaleProvider>
         <DraftGraphProvider>
-          <IdentityProvider>{children}</IdentityProvider>
+          <IdentityProvider>
+            <SessionIdleGuard />
+            {children}
+          </IdentityProvider>
         </DraftGraphProvider>
       </TextScaleProvider>
     </QueryClientProvider>

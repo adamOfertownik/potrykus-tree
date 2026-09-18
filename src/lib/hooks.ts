@@ -13,14 +13,17 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
+export type FamilyAuthStatus = {
+  unlocked: boolean;
+  remember?: boolean;
+  storage?: "neon" | "file";
+};
+
 export function useAuthStatus() {
   return useQuery({
     queryKey: ["auth-status"],
     queryFn: () =>
-      fetchJson<{ unlocked: boolean; storage?: "neon" | "file" }>(
-        "/api/auth/status",
-        { cache: "no-store" },
-      ),
+      fetchJson<FamilyAuthStatus>("/api/auth/status", { cache: "no-store" }),
   });
 }
 
@@ -37,14 +40,17 @@ export function useFamily(enabled = true) {
 export function useUnlock() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (code: string) =>
-      fetchJson<{ ok: boolean }>("/api/auth/unlock", {
+    mutationFn: (input: { code: string; remember?: boolean }) =>
+      fetchJson<{ ok: boolean; remember?: boolean }>("/api/auth/unlock", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify(input),
       }),
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["auth-status"] });
+    onSuccess: async (data) => {
+      qc.setQueryData(["auth-status"], {
+        unlocked: true,
+        remember: data.remember === true,
+      });
       await qc.invalidateQueries({ queryKey: ["family"] });
     },
   });
