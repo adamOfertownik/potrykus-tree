@@ -1025,15 +1025,17 @@ export function FamilyChartView({
               </button>
             </div>
             <div className="chart-nav-pad__compass">
+              <span className="chart-nav-pad__spacer" aria-hidden />
               <button
                 type="button"
-                className="chart-nav-pad__key chart-nav-pad__key--up"
+                className="chart-nav-pad__key"
                 data-testid="chart-nav-up"
-                aria-label="Przeskocz do osoby wyżej"
+                aria-label="Przeskocz do rodzica"
                 onClick={() => jumpNeighbor("up")}
               >
                 ↑
               </button>
+              <span className="chart-nav-pad__spacer" aria-hidden />
               <button
                 type="button"
                 className="chart-nav-pad__key"
@@ -1043,6 +1045,7 @@ export function FamilyChartView({
               >
                 ←
               </button>
+              <span className="chart-nav-pad__spacer" aria-hidden />
               <button
                 type="button"
                 className="chart-nav-pad__key"
@@ -1052,15 +1055,17 @@ export function FamilyChartView({
               >
                 →
               </button>
+              <span className="chart-nav-pad__spacer" aria-hidden />
               <button
                 type="button"
-                className="chart-nav-pad__key chart-nav-pad__key--down"
+                className="chart-nav-pad__key"
                 data-testid="chart-nav-down"
-                aria-label="Przeskocz do osoby niżej"
+                aria-label="Przeskocz do dziecka"
                 onClick={() => jumpNeighbor("down")}
               >
                 ↓
               </button>
+              <span className="chart-nav-pad__spacer" aria-hidden />
             </div>
           </div>
         ) : null}

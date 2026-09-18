@@ -1781,28 +1781,15 @@ textarea:focus-visible {
 .chart-nav-pad__compass {
   display: grid;
   grid-template-columns: 2.2rem 2.2rem 2.2rem;
-  grid-template-areas:
-    ". up ."
-    "left . right"
-    ". down .";
+  grid-template-rows: 2.2rem 2.2rem 2.2rem;
   gap: 0.25rem;
   justify-items: center;
+  align-items: center;
 }
 
-.chart-nav-pad__key--up {
-  grid-area: up;
-}
-
-.chart-nav-pad__compass [data-testid="chart-nav-left"] {
-  grid-area: left;
-}
-
-.chart-nav-pad__compass [data-testid="chart-nav-right"] {
-  grid-area: right;
-}
-
-.chart-nav-pad__key--down {
-  grid-area: down;
+.chart-nav-pad__spacer {
+  width: 2.2rem;
+  height: 2.2rem;
 }
 
 .pending-legend {
