@@ -70,6 +70,10 @@ function requirePerson(people: Person[], id: string, label: string): Person {
   return p;
 }
 
+function arePartners(a: Person, b: Person): boolean {
+  return a.spouseIds.includes(b.id) || b.spouseIds.includes(a.id);
+}
+
 export function wouldCreateCycle(
   people: Person[],
   childId: string,
@@ -135,8 +139,10 @@ export function applyGraphMutation(
   if (input.op === "add_child") {
     const parents = [anchor.id];
     if (input.secondParentId && input.secondParentId !== anchor.id) {
-      requirePerson(people, input.secondParentId, "drugi rodzic");
-      parents.push(input.secondParentId);
+      const second = requirePerson(people, input.secondParentId, "drugi rodzic");
+      if (arePartners(anchor, second)) {
+        parents.push(second.id);
+      }
     }
 
     if (input.newPerson) {
@@ -162,8 +168,19 @@ export function applyGraphMutation(
       if (wouldCreateCycle(people, child.id, parentId)) {
         throw new Error("Ta zmiana utworzyłaby pętlę w drzewie.");
       }
-      if (!child.parentIds.includes(parentId)) {
-        child.parentIds.push(parentId);
+    }
+    const otherParents = child.parentIds.filter((id) => id !== anchor.id);
+    const otherIsPartner = otherParents.some((id) => {
+      const other = people.find((p) => p.id === id);
+      return other ? arePartners(anchor, other) : false;
+    });
+    if (otherParents.length > 0 && !otherIsPartner) {
+      child.parentIds = [...parents];
+    } else {
+      for (const parentId of parents) {
+        if (!child.parentIds.includes(parentId)) {
+          child.parentIds.push(parentId);
+        }
       }
     }
     return {
