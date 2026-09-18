@@ -17,6 +17,7 @@ import {
 import { displayName, formatPolishDate, formatPolishDateTime } from "@/lib/db-client";
 import { searchPeople } from "@/lib/search";
 import { describeSubmissionKinship } from "@/lib/submissionKinship";
+import { meetingLineHint } from "@/lib/meetingBranches";
 import { getChildrenIds } from "@/lib/tree";
 import { DateField } from "@/components/DateField";
 import { Modal } from "@/components/Modal";
@@ -948,7 +949,7 @@ function AdminPeoplePanel({
               >
                 <span className="admin-row__title">{displayName(p)}</span>
                 <span className="admin-row__meta">
-                  {genderLabel(p.gender)} · ur.{" "}
+                  {meetingLineHint(p.id, people)} · {genderLabel(p.gender)} · ur.{" "}
                   {formatPolishDate(p.birthDate) || "—"}
                 </span>
               </button>

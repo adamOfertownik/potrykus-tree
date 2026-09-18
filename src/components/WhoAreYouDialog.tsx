@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
+import { personPickerSubline } from "@/lib/personPickerMeta";
+import { meetingLineHint } from "@/lib/meetingBranches";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { Modal } from "@/components/Modal";
 
@@ -94,9 +96,11 @@ export function WhoAreYouDialog({
           </header>
           <div className="who-confirm">
             <p className="who-confirm__name">{displayName(pending, people)}</p>
-            {personDates(pending) ? (
-              <p className="who-confirm__meta">{personDates(pending)}</p>
-            ) : null}
+            <p className="who-confirm__meta">
+              {[meetingLineHint(pending.id, people), personDates(pending)]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
           </div>
           <div className="modal-actions modal-actions--stack">
             <button
@@ -137,7 +141,7 @@ export function WhoAreYouDialog({
           {matches.length > 0 && (
             <ul className="who-matches">
               {matches.map((p) => {
-                const dates = personDates(p);
+                const subline = personPickerSubline(p, people);
                 return (
                   <li key={p.id}>
                     <button
@@ -150,8 +154,8 @@ export function WhoAreYouDialog({
                     >
                       <span className="who-matches__text">
                         <span>{displayName(p, people)}</span>
-                        {dates ? (
-                          <span className="who-matches__dates">{dates}</span>
+                        {subline ? (
+                          <span className="who-matches__dates">{subline}</span>
                         ) : null}
                       </span>
                       <span className="who-matches__go">Wybierz</span>

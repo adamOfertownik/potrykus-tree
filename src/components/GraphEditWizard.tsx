@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DateField } from "@/components/DateField";
 import { Modal } from "@/components/Modal";
 import { displayName } from "@/lib/db-client";
+import { personPickerSubline } from "@/lib/personPickerMeta";
 import {
   summarizeMutationPreview,
   type GraphOp,
@@ -280,13 +281,23 @@ export function GraphEditWizard({
                   )}
                   {!related && matches.length > 0 && (
                     <ul className="who-matches">
-                      {matches.map((p) => (
-                        <li key={p.id}>
-                          <button type="button" onClick={() => setRelated(p)}>
-                            {displayName(p)}
-                          </button>
-                        </li>
-                      ))}
+                      {matches.map((p) => {
+                        const subline = personPickerSubline(p, people);
+                        return (
+                          <li key={p.id}>
+                            <button type="button" onClick={() => setRelated(p)}>
+                              <span className="who-matches__text">
+                                <span>{displayName(p, people)}</span>
+                                {subline ? (
+                                  <span className="who-matches__dates">
+                                    {subline}
+                                  </span>
+                                ) : null}
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                   {!related && query.trim() && matches.length === 0 && (

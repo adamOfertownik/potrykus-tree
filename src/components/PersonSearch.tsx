@@ -4,8 +4,8 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { createPortal } from "react-dom";
 import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
-import { displayName, formatPolishDate } from "@/lib/db-client";
-import { personSearchMeta } from "@/lib/meetingBranches";
+import { displayName } from "@/lib/db-client";
+import { personPickerSubline } from "@/lib/personPickerMeta";
 import { useIdentity } from "@/components/IdentityProvider";
 import { MissingPersonForm } from "@/components/MissingPersonForm";
 
@@ -155,13 +155,7 @@ export function PersonSearch({
     matches.length > 0 ? (
       <ul id={listId} role="listbox" className="person-search__results">
         {matches.map((p, i) => {
-          const meta = [
-            personSearchMeta(p, people),
-            formatPolishDate(p.birthDate),
-            formatPolishDate(p.deathDate),
-          ]
-            .filter(Boolean)
-            .join(" · ");
+          const meta = personPickerSubline(p, people);
           return (
             <li
               key={p.id}

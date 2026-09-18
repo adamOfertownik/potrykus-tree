@@ -11,7 +11,8 @@ import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import { householdSuggestions } from "@/lib/eventAttending";
-import { personSearchMeta } from "@/lib/meetingBranches";
+import { meetingLineHint, personSearchMeta } from "@/lib/meetingBranches";
+import { personPickerSubline } from "@/lib/personPickerMeta";
 import {
   ageGroupFromBirth,
   amountDuePln,
@@ -187,12 +188,7 @@ function EventPersonField({
       {matches.length > 0 && (
         <ul className="who-matches">
           {matches.map((p) => {
-            const extra = [
-              personSearchMeta(p, people),
-              formatPolishDate(p.birthDate) ? `ur. ${formatPolishDate(p.birthDate)}` : "",
-            ]
-              .filter(Boolean)
-              .join(" · ");
+            const subline = personPickerSubline(p, people);
             return (
               <li key={p.id}>
                 <button
@@ -202,8 +198,12 @@ function EventPersonField({
                     setQuery("");
                   }}
                 >
-                  {displayName(p, people)}
-                  {extra ? ` · ${extra}` : ""}
+                  <span className="who-matches__text">
+                    <span>{displayName(p, people)}</span>
+                    {subline ? (
+                      <span className="who-matches__dates">{subline}</span>
+                    ) : null}
+                  </span>
                 </button>
               </li>
             );
