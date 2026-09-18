@@ -76,6 +76,7 @@ export function GraphEditWizard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmEmail, setConfirmEmail] = useState("");
+  const [weddingDate, setWeddingDate] = useState("");
   const onCloseRef = useRef(onClose);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const firstNameRef = useRef<HTMLInputElement>(null);
@@ -112,8 +113,9 @@ export function GraphEditWizard({
       newPerson: mode === "new" ? newPerson : undefined,
       secondParentId: secondParentId || undefined,
       replaceParentIds: true,
+      weddingDate: op === "link_spouse" ? weddingDate || undefined : undefined,
     }),
-    [op, anchor.id, mode, related, newPerson, secondParentId],
+    [op, anchor.id, mode, related, newPerson, secondParentId, weddingDate],
   );
 
   const preview = useMemo(
@@ -128,6 +130,7 @@ export function GraphEditWizard({
     setRelated(null);
     setSecondParentId("");
     setNewPerson({ firstName: "", lastName: "", gender: "unknown" });
+    setWeddingDate("");
     setBusy(false);
     setError(null);
   }, []);
@@ -428,6 +431,17 @@ export function GraphEditWizard({
               </div>
             )}
 
+            {op === "link_spouse" && (
+              <label className="field-block">
+                Data ślubu (opcjonalnie)
+                <DateField
+                  className="field-input"
+                  value={weddingDate}
+                  onChange={(value) => setWeddingDate(value)}
+                />
+              </label>
+            )}
+
             {op === "add_child" && spouses.length > 0 && (
               <label className="field-block">
                 Drugi rodzic (małżonek / partner)
@@ -493,6 +507,12 @@ export function GraphEditWizard({
                       },
                     )}
                   </strong>
+                </li>
+              )}
+              {op === "link_spouse" && weddingDate && (
+                <li>
+                  <span>Data ślubu</span>
+                  <strong>{weddingDate}</strong>
                 </li>
               )}
               {mode === "new" && newPerson.birthDate && (

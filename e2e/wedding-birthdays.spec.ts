@@ -74,8 +74,9 @@ test("person form has wedding date and calendar pickers", async ({
     "Anna Elżbieta",
     { timeout: 20_000 },
   );
-  await expect(page.getByText(/Ślub:/)).toBeVisible();
-  await expect(page.getByText("Data ślubu")).toBeVisible();
+  await expect(page.getByText(/Ślub/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Śluby" })).toBeVisible();
+  await expect(page.getByText("Data ślubu").first()).toBeVisible();
   await expect(page.locator("#person-edit .date-field__picker")).toHaveCount(3);
   await ctx.close();
 });

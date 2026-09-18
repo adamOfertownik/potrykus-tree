@@ -13,6 +13,11 @@ export { getChildrenIds, getPersonMap } from "@/lib/tree";
 export { formatPolishDate, displayName, lifespan } from "@/lib/db-client";
 import { getChildrenIds } from "@/lib/tree";
 import { weddingDateFromNotes } from "@/lib/weddingDate";
+import {
+  applyMarriagesToPerson,
+  hydrateMarriages,
+  normalizeMarriages,
+} from "@/lib/marriages";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const FAMILY_PATH = path.join(DATA_DIR, "family.json");
@@ -32,6 +37,7 @@ type PersonRow = {
   notes: string | null;
   parent_ids: string[] | null;
   spouse_ids: string[] | null;
+  marriages?: unknown;
 };
 
 type MetaRow = {
@@ -61,6 +67,22 @@ function isMissingWeddingDateColumn(err: unknown): boolean {
     /undefined_column|does not exist/i.test(message) &&
     /wedding_date/i.test(message)
   );
+}
+
+function isMissingMarriagesColumn(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return (
+    /undefined_column|does not exist/i.test(message) &&
+    /marriages/i.test(message)
+  );
+}
+
+function finishPerson(person: Person): Person {
+  applyMarriagesToPerson(person, hydrateMarriages(person));
+  if (!person.weddingDate) {
+    person.weddingDate = weddingDateFromNotes(person.notes);
+  }
+  return person;
 }
 
 function asGender(value: string | null | undefined): Gender {
@@ -106,7 +128,7 @@ function toIso(value: string | Date): string {
 }
 
 function rowToPerson(row: PersonRow): Person {
-  return {
+  return finishPerson({
     id: row.id,
     firstName: row.first_name,
     lastName: row.last_name,
@@ -115,22 +137,24 @@ function rowToPerson(row: PersonRow): Person {
     birthDate: opt(row.birth_date),
     deathDate: opt(row.death_date),
     weddingDate: opt(row.wedding_date) || weddingDateFromNotes(row.notes ?? undefined),
+    marriages: normalizeMarriages(row.marriages),
     photoUrl: opt(row.photo_url),
     phone: opt(row.phone),
     notes: opt(row.notes),
     parentIds: asIdList(row.parent_ids),
     spouseIds: asIdList(row.spouse_ids),
-  };
+  });
 }
 
 function normalizeStoredPerson(person: Person): Person {
-  return {
+  return finishPerson({
     ...person,
     parentIds: asIdList(person.parentIds),
     spouseIds: asIdList(person.spouseIds),
     gender: asGender(person.gender),
+    marriages: normalizeMarriages(person.marriages),
     weddingDate: person.weddingDate || weddingDateFromNotes(person.notes),
-  };
+  });
 }
 
 function peopleInsertPayload(people: Person[]): string {
@@ -149,6 +173,7 @@ function peopleInsertPayload(people: Person[]): string {
       notes: p.notes ?? null,
       parent_ids: p.parentIds ?? [],
       spouse_ids: p.spouseIds ?? [],
+      marriages: hydrateMarriages(p),
     })),
   );
 }
@@ -168,18 +193,40 @@ async function readFamilyFromNeon(): Promise<FamilyDatabase> {
         SELECT
           id, first_name, last_name, maiden_name, gender,
           birth_date, death_date, wedding_date, photo_url, phone, notes,
-          parent_ids, spouse_ids
+          parent_ids, spouse_ids, marriages
         FROM people
       `) as PersonRow[];
     } catch (err) {
-      if (!isMissingWeddingDateColumn(err)) throw err;
-      peopleRows = (await sql`
-        SELECT
-          id, first_name, last_name, maiden_name, gender,
-          birth_date, death_date, photo_url, phone, notes,
-          parent_ids, spouse_ids
-        FROM people
-      `) as PersonRow[];
+      if (isMissingMarriagesColumn(err)) {
+        try {
+          peopleRows = (await sql`
+            SELECT
+              id, first_name, last_name, maiden_name, gender,
+              birth_date, death_date, wedding_date, photo_url, phone, notes,
+              parent_ids, spouse_ids
+            FROM people
+          `) as PersonRow[];
+        } catch (inner) {
+          if (!isMissingWeddingDateColumn(inner)) throw inner;
+          peopleRows = (await sql`
+            SELECT
+              id, first_name, last_name, maiden_name, gender,
+              birth_date, death_date, photo_url, phone, notes,
+              parent_ids, spouse_ids
+            FROM people
+          `) as PersonRow[];
+        }
+      } else if (isMissingWeddingDateColumn(err)) {
+        peopleRows = (await sql`
+          SELECT
+            id, first_name, last_name, maiden_name, gender,
+            birth_date, death_date, photo_url, phone, notes,
+            parent_ids, spouse_ids
+          FROM people
+        `) as PersonRow[];
+      } else {
+        throw err;
+      }
     }
 
     const meta = metaRows[0];
@@ -239,8 +286,9 @@ async function writePeopleTables(
   const sql = getSql();
   try {
     await sql`ALTER TABLE people ADD COLUMN IF NOT EXISTS wedding_date text`;
+    await sql`ALTER TABLE people ADD COLUMN IF NOT EXISTS marriages jsonb`;
   } catch {
-    /* role may lack ALTER; INSERT below still works after 008 */
+    /* role may lack ALTER; INSERT below still works after 008 / 012 */
   }
   const payload = peopleInsertPayload(db.people);
   await sql.transaction([
@@ -266,12 +314,12 @@ async function writePeopleTables(
       INSERT INTO people (
         id, first_name, last_name, maiden_name, gender,
         birth_date, death_date, wedding_date, photo_url, phone, notes,
-        parent_ids, spouse_ids
+        parent_ids, spouse_ids, marriages
       )
       SELECT
         id, first_name, last_name, maiden_name, gender,
         birth_date, death_date, wedding_date, photo_url, phone, notes,
-        parent_ids, spouse_ids
+        parent_ids, spouse_ids, marriages
       FROM jsonb_to_recordset(${payload}::jsonb) AS t(
         id text,
         first_name text,
@@ -285,7 +333,8 @@ async function writePeopleTables(
         phone text,
         notes text,
         parent_ids text[],
-        spouse_ids text[]
+        spouse_ids text[],
+        marriages jsonb
       )
     `,
   ]);

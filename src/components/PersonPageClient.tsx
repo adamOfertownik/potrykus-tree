@@ -18,6 +18,7 @@ import { describeKinship } from "@/lib/kinship";
 import { resolveReporterIdentity } from "@/lib/resolvePerson";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
 import { meetingBranchLabel } from "@/lib/meetingBranches";
+import { hydrateMarriages } from "@/lib/marriages";
 import { resolveWeddingDate } from "@/lib/weddingDate";
 import { findRelationConflicts } from "@/lib/relationConflicts";
 import { comparePeopleByBirth, getChildrenIds } from "@/lib/tree";
@@ -157,6 +158,28 @@ function PersonInner({
         </nav>
       ) : null}
 
+      {spouses.length >= 1 && spouses[0] ? (
+        <nav className="person-hop" aria-label="Małżeństwo">
+          <Link
+            href={`/osoba/${encodeURIComponent(spouses[0].id)}`}
+            className="person-hop__btn"
+          >
+            ← {displayName(spouses[0])}
+          </Link>
+          <span className="person-hop__pos">
+            {spouses.length === 1
+              ? "Małżeństwo"
+              : `Małżeństwa 1 / ${spouses.length}`}
+          </span>
+          <Link
+            href={`/osoba/${encodeURIComponent(spouses[spouses.length - 1]!.id)}`}
+            className="person-hop__btn person-hop__btn--next"
+          >
+            {displayName(spouses[spouses.length - 1]!)} →
+          </Link>
+        </nav>
+      ) : null}
+
       <header className="person-detail__header">
         <PersonPhotoControl person={person} size="lg" mode={admin.data?.loggedIn ? "admin" : "suggest"} />
         <div>
@@ -179,11 +202,22 @@ function PersonInner({
             </p>
           )}
           <p className="person-detail__dates">{lifespan(person)}</p>
-          {resolveWeddingDate(person) && (
-            <p className="person-detail__dates">
-              Ślub: {formatPolishDate(resolveWeddingDate(person))}
-            </p>
-          )}
+          {hydrateMarriages(person).map((marriage) => {
+            const spouse = byId.get(marriage.spouseId);
+            const date =
+              marriage.weddingDate ||
+              (person.spouseIds[0] === marriage.spouseId
+                ? resolveWeddingDate(person)
+                : undefined);
+            return (
+              <p key={marriage.spouseId} className="person-detail__dates">
+                Ślub
+                {spouse ? ` z ${displayName(spouse)}` : ""}
+                {date ? `: ${formatPolishDate(date)}` : ""}
+                {marriage.divorced ? " · rozwód" : ""}
+              </p>
+            );
+          })}
           {person.phone && (
             <p className="person-detail__phone">
               Telefon: <a href={`tel:${person.phone}`}>{person.phone}</a>
@@ -414,6 +448,7 @@ function PersonInner({
         <PersonEditForm
           key={person.id}
           person={person}
+          people={people}
           isAdmin={isAdmin}
           adminReady={adminReady}
           reporterName={identity?.name || ""}

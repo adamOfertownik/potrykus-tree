@@ -25,6 +25,7 @@ export interface GraphEditPayload {
   relatedPersonId?: string;
   secondParentId?: string;
   replaceParentIds?: boolean;
+  weddingDate?: string;
   newPerson?: {
     firstName: string;
     lastName: string;
@@ -45,6 +46,11 @@ export interface PersonFieldPatch {
   birthDate?: string;
   deathDate?: string;
   weddingDate?: string;
+  marriages?: Array<{
+    spouseId: string;
+    weddingDate?: string;
+    divorced?: boolean;
+  }>;
   phone?: string;
   notes?: string;
 }
@@ -58,6 +64,7 @@ export interface PersonSnapshot {
   birthDate?: string;
   deathDate?: string;
   weddingDate?: string;
+  marriages?: PersonFieldPatch["marriages"];
   photoUrl?: string;
   phone?: string;
   notes?: string;

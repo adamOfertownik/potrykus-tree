@@ -1,5 +1,6 @@
 import type { Person } from "@/types/family";
 import { displayName } from "@/lib/db-client";
+import { hydrateMarriages } from "@/lib/marriages";
 import { resolveWeddingDate } from "@/lib/weddingDate";
 
 export type OccasionKind = "birthday" | "wedding";
@@ -91,52 +92,55 @@ function birthdayEntry(
   };
 }
 
-function weddingPartner(people: Person[], person: Person): Person | undefined {
-  const byId = new Map(people.map((p) => [p.id, p]));
-  for (const id of person.spouseIds) {
-    const spouse = byId.get(id);
-    if (spouse) return spouse;
-  }
-  return undefined;
-}
-
 function weddingEntry(
   people: Person[],
   person: Person,
   from: Date,
   mode: "upcoming" | "thisYear",
   seen: Set<string>,
-): OccasionEntry | null {
-  const date = resolveWeddingDate(person);
-  const md = parseMonthDay(date);
-  if (!md || !date) return null;
-  const spouse = weddingPartner(people, person);
-  if (person.deathDate && (!spouse || spouse.deathDate)) return null;
-  const coupleIds = [person.id, spouse?.id]
-    .filter((id): id is string => Boolean(id))
-    .sort();
-  const coupleKey = `wedding:${coupleIds.join("|")}:${md.month}-${md.day}`;
-  if (seen.has(coupleKey)) return null;
-  seen.add(coupleKey);
+): OccasionEntry[] {
+  const byId = new Map(people.map((p) => [p.id, p]));
+  const marriages = hydrateMarriages(person).map((marriage, index) => ({
+    ...marriage,
+    weddingDate:
+      marriage.weddingDate ||
+      (index === 0 ? resolveWeddingDate(person) : undefined),
+  }));
+  const out: OccasionEntry[] = [];
+  for (const marriage of marriages) {
+    if (marriage.divorced) continue;
+    const date = marriage.weddingDate || undefined;
+    const md = parseMonthDay(date);
+    if (!md || !date) continue;
+    const spouse = byId.get(marriage.spouseId);
+    if (person.deathDate && (!spouse || spouse.deathDate)) continue;
+    const coupleIds = [person.id, spouse?.id]
+      .filter((id): id is string => Boolean(id))
+      .sort();
+    const coupleKey = `wedding:${coupleIds.join("|")}:${md.month}-${md.day}`;
+    if (seen.has(coupleKey)) continue;
+    seen.add(coupleKey);
 
-  const days = daysUntilNext(md.month, md.day, from);
-  const year = from.getFullYear();
-  const occurred = occurredThisCalendarYear(md.month, md.day, from);
-  const nextYear = occurred ? year + 1 : year;
-  return {
-    key: coupleKey,
-    kind: "wedding",
-    person,
-    spouse,
-    month: md.month,
-    day: md.day,
-    turningAge:
-      mode === "thisYear"
-        ? ageInYear(date, year)
-        : ageInYear(date, nextYear),
-    daysUntil: days,
-    occurredThisYear: occurred,
-  };
+    const days = daysUntilNext(md.month, md.day, from);
+    const year = from.getFullYear();
+    const occurred = occurredThisCalendarYear(md.month, md.day, from);
+    const nextYear = occurred ? year + 1 : year;
+    out.push({
+      key: coupleKey,
+      kind: "wedding",
+      person,
+      spouse,
+      month: md.month,
+      day: md.day,
+      turningAge:
+        mode === "thisYear"
+          ? ageInYear(date, year)
+          : ageInYear(date, nextYear),
+      daysUntil: days,
+      occurredThisYear: occurred,
+    });
+  }
+  return out;
 }
 
 export function upcomingBirthdays(
@@ -173,8 +177,10 @@ export function upcomingAnniversaries(
   const seen = new Set<string>();
   const out: OccasionEntry[] = [];
   for (const person of people) {
-    const entry = weddingEntry(people, person, from, "upcoming", seen);
-    if (entry && entry.daysUntil <= withinDays) out.push(entry);
+    const entries = weddingEntry(people, person, from, "upcoming", seen);
+    for (const entry of entries) {
+      if (entry.daysUntil <= withinDays) out.push(entry);
+    }
   }
   return out.sort(sortOccasions);
 }
@@ -187,8 +193,10 @@ export function anniversariesThisMonth(
   const seen = new Set<string>();
   const out: OccasionEntry[] = [];
   for (const person of people) {
-    const entry = weddingEntry(people, person, from, "thisYear", seen);
-    if (entry && entry.month === month) out.push(entry);
+    const entries = weddingEntry(people, person, from, "thisYear", seen);
+    for (const entry of entries) {
+      if (entry.month === month) out.push(entry);
+    }
   }
   return out.sort((a, b) => a.day - b.day || sortOccasions(a, b));
 }

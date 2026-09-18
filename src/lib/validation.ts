@@ -10,6 +10,12 @@ const optionalDate = z
     message: "Data w formacie RRRR, RRRR-MM lub RRRR-MM-DD.",
   });
 
+const marriageSchema = z.object({
+  spouseId: z.string().trim().min(1).max(120),
+  weddingDate: optionalDate,
+  divorced: z.boolean().optional(),
+});
+
 export const personFieldPatchSchema = z.object({
   firstName: z.string().trim().min(1).max(80).optional(),
   lastName: z.string().trim().min(1).max(80).optional(),
@@ -18,6 +24,7 @@ export const personFieldPatchSchema = z.object({
   birthDate: optionalDate,
   deathDate: optionalDate,
   weddingDate: optionalDate,
+  marriages: z.array(marriageSchema).max(8).optional(),
   phone: z
     .string()
     .trim()
@@ -71,6 +78,7 @@ const graphEditFields = {
   newPerson: newPersonSchema.optional(),
   secondParentId: z.string().trim().max(120).optional(),
   replaceParentIds: z.boolean().optional(),
+  weddingDate: optionalDate,
 };
 
 function refineGraphEdit(
@@ -127,6 +135,7 @@ export const graphMutateRequestSchema = z
     newPerson: newPersonSchema.optional(),
     secondParentId: z.string().trim().max(120).optional(),
     replaceParentIds: z.boolean().optional(),
+    weddingDate: optionalDate,
   })
   .superRefine((v, ctx) => {
     if (v.edits?.length) return;
