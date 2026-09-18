@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
@@ -105,11 +105,14 @@ export function PersonSearch({
   const showPanel = open && query.trim().length >= 1;
   const usePortal = narrow && showPanel;
   const floatBox = useFloatingBelow(fieldRef, usePortal);
+  const deferredQuery = useDeferredValue(query);
 
   const matches = useMemo(
     () =>
-      query.trim().length >= 1 ? searchPeople(people, query).slice(0, 14) : [],
-    [people, query],
+      deferredQuery.trim().length >= 1
+        ? searchPeople(people, deferredQuery).slice(0, 14)
+        : [],
+    [people, deferredQuery],
   );
 
   useEffect(() => {

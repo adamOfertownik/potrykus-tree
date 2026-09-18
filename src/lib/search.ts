@@ -1,4 +1,4 @@
-import { generationTrunkSearchHaystack } from "@/lib/chartOverview";
+import { GENERATION_TRUNK_ID } from "@/lib/chartOverview";
 import { personBranchSearchHaystack } from "@/lib/meetingBranches";
 import type { Person } from "@/types/family";
 
@@ -11,13 +11,48 @@ function normalize(text: string): string {
     .replace(/Ł/g, "l");
 }
 
-export function searchPeople(people: Person[], query: string): Person[] {
-  const q = normalize(query.trim());
-  if (!q) return [];
-  const tokens = q.split(/[\s,;./]+/).filter(Boolean);
-  return people
-    .filter((p) => {
-      const hay = normalize(
+const TRUNK_SEARCH_ALIASES = [
+  "pien",
+  "pien rodziny",
+  "franciszek xawery",
+  "xawery potrykus",
+  "pien franciszka xawerego",
+];
+
+type SearchIndex = {
+  hay: Map<string, string>;
+  name: Map<string, { lastFirst: string; firstLast: string; first: string }>;
+};
+
+const indexCache = new WeakMap<Person[], SearchIndex>();
+
+function searchIndex(people: Person[]): SearchIndex {
+  const cached = indexCache.get(people);
+  if (cached) return cached;
+
+  const hay = new Map<string, string>();
+  const name = new Map<
+    string,
+    { lastFirst: string; firstLast: string; first: string }
+  >();
+
+  for (const p of people) {
+    const lastFirst = normalize(`${p.lastName} ${p.firstName}`);
+    const firstLast = normalize(`${p.firstName} ${p.lastName}`);
+    name.set(p.id, {
+      lastFirst,
+      firstLast,
+      first: normalize(p.firstName),
+    });
+    const extra =
+      p.id === GENERATION_TRUNK_ID
+        ? TRUNK_SEARCH_ALIASES.join(" ")
+        : p.spouseIds.includes(GENERATION_TRUNK_ID)
+          ? "malzonek pnia franciszka xawerego"
+          : personBranchSearchHaystack(p, people);
+    hay.set(
+      p.id,
+      normalize(
         [
           p.firstName,
           p.lastName,
@@ -25,26 +60,40 @@ export function searchPeople(people: Person[], query: string): Person[] {
           p.notes ?? "",
           p.birthDate ?? "",
           p.weddingDate ?? "",
-          personBranchSearchHaystack(p, people),
-          generationTrunkSearchHaystack(p.id, people),
+          extra,
         ].join(" "),
-      );
-      return tokens.every((token) => hay.includes(token));
+      ),
+    );
+  }
+
+  const next = { hay, name };
+  indexCache.set(people, next);
+  return next;
+}
+
+export function searchPeople(people: Person[], query: string): Person[] {
+  const q = normalize(query.trim());
+  if (!q) return [];
+  const tokens = q.split(/[\s,;./]+/).filter(Boolean);
+  const { hay, name } = searchIndex(people);
+  return people
+    .filter((p) => {
+      const text = hay.get(p.id) ?? "";
+      return tokens.every((token) => text.includes(token));
     })
     .sort((a, b) => {
-      const an = normalize(`${a.lastName} ${a.firstName}`);
-      const bn = normalize(`${b.lastName} ${b.firstName}`);
-      const aForward = normalize(`${a.firstName} ${a.lastName}`);
-      const bForward = normalize(`${b.firstName} ${b.lastName}`);
+      const an = name.get(a.id);
+      const bn = name.get(b.id);
+      if (!an || !bn) return 0;
       const aStarts =
-        an.startsWith(q) ||
-        aForward.startsWith(q) ||
-        normalize(a.firstName).startsWith(q);
+        an.lastFirst.startsWith(q) ||
+        an.firstLast.startsWith(q) ||
+        an.first.startsWith(q);
       const bStarts =
-        bn.startsWith(q) ||
-        bForward.startsWith(q) ||
-        normalize(b.firstName).startsWith(q);
+        bn.lastFirst.startsWith(q) ||
+        bn.firstLast.startsWith(q) ||
+        bn.first.startsWith(q);
       if (aStarts !== bStarts) return aStarts ? -1 : 1;
-      return an.localeCompare(bn, "pl");
+      return an.lastFirst.localeCompare(bn.lastFirst, "pl");
     });
 }

@@ -60,10 +60,6 @@ export function generationTrunkHint(
   if (person.spouseIds.includes(GENERATION_TRUNK_ID)) {
     return "małżonek pnia Franciszka Xawerego";
   }
-  const gen = generationIndexByPersonId(people).get(personId);
-  if (gen != null && gen < 0) {
-    return `przodek pnia (${-gen} pok. w górę)`;
-  }
   return "";
 }
 
@@ -75,7 +71,11 @@ export function generationTrunkSearchHaystack(
   if (personId === GENERATION_TRUNK_ID) {
     return TRUNK_SEARCH_ALIASES.join(" ");
   }
-  return generationTrunkHint(personId, people);
+  const person = people.find((p) => p.id === personId);
+  if (person?.spouseIds.includes(GENERATION_TRUNK_ID)) {
+    return "malzonek pnia franciszka xawerego";
+  }
+  return "";
 }
 
 export function generationIndexByPersonId(
