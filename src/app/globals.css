@@ -4393,11 +4393,6 @@ button.person-card {
   border-radius: 12px;
 }
 
-.meeting-branch-counts li.is-featured {
-  background: color-mix(in srgb, var(--attending) 14%, white);
-  border-color: color-mix(in srgb, var(--attending) 40%, var(--line));
-}
-
 .meeting-branch-counts span {
   font-size: 0.88rem;
   color: var(--ink-soft);
@@ -4511,11 +4506,6 @@ button.person-card {
   background: white;
   border-radius: 999px;
   font-size: 0.82rem;
-}
-
-.meeting-branch-chips li.is-featured {
-  background: color-mix(in srgb, var(--attending) 18%, white);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--attending) 45%, var(--line));
 }
 
 .meeting-branch-chips strong {

@@ -35,7 +35,6 @@ export type FamilyInsights = {
   livingByBranch: {
     key: string;
     label: string;
-    featured: boolean;
     living: number;
     total: number;
     going: number;
@@ -174,7 +173,6 @@ export function buildFamilyInsights(
   const livingByBranch = branches.map((branch) => ({
     key: branch.key,
     label: branch.label,
-    featured: branch.featured,
     total: branch.personIds.length,
     going: goingByKey.get(branch.key) ?? 0,
     living: branch.personIds.filter((id) => {
