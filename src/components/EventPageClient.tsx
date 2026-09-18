@@ -11,6 +11,7 @@ import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import { householdSuggestions } from "@/lib/eventAttending";
+import { personSearchMeta } from "@/lib/meetingBranches";
 import {
   ageGroupFromBirth,
   amountDuePln,
@@ -186,7 +187,12 @@ function EventPersonField({
       {matches.length > 0 && (
         <ul className="who-matches">
           {matches.map((p) => {
-            const dates = formatPolishDate(p.birthDate);
+            const extra = [
+              personSearchMeta(p, people),
+              formatPolishDate(p.birthDate) ? `ur. ${formatPolishDate(p.birthDate)}` : "",
+            ]
+              .filter(Boolean)
+              .join(" · ");
             return (
               <li key={p.id}>
                 <button
@@ -197,7 +203,7 @@ function EventPersonField({
                   }}
                 >
                   {displayName(p, people)}
-                  {dates ? ` · ur. ${dates}` : ""}
+                  {extra ? ` · ${extra}` : ""}
                 </button>
               </li>
             );
@@ -985,7 +991,10 @@ export function EventPageClient() {
               oznaczyć, kto już zapłacił.
               {typeof stats.paidCount === "number"
                 ? ` Zapłacono: ${stats.paidCount} / ${rsvps.length}.`
-                : ""}
+                : ""}{" "}
+              Przycisk „wypisz” na liście rodzin zdejmuje jedną konkretną
+              osobę. Jeśli ktoś zapisał kilka osób o tym samym imieniu,
+              zbędne wpisy usuwaj tutaj przyciskiem „Usuń zapis”.
             </p>
           )}
           {rsvps.length === 0 ? (
@@ -993,16 +1002,34 @@ export function EventPageClient() {
           ) : (
             <ul className="rsvp-list">
               {rsvps.map((r) => {
+                const payer = r.personId ? byId.get(r.personId) : undefined;
+                const payerMeta = payer ? personSearchMeta(payer, people) : "";
+                const sameNameCount = rsvps.filter(
+                  (other) =>
+                    other.fullName.trim().toLowerCase() ===
+                    r.fullName.trim().toLowerCase(),
+                ).length;
                 const covered = (r.coveredPersonIds ?? [])
                   .map((id) => {
                     const p = byId.get(id);
-                    return p ? displayName(p, people) : null;
+                    if (!p) return null;
+                    const meta = personSearchMeta(p, people);
+                    return meta
+                      ? `${displayName(p, people)} (${meta})`
+                      : displayName(p, people);
                   })
                   .filter(Boolean);
                 return (
                   <li key={r.id}>
                     <div>
                       <strong>{r.fullName}</strong>
+                      {payerMeta ? <span>{payerMeta}</span> : null}
+                      {sameNameCount > 1 ? (
+                        <span>
+                          To samo imię jest {sameNameCount} razy na liście —
+                          sprawdź, kogo usunąć.
+                        </span>
+                      ) : null}
                       <span>
                         {r.guests} {r.guests === 1 ? "osoba" : "osób"}
                         {r.earlyArrival ? " · dzień wcześniej" : ""}

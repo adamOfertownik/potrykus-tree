@@ -128,6 +128,29 @@ export function meetingBranchLabel(personId: string, people: Person[]): string {
   return attributeMeetingBranch(personId, people).label;
 }
 
+/** Hint in search/lists: syn/córka + linia, żeby odróżnić np. kilku Janów Potrykus. */
+export function personSearchMeta(person: Person, people: Person[]): string {
+  const map = getPersonMap(people);
+  const parents = person.parentIds
+    .map((id) => map.get(id))
+    .filter((p): p is Person => Boolean(p));
+  const father =
+    parents.find((p) => p.gender === "male") ?? parents[0] ?? null;
+  const bits: string[] = [];
+  if (father) {
+    const rel =
+      person.gender === "female"
+        ? "córka"
+        : person.gender === "male"
+          ? "syn"
+          : "dziecko";
+    bits.push(`${rel} ${father.firstName}`);
+  }
+  const line = meetingBranchLabel(person.id, people);
+  if (line) bits.push(line);
+  return bits.join(" · ");
+}
+
 /** Cała linia Franciszka w grupach babć/dziadków — same liczby, bez 150 imion. */
 export function groupFamilyByMeetingBranch(people: Person[]): MeetingBranch[] {
   const ids = people
