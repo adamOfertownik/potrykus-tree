@@ -4,15 +4,18 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AccessGate } from "@/components/AccessGate";
 import { AppShell } from "@/components/AppShell";
+import { EventPersonField } from "@/components/EventPersonField";
 import { GuestTicketSteppers } from "@/components/GuestTicketSteppers";
 import { MeetingBranchPanel } from "@/components/MeetingBranchPanel";
 import { useAdminAuthStatus, useAuthStatus, useFamily } from "@/lib/hooks";
 import { loadReporter, saveReporter } from "@/lib/reporter";
-import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
-import { householdSuggestions } from "@/lib/eventAttending";
+import {
+  householdSuggestions,
+  normalizePersonName,
+  uniqueNamePersonIds,
+} from "@/lib/eventAttending";
 import { meetingLineHint, personSearchMeta } from "@/lib/meetingBranches";
-import { personPickerSubline } from "@/lib/personPickerMeta";
 import {
   ageGroupFromBirth,
   amountDuePln,
@@ -149,67 +152,6 @@ function Stepper({
           +
         </button>
       </div>
-    </div>
-  );
-}
-
-function EventPersonField({
-  people,
-  label,
-  placeholder,
-  excludeIds,
-  onPick,
-}: {
-  people: Person[];
-  label: string;
-  placeholder: string;
-  excludeIds: Set<string>;
-  onPick: (person: Person) => void;
-}) {
-  const [query, setQuery] = useState("");
-  const matches = useMemo(() => {
-    if (!query.trim()) return [];
-    return searchPeople(people, query)
-      .filter((p) => !excludeIds.has(p.id))
-      .slice(0, 8);
-  }, [people, query, excludeIds]);
-
-  return (
-    <div className="field-block event-person-field">
-      <label>
-        {label}
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          autoComplete="off"
-        />
-      </label>
-      {matches.length > 0 && (
-        <ul className="who-matches">
-          {matches.map((p) => {
-            const subline = personPickerSubline(p, people);
-            return (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onPick(p);
-                    setQuery("");
-                  }}
-                >
-                  <span className="who-matches__text">
-                    <span>{displayName(p, people)}</span>
-                    {subline ? (
-                      <span className="who-matches__dates">{subline}</span>
-                    ) : null}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
     </div>
   );
 }
@@ -415,11 +357,20 @@ export function EventPageClient() {
       setError("Wybierz bilety: ilu dorosłych i ile dzieci do 7 roku życia.");
       return;
     }
+    const payerId = party[0]?.personId ?? personId;
+    if (!payerId) {
+      const unique = uniqueNamePersonIds(people);
+      if (!unique.has(normalizePersonName(payerName))) {
+        setError(
+          `W drzewie jest kilku „${payerName}”. Wybierz siebie z wyszukiwarki powyżej — podpowiedź pokaże np. „od Heleny” albo datę urodzenia.`,
+        );
+        return;
+      }
+    }
     setBusy(true);
     setError(null);
     setSuccess(null);
     try {
-      const payerId = party[0]?.personId ?? personId;
       saveReporter({ name: payerName, personId: payerId });
       const res = await fetch("/api/event", {
         method: "POST",
@@ -992,9 +943,9 @@ export function EventPageClient() {
               {typeof stats.paidCount === "number"
                 ? ` Zapłacono: ${stats.paidCount} / ${rsvps.length}.`
                 : ""}{" "}
-              Przycisk „wypisz” na liście rodzin zdejmuje jedną konkretną
-              osobę. Jeśli ktoś zapisał kilka osób o tym samym imieniu,
-              zbędne wpisy usuwaj tutaj przyciskiem „Usuń zapis”.
+              Przy zapisie ktoś z tym samym imieniem musi wybrać siebie z
+              listy wyszukiwania (widać linię rodziny). Zbędne wpisy usuwasz
+              „Usuń zapis”.
             </p>
           )}
           {rsvps.length === 0 ? (
