@@ -45,6 +45,54 @@ test("search highlights without filtering tree", async ({ browser }) => {
   await ctx.close();
 });
 
+test("search with identity set pans on full tree without opening a branch", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  const probe = await ctx.newPage();
+  const api = await probe.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as {
+    people: { id: string; firstName: string; lastName: string }[];
+  };
+  const adam = payload.people.find(
+    (p) => p.firstName === "Adam" && p.lastName === "Lieske",
+  );
+  expect(adam, "Adam Lieske must exist").toBeTruthy();
+  await probe.close();
+
+  await ctx.addInitScript(
+    ({ adamId, adamName }) => {
+      localStorage.setItem(
+        "potrykus_reporter_v1",
+        JSON.stringify({ name: adamName, personId: adamId }),
+      );
+    },
+    { adamId: adam!.id, adamName: "Adam Lieske" },
+  );
+  const page = await ctx.newPage();
+  await page.goto("/drzewo");
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
+  await expect(page.getByTestId("full-tree-back")).toHaveCount(0);
+
+  const input = page.locator(".person-search input").first();
+  await input.fill("Adam Lieske");
+  await page
+    .locator(".person-search__item")
+    .filter({ hasText: /Adam Lieske/i })
+    .first()
+    .click();
+  await expect(page).toHaveURL(new RegExp(`[?&]hl=${adam!.id}\\b`));
+  await expect(page).not.toHaveURL(/[?&]root=/);
+  await expect(page.getByTestId("full-tree-back")).toHaveCount(0);
+  await expect(page.locator(".tree-focus-bar")).toContainText(/Adam Lieske/);
+  await expect(page.locator(".is-chart-highlight").first()).toBeVisible({
+    timeout: 10_000,
+  });
+  await ctx.close();
+});
+
 test("search finds a person typed last name first", async ({ browser }) => {
   const ctx = await browser.newContext();
   await ctx.addCookies([await sessionCookie()]);

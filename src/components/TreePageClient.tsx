@@ -79,12 +79,12 @@ function TreePageBody({
       setHighlightId(urlRoot);
       return;
     }
-    if (identity?.personId) {
-      setHighlightId(identity.personId);
-      return;
-    }
     if (urlHighlight) {
       setHighlightId(urlHighlight);
+      return;
+    }
+    if (identity?.personId) {
+      setHighlightId(identity.personId);
       return;
     }
     setHighlightId(GENERATION_TRUNK_ID);
@@ -116,7 +116,21 @@ function TreePageBody({
   );
   const showOffTrunk = Boolean(highlightPerson && (offTrunk || chartMissing));
 
-  const goFullTreeHref = (() => {
+  const replaceTreeUrl = (href: string) => {
+    router.replace(href);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(window.history.state, "", href);
+    }
+  };
+
+  const focusPersonInTree = (id: string) => {
+    setViewRoot(null);
+    setHighlightId(id);
+    setChartMissing(false);
+    replaceTreeUrl(`/drzewo?hl=${encodeURIComponent(id)}`);
+  };
+
+  const fullTreeHref = (() => {
     const stayOn = highlightId || viewRoot;
     return stayOn ? `/drzewo?hl=${encodeURIComponent(stayOn)}` : "/drzewo";
   })();
@@ -125,14 +139,15 @@ function TreePageBody({
     setHighlightId(id);
     setViewRoot(id);
     setChartMissing(false);
-    router.replace(`/drzewo?root=${encodeURIComponent(id)}`);
+    replaceTreeUrl(`/drzewo?root=${encodeURIComponent(id)}`);
   };
 
   const clearHighlight = () => {
     const home = identity?.personId || GENERATION_TRUNK_ID;
+    setViewRoot(null);
     setHighlightId(home);
     setChartMissing(false);
-    router.replace(`/drzewo?hl=${encodeURIComponent(home)}`);
+    replaceTreeUrl(`/drzewo?hl=${encodeURIComponent(home)}`);
   };
 
   return (
@@ -142,7 +157,7 @@ function TreePageBody({
           people={people}
           placeholder="Szukaj w drzewie…"
           className="person-search--overlay"
-          onSelect={(p) => setHighlightId(p.id)}
+          onSelect={(p) => focusPersonInTree(p.id)}
           trailing={
             <button
               type="button"
@@ -170,7 +185,7 @@ function TreePageBody({
                   setHighlightId(home);
                   setViewRoot(null);
                   setChartMissing(false);
-                  router.replace(`/drzewo?hl=${encodeURIComponent(home)}`);
+                  replaceTreeUrl(`/drzewo?hl=${encodeURIComponent(home)}`);
                   return;
                 }
                 focusBranch(next.id);
@@ -197,9 +212,13 @@ function TreePageBody({
               </strong>
             </p>
             <Link
-              href={goFullTreeHref}
+              href={fullTreeHref}
               className="btn btn-primary"
               data-testid="full-tree-back"
+              onClick={() => {
+                setViewRoot(null);
+                setChartMissing(false);
+              }}
             >
               ← Pełne drzewo
             </Link>
@@ -275,13 +294,6 @@ function TreePageBody({
               <strong>{displayName(highlightPerson)}</strong>
             </p>
             <div className="tree-focus-bar__actions">
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => focusBranch(highlightPerson.id)}
-              >
-                Ta gałąź
-              </button>
               <button
                 type="button"
                 className="btn btn-secondary"
