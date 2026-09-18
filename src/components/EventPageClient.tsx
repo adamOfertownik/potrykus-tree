@@ -1021,7 +1021,7 @@ export function EventPageClient() {
                   .filter(Boolean);
                 return (
                   <li key={r.id}>
-                    <div>
+                    <div className="rsvp-list__body">
                       <strong>{r.fullName}</strong>
                       {payerMeta ? <span>{payerMeta}</span> : null}
                       {sameNameCount > 1 ? (
