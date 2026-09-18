@@ -2,7 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AttendToggle } from "@/components/AttendToggle";
 import { AuthedPage } from "@/components/AuthedPage";
 import { GraphEditHost } from "@/components/GraphEditHost";
@@ -16,24 +16,36 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-function scrollToListPerson(id: string) {
+function scrollToListPerson(id: string): boolean {
   const el = document.querySelector(`[data-person-id="${CSS.escape(id)}"]`);
-  el?.scrollIntoView({
+  if (!el) return false;
+  el.scrollIntoView({
     behavior: prefersReducedMotion() ? "auto" : "smooth",
     block: "center",
   });
+  return true;
+}
+
+function scheduleScrollToListPerson(id: string) {
+  const delays = [0, 80, 280, 640];
+  const timers = delays.map((ms) =>
+    window.setTimeout(() => scrollToListPerson(id), ms),
+  );
+  return () => timers.forEach((t) => window.clearTimeout(t));
 }
 
 function ListInner({
   people,
   rootId,
   attendingPersonIds,
+  urlHighlight,
 }: {
   people: Person[];
   rootId: string;
   attendingPersonIds: string[];
+  urlHighlight: string | null;
 }) {
-  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const [highlightId, setHighlightId] = useState<string | null>(urlHighlight);
   const [selected, setSelected] = useState<Person | null>(null);
   const router = useRouter();
   const entries = useMemo(
@@ -73,8 +85,12 @@ function ListInner({
   );
 
   useEffect(() => {
+    if (urlHighlight) setHighlightId(urlHighlight);
+  }, [urlHighlight]);
+
+  useEffect(() => {
     if (!highlightId) return;
-    scrollToListPerson(highlightId);
+    return scheduleScrollToListPerson(highlightId);
   }, [highlightId, entries]);
 
   return (
@@ -272,6 +288,9 @@ function ListInner({
 }
 
 export function ListPageClient() {
+  const searchParams = useSearchParams();
+  const urlHighlight = searchParams.get("hl");
+
   return (
     <AuthedPage loadingLabel="Wczytywanie listy…">
       {({ people, family }) => (
@@ -279,6 +298,7 @@ export function ListPageClient() {
           people={people}
           rootId={family.meta.rootPersonId ?? ""}
           attendingPersonIds={family.attendingPersonIds ?? []}
+          urlHighlight={urlHighlight}
         />
       )}
     </AuthedPage>

@@ -270,7 +270,11 @@ function TreePageBody({
               >
                 Pokaż tę gałąź
               </button>
-              <Link href="/lista" className="btn btn-secondary">
+              <Link
+                href={`/lista?hl=${encodeURIComponent(highlightPerson.id)}`}
+                className="btn btn-secondary"
+                data-testid="tree-off-trunk-list"
+              >
                 Lista
               </Link>
               <button

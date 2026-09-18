@@ -401,6 +401,57 @@ test("full tree explains a person missing from the main trunk", async ({
   await ctx.close();
 });
 
+test("off-trunk Lista link scrolls to the person on the list", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  await ctx.addCookies([await sessionCookie()]);
+  await ctx.addInitScript(() => {
+    localStorage.setItem(
+      "potrykus_reporter_v1",
+      JSON.stringify({ name: "Tester" }),
+    );
+  });
+  const page = await ctx.newPage();
+  const api = await page.request.get("/api/family");
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as {
+    people: {
+      id: string;
+      firstName: string;
+      lastName: string;
+      parentIds?: string[];
+    }[];
+  };
+  const leszek = payload.people.find(
+    (p) => p.firstName === "Leszek" && p.lastName === "Potrykus",
+  );
+  expect(leszek, "Leszek Potrykus must exist").toBeTruthy();
+
+  await page.goto(`/drzewo?hl=${encodeURIComponent(leszek!.id)}`);
+  await page.waitForSelector("#htmlSvg .card_cont", { timeout: 45_000 });
+  await expect(page.getByTestId("tree-off-trunk")).toBeVisible();
+  await page.getByTestId("tree-off-trunk-list").click();
+  await expect(page).toHaveURL(
+    new RegExp(`/lista\\?hl=${leszek!.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`),
+  );
+  const row = page.locator(`[data-person-id="${leszek!.id}"]`).first();
+  await expect(row).toHaveClass(/is-highlight/);
+  await expect
+    .poll(
+      async () => {
+        const box = await row.boundingBox();
+        if (!box) return false;
+        const view = page.viewportSize();
+        const height = view?.height ?? 720;
+        return box.y > -20 && box.y + box.height < height + 20;
+      },
+      { timeout: 10_000 },
+    )
+    .toBeTruthy();
+  await ctx.close();
+});
+
 test("kinship tree from B highlights the person on the full tree", async ({
   browser,
 }) => {
