@@ -164,6 +164,8 @@ export function FamilyChartView({
   const skipPanRef = useRef<string | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const zoomAnimRef = useRef(0);
+  const focusTimersRef = useRef<number[]>([]);
+  const lastMainAppliedRef = useRef<string | null>(null);
   const labelsRef = useRef<BranchLabel[]>([]);
   const gensRef = useRef<GenerationBand[]>([]);
   const [branchLabels, setBranchLabels] = useState<BranchLabel[]>([]);
@@ -358,7 +360,7 @@ export function FamilyChartView({
     return true;
   };
 
-  const animateView = (k: number, x: number, y: number, ms = 560) => {
+  const animateView = (k: number, x: number, y: number, ms = 420) => {
     const start = currentView();
     if (!start) {
       setViewTransform(k, x, y);
@@ -438,34 +440,32 @@ export function FamilyChartView({
     const chart = chartRef.current;
     if (!chart) return;
     fittingRef.current = true;
+    focusTimersRef.current.forEach((t) => window.clearTimeout(t));
+    focusTimersRef.current = [];
     window.cancelAnimationFrame(zoomAnimRef.current);
-    try {
-      chart.updateTree({ tree_position: "fit" });
-    } catch (err) {
-      console.error("family-chart fit failed", err);
-    }
+    applyWholeTreeFit(true);
     window.setTimeout(() => {
-      const view = currentView();
-      const dim = chart.store.getTree?.()?.dim as
-        | { width: number; height: number; x_off: number; y_off: number }
-        | undefined;
-      const rect = viewportRect();
-      if (view) paintOverviewOverlay(view.k, view.x, view.y);
-      if (rect && dim?.width && dim.height) {
-        const next = fitTreeView(
-          { width: rect.width, height: rect.height },
-          dim,
-        );
-        wrapRef.current?.setAttribute("data-tree-fit", next.mode);
-      } else {
-        wrapRef.current?.setAttribute("data-tree-fit", "contain");
-      }
-      wrapRef.current?.setAttribute(
-        "data-tree-pan",
-        prefersTwoFingerPan() ? "two-finger" : "drag",
-      );
+      applyWholeTreeFit(false);
       fittingRef.current = false;
-    }, 420);
+    }, 80);
+  };
+
+  const cardCentered = (id: string): boolean => {
+    const rect = viewportRect();
+    const node = findCardNodes(id).find((el) => {
+      const box = el.getBoundingClientRect();
+      return box.width > 8 && box.height > 8;
+    });
+    if (!rect || !node) return false;
+    const box = node.getBoundingClientRect();
+    const cx = box.left + box.width / 2;
+    const cy = box.top + box.height / 2;
+    const vx = rect.left + rect.width / 2;
+    const vy = rect.top + rect.height / 2;
+    return (
+      Math.abs(cx - vx) < rect.width * 0.28 &&
+      Math.abs(cy - vy) < rect.height * 0.3
+    );
   };
 
   /**
@@ -477,16 +477,28 @@ export function FamilyChartView({
     if (!chart) return "unavailable";
     const datum = chart.store.getTreeDatum?.(id);
     if (!datum) return "missing";
+    if (fittingRef.current) return "ok";
 
     const rect = viewportRect();
-    const currentK = (chart.svg as ZoomHost).__zoomObj
-      ? (chart.svg as ZoomHost).__zoom?.k
-      : ((chart.svg as ZoomHost).parentNode as ZoomHost | null)?.__zoom?.k;
+    const view = currentView();
     if (!rect) return "unavailable";
 
-    const k = Math.max(currentK ?? 1, READABLE_ZOOM);
-    if (fittingRef.current) return "ok";
-    animateView(k, rect.width / 2 - datum.x * k, rect.height / 2 - datum.y * k);
+    const k = Math.max(view?.k ?? READABLE_ZOOM, READABLE_ZOOM);
+    const x = rect.width / 2 - datum.x * k;
+    const y = rect.height / 2 - datum.y * k;
+    if (
+      view &&
+      Math.abs(view.k - k) < 0.03 &&
+      Math.abs(view.x - x) < 12 &&
+      Math.abs(view.y - y) < 12
+    ) {
+      return "ok";
+    }
+    if (!view || Math.abs((view.k ?? 0) - k) > 0.35) {
+      setViewTransform(k, x, y);
+    } else {
+      animateView(k, x, y);
+    }
     return "ok";
   };
 
@@ -495,8 +507,11 @@ export function FamilyChartView({
    * pan gets overwritten and the user is left looking at the apex.
    */
   const scheduleFocus = (id: string, reportMissing: boolean) => {
-    const delays = [80, 220, 500];
-    const timers = delays.map((ms, index) =>
+    focusTimersRef.current.forEach((t) => window.clearTimeout(t));
+    focusTimersRef.current = [];
+    window.cancelAnimationFrame(zoomAnimRef.current);
+    const delays = [60, 280];
+    focusTimersRef.current = delays.map((ms, index) =>
       window.setTimeout(() => {
         applyHighlight();
         applyAttending();
@@ -510,7 +525,10 @@ export function FamilyChartView({
         }
       }, ms),
     );
-    return () => timers.forEach((t) => window.clearTimeout(t));
+    return () => {
+      focusTimersRef.current.forEach((t) => window.clearTimeout(t));
+      focusTimersRef.current = [];
+    };
   };
 
   const openPersonActions = (id: string) => {
@@ -660,13 +678,12 @@ export function FamilyChartView({
     });
 
     chartRef.current = chart;
+    lastMainAppliedRef.current = safeMain;
     chart.updateMainId(safeMain);
     // `initial: true` always fits the whole tree. A mid-tree ancestor like
     // Wincenty has ~400 cards and a 50k-px layout — fit shrinks cards to a
     // few pixels and the canvas looks empty. Focused "widok wokół" and a
     // kept highlight on the full tree must stay at a readable zoom.
-    // Highlighting the current root (after clicking a branch header) should
-    // still fit the subtree so the next-generation hints stay visible.
     const distinctHighlight =
       keepHighlight && keepHighlight !== safeMain ? keepHighlight : null;
     try {
@@ -682,20 +699,6 @@ export function FamilyChartView({
       });
     }
     const focusId = distinctHighlight || keepHighlight || safeMain;
-    if (focusId) {
-      const k = currentView()?.k;
-      if (!k || k < READABLE_ZOOM) {
-        const datum = chart.store.getTreeDatum?.(focusId);
-        const rect = viewportRect();
-        if (datum && rect) {
-          setViewTransform(
-            READABLE_ZOOM,
-            rect.width / 2 - datum.x * READABLE_ZOOM,
-            rect.height / 2 - datum.y * READABLE_ZOOM,
-          );
-        }
-      }
-    }
     chart.setTransitionTime(250);
     const host = zoomHost();
     const zoomObj = host?.__zoomObj;
@@ -713,7 +716,7 @@ export function FamilyChartView({
     });
     const view = currentView();
     if (view) paintOverviewOverlay(view.k, view.x, view.y);
-    const cancelInitialFocus = focusId
+    const cancelRebuildFocus = focusId
       ? scheduleFocus(focusId, Boolean(distinctHighlight))
       : undefined;
 
@@ -762,7 +765,7 @@ export function FamilyChartView({
     el.addEventListener("click", onPlusClickCapture, capture);
 
     return () => {
-      cancelInitialFocus?.();
+      cancelRebuildFocus?.();
       window.cancelAnimationFrame(zoomAnimRef.current);
       window.clearTimeout(linkTimer);
       window.clearTimeout(overviewTimer);
@@ -807,8 +810,15 @@ export function FamilyChartView({
   useEffect(() => {
     const chart = chartRef.current;
     if (!chart || !mainId) return;
-    chart.updateMainId(mainId);
     const keep = highlightRef.current;
+    const already = lastMainAppliedRef.current === mainId;
+    if (!already) {
+      lastMainAppliedRef.current = mainId;
+      chart.updateMainId(mainId);
+    }
+    if (already) {
+      return;
+    }
     if (keep && keep !== mainId) {
       chart.setTransitionTime(0);
       try {
@@ -826,12 +836,12 @@ export function FamilyChartView({
       console.error("family-chart updateTree failed", err);
       chart.updateTree({ tree_position: "main_to_middle" });
     }
-    if (keep) return scheduleFocus(keep, true);
+    if (keep) return scheduleFocus(keep, false);
     // applyHighlight / panToCard close over DOM nodes rebuilt with the chart
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainId, overview]);
 
-  // Highlight — mark the card and slide the view onto it
+  // Highlight — one camera move when the selected person changes
   useEffect(() => {
     if (!chartRef.current) return;
     highlightRef.current = highlightId;
@@ -839,13 +849,12 @@ export function FamilyChartView({
     applyAttending();
     if (!highlightId) return;
     if (skipPanRef.current === highlightId) {
-      // Tapped card is already on screen
       skipPanRef.current = null;
-      return;
+      if (cardCentered(highlightId)) return;
     }
     return scheduleFocus(highlightId, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [highlightId, peopleSig, scale, mainId]);
+  }, [highlightId]);
 
   useEffect(() => {
     attendingRef.current = new Set(attendingPersonIds);
@@ -1111,7 +1120,7 @@ export function FamilyChartView({
           Przeciągnij, aby przesunąć · scroll = zoom · z góry widać nagłówki gałęzi — kliknij, żeby przybliżyć
         </span>
         <span className="family-chart-hint__touch">
-          1 palec: osoba · 2 palce: przesuń i powiększ · nagłówek przybliża gałąź
+          1 palec: karta · 2 palce: przesuń i powiększ · albo pad Navi
         </span>
       </p>
 

@@ -1,5 +1,6 @@
 import type { Person } from "@/types/family";
 import { displayName } from "@/lib/db-client";
+import { childOfParentsHint } from "@/lib/personIdentity";
 import { comparePeopleByBirth, getChildrenIds, getPersonMap } from "@/lib/tree";
 
 /** Główne spotkanie liczymy od Franciszka Potrykusa. */
@@ -161,27 +162,11 @@ export function meetingLineHint(personId: string, people: Person[]): string {
   return attr.label;
 }
 
-/** Tekst pod imieniem w wyszukiwarce: linia + syn/córka ojca. */
+/** Tekst pod imieniem w wyszukiwarce: linia + syn/córka obojga rodziców. */
 export function personSearchMeta(person: Person, people: Person[]): string {
-  const map = getPersonMap(people);
-  const parents = person.parentIds
-    .map((id) => map.get(id))
-    .filter((p): p is Person => Boolean(p));
-  const father =
-    parents.find((p) => p.gender === "male") ?? parents[0] ?? null;
-  const bits: string[] = [];
-  const line = meetingLineHint(person.id, people);
-  if (line) bits.push(line);
-  if (father) {
-    const rel =
-      person.gender === "female"
-        ? "córka"
-        : person.gender === "male"
-          ? "syn"
-          : "dziecko";
-    bits.push(`${rel} ${father.firstName}`);
-  }
-  return bits.join(" · ");
+  return [meetingLineHint(person.id, people), childOfParentsHint(person, people)]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 /** Słowa linii rodzinnej trafiające do wyszukiwania po gałęzi. */
