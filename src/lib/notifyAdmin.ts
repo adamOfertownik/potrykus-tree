@@ -1,63 +1,60 @@
 import { Resend } from "resend";
 import type { ChangeSubmission } from "@/types/submissions";
+import { KIND_LABELS } from "@/lib/submissionLabels";
+import {
+  buildSubmissionNotifyEmail,
+  resolveNotifyConfig,
+  type NotifyChannel,
+} from "@/lib/notifyAdminEmail";
 
-const DEFAULT_TO = "adam199711@gmail.com";
-
-function notifyTo(): string {
-  return process.env.ADMIN_NOTIFY_EMAIL?.trim() || DEFAULT_TO;
-}
-
-function notifyFrom(): string {
-  return (
-    process.env.RESEND_FROM?.trim() ||
-    "Drzewo Potrykus <onboarding@resend.dev>"
-  );
-}
-
+/**
+ * Best-effort admin mail. Missing Resend/key or send errors must not
+ * fail the zgłoszenie that was already stored.
+ */
 export async function notifyAdminOfSubmission(
   submission: ChangeSubmission,
-  kindLabel: "zgłoszenie" | "szkic",
+  channel: NotifyChannel,
 ): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  if (!apiKey) return;
+  try {
+    const config = resolveNotifyConfig(process.env);
+    if (!config.apiKey) {
+      console.warn(
+        "RESEND_API_KEY nie jest ustawiony — pomijam mail o zgłoszeniu.",
+      );
+      return;
+    }
 
-  const resend = new Resend(apiKey);
-  const subject =
-    kindLabel === "szkic"
-      ? `[Szkic] ${submission.reporterName}: ${submission.message.slice(0, 80)}`
-      : `[Zgłoszenie] ${submission.reporterName}: ${submission.message.slice(0, 80)}`;
+    const email = buildSubmissionNotifyEmail({
+      channel,
+      id: submission.id,
+      reporterName: submission.reporterName,
+      kindLabel: KIND_LABELS[submission.kind] ?? submission.kind,
+      message: submission.message,
+      targetPersonName: submission.targetPersonName,
+      origin: config.origin,
+    });
 
-  const text = [
-    kindLabel === "szkic"
-      ? "Ktoś edytuje drzewo, ale jeszcze nie kliknął „Wyślij do admina”."
-      : "Nowe zgłoszenie czeka w panelu admina.",
-    "",
-    `Kto: ${submission.reporterName}`,
-    submission.targetPersonName
-      ? `Dotyczy: ${submission.targetPersonName}`
-      : "",
-    `Treść: ${submission.message}`,
-    `Status: ${submission.status}`,
-    `Czas: ${submission.createdAt}`,
-    "",
-    "Panel: /admin",
-  ]
-    .filter(Boolean)
-    .join("\n");
+    const resend = new Resend(config.apiKey);
+    const { error } = await resend.emails.send(
+      {
+        from: config.from,
+        to: [config.to],
+        subject: email.subject,
+        text: email.text,
+        html: email.html,
+      },
+      {
+        idempotencyKey: `potrykus-${channel}-${submission.id}-${submission.status}`,
+      },
+    );
 
-  const { error } = await resend.emails.send(
-    {
-      from: notifyFrom(),
-      to: [notifyTo()],
-      subject,
-      text,
-    },
-    {
-      idempotencyKey: `potrykus-${kindLabel}-${submission.id}-${submission.status}`,
-    },
-  );
-
-  if (error) {
-    console.error("Nie udało się wysłać maila o zgłoszeniu.");
+    if (error) {
+      console.warn(
+        `Nie udało się wysłać maila o zgłoszeniu (${error.message}).`,
+      );
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "nieznany błąd";
+    console.warn(`Nie udało się wysłać maila o zgłoszeniu (${message}).`);
   }
 }
