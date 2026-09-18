@@ -169,6 +169,7 @@ export function FamilyChartView({
   const [branchLabels, setBranchLabels] = useState<BranchLabel[]>([]);
   const [generationBands, setGenerationBands] = useState<GenerationBand[]>([]);
   const [padOpen, setPadOpen] = useState(false);
+  const fittingRef = useRef(false);
 
   const { scale } = useTextScale();
   const [selected, setSelected] = useState<Person | null>(null);
@@ -418,6 +419,14 @@ export function FamilyChartView({
     );
     wrapRef.current?.setAttribute("data-tree-fit", next.mode);
     wrapRef.current?.setAttribute(
+      "data-tree-k",
+      String(Math.round(next.k * 1000) / 1000),
+    );
+    wrapRef.current?.setAttribute(
+      "data-tree-dim",
+      `${Math.round(dim.width)}x${Math.round(dim.height)}`,
+    );
+    wrapRef.current?.setAttribute(
       "data-tree-pan",
       prefersTwoFingerPan() ? "two-finger" : "drag",
     );
@@ -425,7 +434,39 @@ export function FamilyChartView({
     else setViewTransform(next.k, next.x, next.y);
   };
 
-  const fitWholeTree = () => applyWholeTreeFit(true);
+  const fitWholeTree = () => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    fittingRef.current = true;
+    window.cancelAnimationFrame(zoomAnimRef.current);
+    try {
+      chart.updateTree({ tree_position: "fit" });
+    } catch (err) {
+      console.error("family-chart fit failed", err);
+    }
+    window.setTimeout(() => {
+      const view = currentView();
+      const dim = chart.store.getTree?.()?.dim as
+        | { width: number; height: number; x_off: number; y_off: number }
+        | undefined;
+      const rect = viewportRect();
+      if (view) paintOverviewOverlay(view.k, view.x, view.y);
+      if (rect && dim?.width && dim.height) {
+        const next = fitTreeView(
+          { width: rect.width, height: rect.height },
+          dim,
+        );
+        wrapRef.current?.setAttribute("data-tree-fit", next.mode);
+      } else {
+        wrapRef.current?.setAttribute("data-tree-fit", "contain");
+      }
+      wrapRef.current?.setAttribute(
+        "data-tree-pan",
+        prefersTwoFingerPan() ? "two-finger" : "drag",
+      );
+      fittingRef.current = false;
+    }, 420);
+  };
 
   /**
    * Pan (and gently zoom in) to a card without re-rooting the tree.
@@ -444,6 +485,7 @@ export function FamilyChartView({
     if (!rect) return "unavailable";
 
     const k = Math.max(currentK ?? 1, READABLE_ZOOM);
+    if (fittingRef.current) return "ok";
     animateView(k, rect.width / 2 - datum.x * k, rect.height / 2 - datum.y * k);
     return "ok";
   };
@@ -911,7 +953,7 @@ export function FamilyChartView({
       <div
         ref={overlayRef}
         className="chart-overview"
-        hidden
+        hidden={branchLabels.length === 0 && generationBands.length === 0}
         aria-hidden={branchLabels.length === 0 && generationBands.length === 0}
       >
         <div className="chart-overview__gens" aria-hidden>
