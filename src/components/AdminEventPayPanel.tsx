@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { EventPersonField } from "@/components/EventPersonField";
 import { GuestTicketSteppers } from "@/components/GuestTicketSteppers";
 import type { Person } from "@/types/family";
-import { displayName } from "@/lib/db-client";
+import { displayName, formatPolishDate } from "@/lib/db-client";
 import { householdSuggestions } from "@/lib/eventAttending";
 import {
   ageGroupFromBirth,
@@ -16,7 +17,6 @@ import {
   totalGuests,
   type GuestBreakdown,
 } from "@/lib/eventPricing";
-import { searchPeople } from "@/lib/search";
 
 type PayRsvp = {
   id: string;
@@ -213,7 +213,6 @@ export function AdminEventPayPanel({
   const [amountPln, setAmountPln] = useState(0);
   const [amountTouched, setAmountTouched] = useState(false);
   const [willTransfer, setWillTransfer] = useState(false);
-  const [addQuery, setAddQuery] = useState("");
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -230,9 +229,14 @@ export function AdminEventPayPanel({
 
   const payer = people.find((p) => p.id === payerId) ?? null;
   const household = payer ? householdSuggestions(payer.id, people) : [];
-  const addMatches = addQuery.trim()
-    ? searchPeople(people, addQuery).slice(0, 8)
-    : [];
+  const householdIds = new Set(household.map((p) => p.id));
+  const extraCovered = coveredIds
+    .map((id) => people.find((p) => p.id === id))
+    .filter(
+      (p): p is Person =>
+        Boolean(p) && p.id !== payer?.id && !householdIds.has(p.id),
+    );
+  const coveredExclude = useMemo(() => new Set(coveredIds), [coveredIds]);
 
   const visible = useMemo(() => {
     const rows = eventQ.data?.rsvps ?? [];
@@ -319,7 +323,6 @@ export function AdminEventPayPanel({
 
   const pickPayer = (person: Person) => {
     setPayerId(person.id);
-    setAddQuery("");
     applyCovered([person.id], true);
   };
 
@@ -348,8 +351,8 @@ export function AdminEventPayPanel({
       });
       onSuccess(
         paid
-          ? `Dodano wpłatę: ${displayName(payer)}.`
-          : `Dodano zapis do zapłaty: ${displayName(payer)}.`,
+          ? `Dodano wpłatę: ${displayName(payer, people)}.`
+          : `Dodano zapis do zapłaty: ${displayName(payer, people)}.`,
       );
       setPayerId(null);
       setCoveredIds([]);
@@ -379,32 +382,20 @@ export function AdminEventPayPanel({
       <section className="admin-card-box admin-pay__add">
         <h2>Dodaj kto zapłacił</h2>
         <p className="empty-hint">
-          Wybierz płatnika i osoby, za które wpłata. Bilety są zbiorcze — dorośli
-          i dzieci nie muszą iść 1:1 z listą.
+          Wybierz płatnika, a potem dowolne osoby z drzewa — nie tylko najbliższą
+          rodzinę. Bilety są zbiorcze: dorośli i dzieci nie muszą iść 1:1 z listą.
         </p>
-        <label className="field-block">
-          Szukaj osoby
-          <input
-            value={addQuery}
-            onChange={(e) => setAddQuery(e.target.value)}
-            placeholder="Nazwisko albo imię"
-          />
-        </label>
-        {addMatches.length > 0 && (
-          <ul className="who-matches">
-            {addMatches.map((p) => (
-              <li key={p.id}>
-                <button type="button" onClick={() => pickPayer(p)}>
-                  {displayName(p)}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <EventPersonField
+          people={people}
+          label="Kto płaci"
+          placeholder="Nazwisko albo imię"
+          excludeIds={new Set()}
+          onPick={pickPayer}
+        />
         {payer && (
           <div className="admin-pay__draft">
             <p>
-              Płatnik: <strong>{displayName(payer)}</strong>
+              Płatnik: <strong>{displayName(payer, people)}</strong>
             </p>
             <fieldset className="admin-pay__cover">
               <legend>Za kogo</legend>
@@ -414,18 +405,43 @@ export function AdminEventPayPanel({
                   checked={coveredIds.includes(payer.id)}
                   onChange={() => toggleCovered(payer.id)}
                 />
-                {displayName(payer)} (płatnik)
+                {displayName(payer, people)} (płatnik)
               </label>
-              {household.map((p) => (
-                <label key={p.id} className="check-row">
-                  <input
-                    type="checkbox"
-                    checked={coveredIds.includes(p.id)}
-                    onChange={() => toggleCovered(p.id)}
-                  />
-                  {displayName(p)}
-                </label>
-              ))}
+              {household.map((p) => {
+                const dates = formatPolishDate(p.birthDate);
+                return (
+                  <label key={p.id} className="check-row">
+                    <input
+                      type="checkbox"
+                      checked={coveredIds.includes(p.id)}
+                      onChange={() => toggleCovered(p.id)}
+                    />
+                    {displayName(p, people)}
+                    {dates ? ` · ur. ${dates}` : ""}
+                  </label>
+                );
+              })}
+              {extraCovered.map((p) => {
+                const dates = formatPolishDate(p.birthDate);
+                return (
+                  <label key={p.id} className="check-row">
+                    <input
+                      type="checkbox"
+                      checked={coveredIds.includes(p.id)}
+                      onChange={() => toggleCovered(p.id)}
+                    />
+                    {displayName(p, people)}
+                    {dates ? ` · ur. ${dates}` : ""}
+                  </label>
+                );
+              })}
+              <EventPersonField
+                people={people}
+                label="Dodaj kolejną osobę z drzewa"
+                placeholder="Szukaj kolejnej osoby…"
+                excludeIds={coveredExclude}
+                onPick={(person) => applyCovered([...coveredIds, person.id])}
+              />
             </fieldset>
             <fieldset className="admin-pay__tickets">
               <legend>Bilety</legend>

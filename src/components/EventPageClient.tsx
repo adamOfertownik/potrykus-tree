@@ -4,11 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AccessGate } from "@/components/AccessGate";
 import { AppShell } from "@/components/AppShell";
+import { EventPersonField } from "@/components/EventPersonField";
 import { GuestTicketSteppers } from "@/components/GuestTicketSteppers";
 import { MeetingBranchPanel } from "@/components/MeetingBranchPanel";
 import { useAdminAuthStatus, useAuthStatus, useFamily } from "@/lib/hooks";
 import { loadReporter, saveReporter } from "@/lib/reporter";
-import { searchPeople } from "@/lib/search";
 import { displayName, formatPolishDate } from "@/lib/db-client";
 import { householdSuggestions } from "@/lib/eventAttending";
 import {
@@ -147,63 +147,6 @@ function Stepper({
           +
         </button>
       </div>
-    </div>
-  );
-}
-
-function EventPersonField({
-  people,
-  label,
-  placeholder,
-  excludeIds,
-  onPick,
-}: {
-  people: Person[];
-  label: string;
-  placeholder: string;
-  excludeIds: Set<string>;
-  onPick: (person: Person) => void;
-}) {
-  const [query, setQuery] = useState("");
-  const matches = useMemo(() => {
-    if (!query.trim()) return [];
-    return searchPeople(people, query)
-      .filter((p) => !excludeIds.has(p.id))
-      .slice(0, 8);
-  }, [people, query, excludeIds]);
-
-  return (
-    <div className="field-block event-person-field">
-      <label>
-        {label}
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          autoComplete="off"
-        />
-      </label>
-      {matches.length > 0 && (
-        <ul className="who-matches">
-          {matches.map((p) => {
-            const dates = formatPolishDate(p.birthDate);
-            return (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onPick(p);
-                    setQuery("");
-                  }}
-                >
-                  {displayName(p, people)}
-                  {dates ? ` · ur. ${dates}` : ""}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
     </div>
   );
 }

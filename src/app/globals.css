@@ -5496,6 +5496,10 @@ button.person-card {
   border-radius: 12px;
 }
 
+.admin-pay__cover .event-person-field {
+  margin: 0.35rem 0 0;
+}
+
 .admin-pay__tickets .guest-steppers {
   margin-bottom: 0.35rem;
 }
