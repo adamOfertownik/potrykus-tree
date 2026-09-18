@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthedPage } from "@/components/AuthedPage";
 import { PersonSearch } from "@/components/PersonSearch";
 import { describeKinship } from "@/lib/kinship";
+import { resolveReporterIdentity } from "@/lib/resolvePerson";
 import { displayName } from "@/lib/db-client";
 import type { Person } from "@/types/family";
 import { useIdentity } from "@/components/IdentityProvider";
@@ -71,11 +72,11 @@ function KinshipInner({ people }: { people: Person[] }) {
   const { identity } = useIdentity();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const myId = identity?.personId ?? null;
-  const me = useMemo(
-    () => (myId ? people.find((p) => p.id === myId) ?? null : null),
-    [people, myId],
-  );
+  const me = useMemo(() => {
+    const resolved = resolveReporterIdentity(people, identity);
+    if (!resolved?.personId) return null;
+    return people.find((p) => p.id === resolved.personId) ?? null;
+  }, [people, identity]);
 
   const initialA =
     people.find((p) => p.id === searchParams.get("a")) ?? undefined;

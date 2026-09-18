@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { useIdentity } from "@/components/IdentityProvider";
 import { useAdminAuthStatus } from "@/lib/hooks";
 import { describeKinship } from "@/lib/kinship";
+import { resolveReporterIdentity } from "@/lib/resolvePerson";
 import { displayName, formatPolishDate, lifespan } from "@/lib/db-client";
 import { meetingBranchLabel } from "@/lib/meetingBranches";
 import { resolveWeddingDate } from "@/lib/weddingDate";
@@ -82,7 +83,11 @@ function PersonInner({
       ? siblingLine[siblingIndex + 1]
       : null;
 
-  const meId = identity?.personId;
+  const me = useMemo(
+    () => resolveReporterIdentity(people, identity),
+    [people, identity],
+  );
+  const meId = me?.personId;
   const kinship =
     meId && meId !== person.id
       ? describeKinship(people, meId, person.id)
@@ -235,9 +240,11 @@ function PersonInner({
         </div>
       </header>
 
-      {kinship && identity?.name && (
+      {kinship &&
+        me?.name &&
+        kinship.summary !== "Nie znaleziono jednej z osób w bazie." && (
         <section className="person-kinship" aria-label="Pokrewieństwo">
-          <h2>Dla Ciebie ({identity.name})</h2>
+          <h2>Dla Ciebie ({me.name})</h2>
           <p>
             <strong>{displayName(person)}</strong> to{" "}
             <em>{kinship.labelBtoA}</em>

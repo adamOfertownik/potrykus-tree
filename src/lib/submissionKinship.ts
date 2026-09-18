@@ -2,33 +2,9 @@ import type { Person } from "@/types/family";
 import type { ChangeSubmission } from "@/types/submissions";
 import { displayName } from "@/lib/db-client";
 import { describeKinship, type KinshipResult } from "@/lib/kinship";
+import { resolvePersonByName } from "@/lib/resolvePerson";
 
-function normalizeName(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/ł/g, "l")
-    .replace(/\s+/g, " ");
-}
-
-export function resolvePersonByName(
-  people: Person[],
-  name: string | undefined,
-): Person | undefined {
-  const want = normalizeName(name ?? "");
-  if (!want) return undefined;
-  const hits = people.filter((person) => {
-    const full = normalizeName(`${person.firstName} ${person.lastName}`);
-    const shown = normalizeName(displayName(person, people));
-    const maiden = person.maidenName
-      ? normalizeName(`${person.firstName} ${person.maidenName}`)
-      : "";
-    return want === full || want === shown || (maiden && want === maiden);
-  });
-  return hits.length === 1 ? hits[0] : undefined;
-}
+export { resolvePersonByName } from "@/lib/resolvePerson";
 
 export function submissionTargetPersonId(submission: ChangeSubmission): string | undefined {
   if (submission.targetPersonId) return submission.targetPersonId;

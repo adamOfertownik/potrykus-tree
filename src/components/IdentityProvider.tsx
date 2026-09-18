@@ -9,6 +9,7 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Person } from "@/types/family";
+import { resolveReporterIdentity } from "@/lib/resolvePerson";
 import {
   clearReporter,
   loadReporter,
@@ -47,6 +48,22 @@ export function IdentityProvider({
     setReady(true);
     if (!saved?.name) setPromptOpen(true);
   }, []);
+
+  useEffect(() => {
+    if (!people.length) return;
+    setIdentityState((cur) => {
+      const base = cur ?? loadReporter();
+      if (!base) return null;
+      const resolved = resolveReporterIdentity(people, base);
+      if (
+        resolved &&
+        (resolved.personId !== base.personId || resolved.name !== base.name)
+      ) {
+        saveReporter(resolved);
+      }
+      return resolved;
+    });
+  }, [people]);
 
   useEffect(() => {
     if (!enabled || !ready || !people.length) return;
