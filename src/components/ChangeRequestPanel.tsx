@@ -9,7 +9,9 @@ import type {
 } from "@/types/submissions";
 import { DateField } from "@/components/DateField";
 import { ConfirmEmailField } from "@/components/ConfirmEmailField";
+import { MarriagesEditor } from "@/components/MarriagesEditor";
 import { displayName } from "@/lib/db-client";
+import { hydrateMarriages } from "@/lib/marriages";
 import { personPickerSubline } from "@/lib/personPickerMeta";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
@@ -80,6 +82,7 @@ export function ChangeRequestPanel({ people }: Props) {
       birthDate: p.birthDate,
       deathDate: p.deathDate,
       weddingDate: p.weddingDate,
+      marriages: hydrateMarriages(p),
       phone: p.phone,
       notes: p.notes,
     });
@@ -109,6 +112,7 @@ export function ChangeRequestPanel({ people }: Props) {
                 : {}),
               birthDate: patch.birthDate,
               deathDate: patch.deathDate,
+              marriages: patch.marriages,
               weddingDate: patch.weddingDate,
             }
           : undefined;
@@ -309,17 +313,24 @@ export function ChangeRequestPanel({ people }: Props) {
                 }
               />
             </label>
-            <label>
-              Data ślubu
-              <DateField
-                value={patch.weddingDate || ""}
-                onChange={(value) =>
-                  setPatch((s) => ({ ...s, weddingDate: value || undefined }))
-                }
-              />
-            </label>
           </div>
         )}
+
+        {(kind === "correction" || kind === "dates") && target ? (
+          <MarriagesEditor
+            person={target}
+            people={people}
+            marriages={patch.marriages ?? hydrateMarriages(target)}
+            onChange={(next) =>
+              setPatch((s) => ({
+                ...s,
+                marriages: next,
+                weddingDate: next.find((m) => !m.divorced && m.weddingDate)
+                  ?.weddingDate,
+              }))
+            }
+          />
+        ) : null}
 
         <label className="field-block">
           Opis zmiany {kind === "photo" && photoUrl ? "" : "*"}

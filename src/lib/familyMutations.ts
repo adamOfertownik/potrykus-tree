@@ -1,5 +1,13 @@
 import type { FamilyDatabase, Gender, Person } from "@/types/family";
 import { displayName } from "@/lib/db-client";
+import {
+  applyMarriagesToPerson,
+  dropPersonFromMarriages,
+  hydrateMarriages,
+  linkCouple,
+  mergeMarriagesWithSpouseIds,
+  syncCoupleMarriage,
+} from "@/lib/marriages";
 
 export type GraphOp = "add_child" | "link_spouse" | "reparent";
 
@@ -25,6 +33,8 @@ export type GraphMutationInput = {
   secondParentId?: string;
   /** Reparent: replace parentIds instead of appending */
   replaceParentIds?: boolean;
+  /** Optional wedding date when linking a spouse */
+  weddingDate?: string;
 };
 
 export type GraphMutationResult = {
@@ -108,7 +118,7 @@ function createPerson(
     preferred && !people.some((p) => p.id === preferred)
       ? preferred
       : uniqueId(people, input.firstName, input.lastName);
-  return {
+  const created: Person = {
     id,
     firstName: input.firstName.trim(),
     lastName: input.lastName.trim(),
@@ -119,6 +129,8 @@ function createPerson(
     parentIds: [...parentIds],
     spouseIds: [...spouseIds],
   };
+  applyMarriagesToPerson(created, hydrateMarriages(created));
+  return created;
 }
 
 export function applyGraphMutation(
@@ -204,11 +216,13 @@ export function applyGraphMutation(
         throw new Error("Nie można połączyć osoby z samą sobą.");
       }
     }
-    if (!anchor.spouseIds.includes(spouse.id)) anchor.spouseIds.push(spouse.id);
-    if (!spouse.spouseIds.includes(anchor.id)) spouse.spouseIds.push(anchor.id);
+    linkCouple(anchor, spouse, input.weddingDate);
+    const dateHint = input.weddingDate?.trim()
+      ? ` (ślub ${input.weddingDate.trim()})`
+      : "";
     return {
       db,
-      summary: `Połączono ${displayName(anchor)} ↔ ${displayName(spouse)} jako małżonków/partnerów.`,
+      summary: `Połączono ${displayName(anchor)} ↔ ${displayName(spouse)} jako małżonków/partnerów${dateHint}.`,
       createdPerson: created,
       targetPersonId: spouse.id,
       targetPersonName: displayName(spouse),
@@ -267,6 +281,7 @@ export function remapGraphMutationIds(
     anchorPersonId: mapId(input.anchorPersonId) ?? input.anchorPersonId,
     relatedPersonId: mapId(input.relatedPersonId),
     secondParentId: mapId(input.secondParentId),
+    weddingDate: input.weddingDate,
   };
 }
 
@@ -379,7 +394,10 @@ export function summarizeMutationPreview(
     return `Dodać ${otherName} jako dziecko ${anchorName}?`;
   }
   if (input.op === "link_spouse") {
-    return `Połączyć ${anchorName} ↔ ${otherName} jako małżonków/partnerów?`;
+    const date = input.weddingDate?.trim();
+    return date
+      ? `Połączyć ${anchorName} ↔ ${otherName} jako małżonków (ślub ${date})?`
+      : `Połączyć ${anchorName} ↔ ${otherName} jako małżonków/partnerów?`;
   }
   return `Przenieść ${anchorName} pod ${otherName}?`;
 }
@@ -394,6 +412,7 @@ export function snapshotPerson(person: Person) {
     birthDate: person.birthDate,
     deathDate: person.deathDate,
     weddingDate: person.weddingDate,
+    marriages: hydrateMarriages(person),
     photoUrl: person.photoUrl,
     phone: person.phone,
     notes: person.notes,
@@ -420,6 +439,7 @@ export function patchPerson(
       | "birthDate"
       | "deathDate"
       | "weddingDate"
+      | "marriages"
       | "phone"
       | "notes"
       | "photoUrl"
@@ -442,8 +462,37 @@ export function patchPerson(
   if (patch.deathDate !== undefined) {
     person.deathDate = patch.deathDate.trim() || undefined;
   }
-  if (patch.weddingDate !== undefined) {
+  if (patch.marriages !== undefined) {
+    const prevSpouseIds = [...person.spouseIds];
+    applyMarriagesToPerson(person, patch.marriages);
+    const nextIds = new Set(person.spouseIds);
+    for (const oldId of prevSpouseIds) {
+      if (nextIds.has(oldId)) continue;
+      const other = db.people.find((p) => p.id === oldId);
+      if (!other) continue;
+      applyMarriagesToPerson(
+        other,
+        hydrateMarriages(other).filter((m) => m.spouseId !== person.id),
+      );
+    }
+    for (const marriage of hydrateMarriages(person)) {
+      syncCoupleMarriage(db.people, person.id, marriage);
+    }
+  } else if (patch.weddingDate !== undefined) {
     person.weddingDate = patch.weddingDate.trim() || undefined;
+    const list = hydrateMarriages(person);
+    if (list[0]) {
+      list[0] = { ...list[0], weddingDate: person.weddingDate };
+    } else if (person.spouseIds[0]) {
+      list.push({
+        spouseId: person.spouseIds[0],
+        weddingDate: person.weddingDate,
+      });
+    }
+    applyMarriagesToPerson(person, list);
+    for (const marriage of list) {
+      syncCoupleMarriage(db.people, person.id, marriage);
+    }
   }
   if (patch.phone !== undefined) person.phone = patch.phone.trim() || undefined;
   if (patch.notes !== undefined) person.notes = patch.notes.trim() || undefined;
@@ -456,7 +505,7 @@ export function patchPerson(
       patch.parentIds.filter((pid) => pid !== person.id && db.people.some((p) => p.id === pid)),
     );
   }
-  if (patch.spouseIds) {
+  if (patch.spouseIds && patch.marriages === undefined) {
     const next = uniqueIds(
       patch.spouseIds.filter((sid) => sid !== person.id && db.people.some((p) => p.id === sid)),
     );
@@ -472,6 +521,17 @@ export function patchPerson(
       if (other && !other.spouseIds.includes(person.id)) {
         other.spouseIds.push(person.id);
       }
+    }
+    applyMarriagesToPerson(
+      person,
+      mergeMarriagesWithSpouseIds(
+        hydrateMarriages(person),
+        next,
+        person.weddingDate,
+      ),
+    );
+    for (const marriage of hydrateMarriages(person)) {
+      syncCoupleMarriage(db.people, person.id, marriage);
     }
   }
   if (patch.childIds) {
@@ -524,12 +584,11 @@ export function addStandalonePerson(
   if (input.phone) person.phone = input.phone;
   if (input.notes) person.notes = input.notes;
   if (input.deathDate) person.deathDate = input.deathDate;
+  applyMarriagesToPerson(person, hydrateMarriages(person));
   db.people.push(person);
   for (const spouseId of person.spouseIds) {
     const spouse = db.people.find((p) => p.id === spouseId);
-    if (spouse && !spouse.spouseIds.includes(person.id)) {
-      spouse.spouseIds.push(person.id);
-    }
+    if (spouse) linkCouple(person, spouse);
   }
   return { db, person };
 }
@@ -550,6 +609,7 @@ export function deletePersonFromTree(
     other.parentIds = other.parentIds.filter((pid) => pid !== id);
     other.spouseIds = other.spouseIds.filter((sid) => sid !== id);
   }
+  dropPersonFromMarriages(db.people, id);
   if (db.meta.rootPersonId === id) {
     db.meta.rootPersonId = db.people[0]?.id ?? "";
   }

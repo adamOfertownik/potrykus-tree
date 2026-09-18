@@ -33,6 +33,7 @@ function editsFromBody(json: unknown): GraphMutationInput[] {
           newPerson: body.newPerson,
           secondParentId: body.secondParentId,
           replaceParentIds: body.replaceParentIds,
+          weddingDate: body.weddingDate,
           reporterName: body.reporterName,
           reporterPersonId: body.reporterPersonId,
         },
@@ -51,6 +52,7 @@ function editsFromBody(json: unknown): GraphMutationInput[] {
       newPerson: one.data.newPerson,
       secondParentId: one.data.secondParentId,
       replaceParentIds: one.data.replaceParentIds,
+      weddingDate: one.data.weddingDate,
     };
   });
 }

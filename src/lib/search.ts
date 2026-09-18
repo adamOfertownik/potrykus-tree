@@ -60,6 +60,7 @@ function searchIndex(people: Person[]): SearchIndex {
           p.notes ?? "",
           p.birthDate ?? "",
           p.weddingDate ?? "",
+          ...(p.marriages ?? []).map((m) => m.weddingDate ?? ""),
           extra,
         ].join(" "),
       ),

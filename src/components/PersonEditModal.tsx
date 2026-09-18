@@ -4,10 +4,12 @@ import { useState, type ChangeEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { DateField } from "@/components/DateField";
 import { ConfirmEmailField } from "@/components/ConfirmEmailField";
+import { MarriagesEditor } from "@/components/MarriagesEditor";
 import { Modal } from "@/components/Modal";
 import { displayName } from "@/lib/db-client";
+import { hydrateMarriages, marriagesEqual, primaryWeddingDate } from "@/lib/marriages";
 import { genderLabel } from "@/lib/submissionLabels";
-import type { FamilyPayload, Person } from "@/types/family";
+import type { FamilyPayload, Marriage, Person } from "@/types/family";
 import type { PersonFieldPatch, SubmissionPayload } from "@/types/submissions";
 
 type FormState = {
@@ -17,7 +19,6 @@ type FormState = {
   gender: Person["gender"];
   birthDate: string;
   deathDate: string;
-  weddingDate: string;
   phone: string;
   notes: string;
 };
@@ -30,7 +31,6 @@ function fromPerson(person: Person): FormState {
     gender: person.gender,
     birthDate: person.birthDate || "",
     deathDate: person.deathDate || "",
-    weddingDate: person.weddingDate || "",
     phone: person.phone || "",
     notes: person.notes || "",
   };
@@ -43,6 +43,7 @@ function norm(value?: string) {
 function correctionFromForm(
   person: Person,
   form: FormState,
+  marriages: Marriage[],
 ): PersonFieldPatch | null {
   const patch: PersonFieldPatch = {};
   if (norm(form.firstName) !== norm(person.firstName) && form.firstName.trim()) {
@@ -63,8 +64,8 @@ function correctionFromForm(
   if (norm(form.deathDate) !== norm(person.deathDate)) {
     patch.deathDate = form.deathDate.trim();
   }
-  if (norm(form.weddingDate) !== norm(person.weddingDate)) {
-    patch.weddingDate = form.weddingDate.trim();
+  if (!marriagesEqual(hydrateMarriages(person), marriages)) {
+    patch.marriages = marriages.filter((m) => m.spouseId);
   }
   if (norm(form.phone) !== norm(person.phone)) {
     patch.phone = form.phone.trim();
@@ -77,6 +78,7 @@ function correctionFromForm(
 
 export function PersonEditForm({
   person,
+  people,
   isAdmin,
   adminReady,
   reporterName,
@@ -84,6 +86,7 @@ export function PersonEditForm({
   onNeedIdentity,
 }: {
   person: Person;
+  people: Person[];
   isAdmin: boolean;
   adminReady: boolean;
   reporterName: string;
@@ -92,6 +95,7 @@ export function PersonEditForm({
 }) {
   const qc = useQueryClient();
   const [form, setForm] = useState(() => fromPerson(person));
+  const [marriages, setMarriages] = useState(() => hydrateMarriages(person));
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +116,7 @@ export function PersonEditForm({
       setError("Imię i nazwisko są wymagane.");
       return;
     }
-    const correction = correctionFromForm(person, form);
+    const correction = correctionFromForm(person, form, marriages);
     if (!correction && !message.trim()) {
       setError("Nic nie zmieniono.");
       return;
@@ -145,7 +149,8 @@ export function PersonEditForm({
               gender: form.gender,
               birthDate: form.birthDate.trim(),
               deathDate: form.deathDate.trim(),
-              weddingDate: form.weddingDate.trim(),
+              marriages: marriages.filter((m) => m.spouseId),
+              weddingDate: primaryWeddingDate(marriages) || "",
               phone: form.phone.trim(),
               notes: form.notes.trim(),
             },
@@ -268,19 +273,16 @@ export function PersonEditForm({
           />
         </label>
         <label>
-          Data ślubu
-          <DateField
-            value={form.weddingDate}
-            onChange={(value) =>
-              setForm((s) => ({ ...s, weddingDate: value }))
-            }
-          />
-        </label>
-        <label>
           Telefon
           <input type="tel" value={form.phone} onChange={set("phone")} />
         </label>
       </div>
+      <MarriagesEditor
+        person={person}
+        people={people}
+        marriages={marriages}
+        onChange={setMarriages}
+      />
       <label className="field-block">
         Notatki
         <textarea rows={3} value={form.notes} onChange={set("notes")} />
@@ -322,6 +324,7 @@ export function PersonEditForm({
 
 export function PersonEditModal({
   person,
+  people,
   isAdmin,
   adminReady,
   reporterName,
@@ -330,6 +333,7 @@ export function PersonEditModal({
   onClose,
 }: {
   person: Person;
+  people: Person[];
   isAdmin: boolean;
   adminReady: boolean;
   reporterName: string;
@@ -347,6 +351,7 @@ export function PersonEditModal({
       <h2 id="person-edit-title">Popraw dane: {displayName(person)}</h2>
       <PersonEditForm
         person={person}
+        people={people}
         isAdmin={isAdmin}
         adminReady={adminReady}
         reporterName={reporterName}

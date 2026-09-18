@@ -10,6 +10,7 @@ import {
 import type { GraphEditPayload } from "@/types/submissions";
 import { genderLabel, PERSON_FIELD_LABELS } from "@/lib/submissionLabels";
 import type { FamilyDatabase, Person } from "@/types/family";
+import { formatMarriagesForDiff } from "@/lib/marriages";
 import type {
   ChangeSubmission,
   FieldDiff,
@@ -25,6 +26,12 @@ function cloneDb(db: FamilyDatabase): FamilyDatabase {
 function formatValue(field: string, value: unknown): string {
   if (value == null || value === "") return "—";
   if (field === "gender" && typeof value === "string") return genderLabel(value);
+  if (field === "marriages") {
+    return formatMarriagesForDiff(
+      Array.isArray(value) ? value : undefined,
+      (id) => id,
+    );
+  }
   if (Array.isArray(value)) return value.length ? value.join(", ") : "—";
   return String(value);
 }
@@ -86,6 +93,7 @@ function toMutationInput(edit: GraphEditPayload): GraphMutationInput {
     newPerson: edit.newPerson,
     secondParentId: edit.secondParentId,
     replaceParentIds: edit.replaceParentIds,
+    weddingDate: edit.weddingDate,
   };
 }
 

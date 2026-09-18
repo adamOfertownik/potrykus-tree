@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ChangeSubmission, SubmissionPreview } from "@/types/submissions";
-import type { FamilyPayload, Person } from "@/types/family";
+import type { FamilyPayload, Marriage, Person } from "@/types/family";
 import { useAdminAuthStatus, useAdminLogout } from "@/lib/hooks";
 import {
   GRAPH_OP_LABELS,
@@ -19,7 +19,13 @@ import { searchPeople } from "@/lib/search";
 import { describeSubmissionKinship } from "@/lib/submissionKinship";
 import { meetingLineHint } from "@/lib/meetingBranches";
 import { getChildrenIds } from "@/lib/tree";
+import {
+  hydrateMarriages,
+  mergeMarriagesWithSpouseIds,
+  primaryWeddingDate,
+} from "@/lib/marriages";
 import { DateField } from "@/components/DateField";
+import { MarriagesEditor } from "@/components/MarriagesEditor";
 import { Modal } from "@/components/Modal";
 import { PersonPhotoControl } from "@/components/PersonPhotoControl";
 import { AdminRelEditor } from "@/components/AdminRelEditor";
@@ -832,12 +838,12 @@ function AdminPeoplePanel({
     gender: "unknown" as Person["gender"],
     birthDate: "",
     deathDate: "",
-    weddingDate: "",
     phone: "",
     notes: "",
   });
   const [parentIds, setParentIds] = useState<string[]>([]);
   const [spouseIds, setSpouseIds] = useState<string[]>([]);
+  const [marriages, setMarriages] = useState<Marriage[]>([]);
   const [childIds, setChildIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -871,12 +877,13 @@ function AdminPeoplePanel({
       gender: person.gender,
       birthDate: person.birthDate || "",
       deathDate: person.deathDate || "",
-      weddingDate: person.weddingDate || "",
       phone: person.phone || "",
       notes: person.notes || "",
     });
     setParentIds([...person.parentIds]);
-    setSpouseIds([...person.spouseIds]);
+    const nextMarriages = hydrateMarriages(person);
+    setMarriages(nextMarriages);
+    setSpouseIds(nextMarriages.map((m) => m.spouseId));
     setChildIds(getChildrenIds(people, person.id));
   }, [person, people]);
 
@@ -899,7 +906,9 @@ function AdminPeoplePanel({
           fields: {
             ...form,
             parentIds,
-            spouseIds,
+            spouseIds: marriages.map((m) => m.spouseId).filter(Boolean),
+            marriages: marriages.filter((m) => m.spouseId),
+            weddingDate: primaryWeddingDate(marriages) || "",
             childIds,
           },
         }),
@@ -1066,15 +1075,6 @@ function AdminPeoplePanel({
               />
             </label>
             <label>
-              Data ślubu
-              <DateField
-                value={form.weddingDate}
-                onChange={(value) =>
-                  setForm((s) => ({ ...s, weddingDate: value }))
-                }
-              />
-            </label>
-            <label>
               Telefon
               <input
                 value={form.phone}
@@ -1084,6 +1084,17 @@ function AdminPeoplePanel({
               />
             </label>
           </div>
+          {person ? (
+            <MarriagesEditor
+              person={person}
+              people={people}
+              marriages={marriages}
+              onChange={(next) => {
+                setMarriages(next);
+                setSpouseIds(next.map((m) => m.spouseId).filter(Boolean));
+              }}
+            />
+          ) : null}
           <label className="field-block">
             Notatki
             <textarea
@@ -1099,7 +1110,12 @@ function AdminPeoplePanel({
             spouseIds={spouseIds}
             childIds={childIds}
             onParentIds={setParentIds}
-            onSpouseIds={setSpouseIds}
+            onSpouseIds={(ids) => {
+              setSpouseIds(ids);
+              setMarriages((prev) =>
+                mergeMarriagesWithSpouseIds(prev, ids, person.weddingDate),
+              );
+            }}
             onChildIds={setChildIds}
             onOpenPerson={selectPerson}
           />

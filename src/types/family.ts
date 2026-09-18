@@ -1,5 +1,12 @@
 export type Gender = "male" | "female" | "unknown";
 
+/** One wedding with a specific spouse. Divorce is a flag, not a date. */
+export interface Marriage {
+  spouseId: string;
+  weddingDate?: string;
+  divorced?: boolean;
+}
+
 export interface Person {
   id: string;
   firstName: string;
@@ -8,7 +15,9 @@ export interface Person {
   gender: Gender;
   birthDate?: string;
   deathDate?: string;
+  /** First active (or first) wedding date — kept in sync with `marriages`. */
   weddingDate?: string;
+  marriages?: Marriage[];
   photoUrl?: string;
   phone?: string;
   notes?: string;
