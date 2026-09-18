@@ -89,7 +89,7 @@ a[href] {
   Tailwind preflight zeroes borders and backgrounds. Restore visible fields
   so modal/search/wizard inputs are not invisible on pale surfaces.
 */
-input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not(.person-search__input),
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not(.person-search__input):not(.gate-input),
 select,
 textarea {
   width: 100%;
@@ -111,7 +111,7 @@ textarea::placeholder {
   opacity: 1;
 }
 
-input:focus-visible,
+input:focus-visible:not(.gate-input),
 select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 55%, white);
@@ -218,9 +218,9 @@ textarea:focus-visible {
   color: var(--ink);
 }
 
-.gate-input:focus {
+.gate-input:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 45%, white);
-  border-color: var(--accent);
+  outline-offset: 2px;
 }
 
 .gate-cta {
@@ -3361,10 +3361,32 @@ button.person-card {
 
 .password-field {
   position: relative;
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.password-field:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, white);
+  outline-offset: 2px;
 }
 
 .password-field input {
   padding-right: 5rem;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+}
+
+.password-field input:focus,
+.password-field input:focus-visible {
+  outline: none;
+  border-color: transparent;
 }
 
 .password-toggle {
@@ -3615,8 +3637,7 @@ button.person-card {
 .field-input,
 .change-form input,
 .change-form select,
-.change-form textarea,
-.gate-input {
+.change-form textarea {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 10px;
