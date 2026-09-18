@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EventPersonField } from "@/components/EventPersonField";
 import { GuestTicketSteppers } from "@/components/GuestTicketSteppers";
 import type { Person } from "@/types/family";
-import { displayName } from "@/lib/db-client";
+import { displayName, formatPolishDate } from "@/lib/db-client";
 import { householdSuggestions } from "@/lib/eventAttending";
 import {
   ageGroupFromBirth,
