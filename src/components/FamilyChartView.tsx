@@ -324,6 +324,8 @@ export function FamilyChartView({
       el.style.width = `${screenW}px`;
       el.style.transform = `translate(${screenX}px, ${screenY}px) translate(-50%, -100%)`;
     });
+    const overlayH = overlay.getBoundingClientRect().height;
+    const navSafeBottom = overlayH - 150;
     const genPlaced: number[] = [];
     overlay.querySelectorAll<HTMLElement>("[data-gen-key]").forEach((el) => {
       const key = el.dataset.genKey;
@@ -335,6 +337,10 @@ export function FamilyChartView({
       const screenY = band.y * k + y;
       const tight = genPlaced.some((prev) => Math.abs(prev - screenY) < 18);
       if (tight && k < 0.34) {
+        el.style.visibility = "hidden";
+        return;
+      }
+      if (screenY > navSafeBottom || screenY < 18) {
         el.style.visibility = "hidden";
         return;
       }
