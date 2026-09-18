@@ -4,7 +4,8 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { createPortal } from "react-dom";
 import type { Person } from "@/types/family";
 import { searchPeople } from "@/lib/search";
-import { displayName, formatPolishDate } from "@/lib/db-client";
+import { displayName } from "@/lib/db-client";
+import { personPickerSubline } from "@/lib/personPickerMeta";
 import { useIdentity } from "@/components/IdentityProvider";
 import { MissingPersonForm } from "@/components/MissingPersonForm";
 
@@ -154,12 +155,7 @@ export function PersonSearch({
     matches.length > 0 ? (
       <ul id={listId} role="listbox" className="person-search__results">
         {matches.map((p, i) => {
-          const dates = [
-            formatPolishDate(p.birthDate),
-            formatPolishDate(p.deathDate),
-          ]
-            .filter(Boolean)
-            .join(" – ");
+          const meta = personPickerSubline(p, people);
           return (
             <li
               key={p.id}
@@ -176,8 +172,8 @@ export function PersonSearch({
                 <span className="person-search__name">
                   {displayName(p, people)}
                 </span>
-                {dates && (
-                  <span className="person-search__meta">{dates}</span>
+                {meta && (
+                  <span className="person-search__meta">{meta}</span>
                 )}
               </button>
             </li>

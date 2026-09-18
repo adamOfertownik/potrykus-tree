@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import type { EventRsvp, FamilyEvent } from "@/types/event";
 import type { Person } from "@/types/family";
-import { rsvpCoversPerson } from "@/lib/eventAttending";
+import { rsvpCoversPerson, rsvpMatchesUniqueName } from "@/lib/eventAttending";
 import {
   ageGroupFromBirth,
   amountDuePln,
@@ -564,9 +564,15 @@ export async function setPersonAttendance(opts: {
   attending: boolean;
   fullName: string;
   ageGroup?: GuestAgeGroup;
+  people?: { id: string; firstName: string; lastName: string }[];
 }): Promise<{ already?: boolean; rsvp?: EventRsvp; cancelledIds: string[] }> {
   const existing = await readRsvps();
-  const covering = existing.filter((r) => rsvpCoversPerson(r, opts.personId));
+  const people = opts.people ?? [];
+  const covering = existing.filter(
+    (r) =>
+      rsvpCoversPerson(r, opts.personId) ||
+      rsvpMatchesUniqueName(r, opts.personId, people),
+  );
 
   if (opts.attending) {
     if (covering.length) return { already: true, cancelledIds: [] };

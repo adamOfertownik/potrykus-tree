@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Person } from "@/types/family";
 import { displayName, formatPolishDate } from "@/lib/db-client";
+import { personPickerSubline } from "@/lib/personPickerMeta";
 import { searchPeople } from "@/lib/search";
 import { wouldCreateCycle } from "@/lib/familyMutations";
 import { findRelationConflicts } from "@/lib/relationConflicts";
@@ -199,21 +200,22 @@ function RelGroup({
       </label>
       {query.trim() && matches.length > 0 && (
         <ul className="who-matches admin-rel-matches">
-          {matches.map((p) => (
-            <li key={p.id}>
-              <button type="button" onClick={() => add(p.id)}>
-                <span className="who-matches__text">
-                  {displayName(p)}
-                  {p.birthDate ? (
-                    <span className="who-matches__dates">
-                      {formatPolishDate(p.birthDate)}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="who-matches__go">Dodaj</span>
-              </button>
-            </li>
-          ))}
+          {matches.map((p) => {
+            const subline = personPickerSubline(p, people);
+            return (
+              <li key={p.id}>
+                <button type="button" onClick={() => add(p.id)}>
+                  <span className="who-matches__text">
+                    <span>{displayName(p, people)}</span>
+                    {subline ? (
+                      <span className="who-matches__dates">{subline}</span>
+                    ) : null}
+                  </span>
+                  <span className="who-matches__go">Dodaj</span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
       {query.trim() && matches.length === 0 && (

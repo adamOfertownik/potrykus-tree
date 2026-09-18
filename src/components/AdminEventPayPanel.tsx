@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { GuestTicketSteppers } from "@/components/GuestTicketSteppers";
 import type { Person } from "@/types/family";
 import { displayName } from "@/lib/db-client";
+import { personPickerSubline } from "@/lib/personPickerMeta";
 import { householdSuggestions } from "@/lib/eventAttending";
 import {
   ageGroupFromBirth,
@@ -392,13 +393,21 @@ export function AdminEventPayPanel({
         </label>
         {addMatches.length > 0 && (
           <ul className="who-matches">
-            {addMatches.map((p) => (
-              <li key={p.id}>
-                <button type="button" onClick={() => pickPayer(p)}>
-                  {displayName(p)}
-                </button>
-              </li>
-            ))}
+            {addMatches.map((p) => {
+              const subline = personPickerSubline(p, people);
+              return (
+                <li key={p.id}>
+                  <button type="button" onClick={() => pickPayer(p)}>
+                    <span className="who-matches__text">
+                      <span>{displayName(p, people)}</span>
+                      {subline ? (
+                        <span className="who-matches__dates">{subline}</span>
+                      ) : null}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
         {payer && (

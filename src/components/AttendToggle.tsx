@@ -60,7 +60,7 @@ export function AttendToggle({
         disabled={busy}
         title={
           attending
-            ? "Administrator: usuń zapis na spotkanie"
+            ? "Zdejmij tę konkretną osobę ze spotkania — inni o tym samym imieniu zostają"
             : "Administrator: zaznacz zapis na spotkanie"
         }
         onClick={toggle}

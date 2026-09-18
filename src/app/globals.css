@@ -4224,8 +4224,12 @@ button.person-card {
 
 .rsvp-list__admin {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  flex-wrap: nowrap;
   gap: 0.4rem;
+  justify-self: end;
+  align-self: start;
+  flex-shrink: 0;
 }
 
 .rsvp-list {
@@ -4237,25 +4241,40 @@ button.person-card {
 }
 
 .rsvp-list li {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.35rem 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.5rem 1rem;
   padding: 0.55rem 0.7rem;
   background: var(--bg);
   border-radius: 10px;
   font-size: 0.92rem;
 }
 
-.rsvp-list li > div {
+.rsvp-list__body {
   display: grid;
   gap: 0.15rem;
+  min-width: 0;
 }
 
 .rsvp-list span {
   color: var(--ink-soft);
   display: block;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 720px) {
+  .rsvp-list li {
+    grid-template-columns: 1fr;
+  }
+
+  .rsvp-list__admin {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    justify-self: stretch;
+  }
 }
 
 .meeting-branch-counts em {

@@ -102,6 +102,7 @@ export async function POST(request: Request) {
       attending: body.attending,
       fullName,
       ageGroup: ageGroupFromBirth(person?.birthDate),
+      people: db.people,
     });
 
     const [rsvps] = await Promise.all([readRsvps()]);

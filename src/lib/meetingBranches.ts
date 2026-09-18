@@ -72,6 +72,29 @@ const BRANCH_NAMES: Record<string, { short: string; label: string }> = {
   P298: { short: "Walerian", label: "od dziadka Waleriana" },
 };
 
+/** Jak mówi rodzina: od Heleny, od Bronka… */
+const LINE_COLLOQUIAL: Record<string, string> = {
+  P062: "od Rozalii",
+  P064: "od Jana",
+  P072: "od Franciszka",
+  [HELENA_BRANCH_ID]: "od Heleny",
+  P213: "od Bronka",
+  P217: "od Antoniego",
+  P240: "od Stanisława",
+  P255: "od Józefa",
+  [WLADEK_BRANCH_ID]: "od Władka",
+  P298: "od Waleriana",
+};
+
+/** Dodatkowe słowa w wyszukiwarce (np. „bronka” → linia Bronisława). */
+const LINE_SEARCH_ALIASES: Record<string, string[]> = {
+  [HELENA_BRANCH_ID]: ["heleny", "helena", "babcia helena"],
+  P213: ["bronka", "bronislaw", "bronisława", "dziadek bronisław"],
+  [WLADEK_BRANCH_ID]: ["wladek", "wladka", "władka"],
+  P064: ["dziadek jan"],
+  P072: ["franciszek", "franka"],
+};
+
 function branchNames(head: Person): { short: string; label: string } {
   const known = BRANCH_NAMES[head.id];
   if (known) return known;
@@ -126,6 +149,53 @@ export function attributeMeetingBranch(
 
 export function meetingBranchLabel(personId: string, people: Person[]): string {
   return attributeMeetingBranch(personId, people).label;
+}
+
+/** Krótka linia rodzinna do podpowiedzi w wyszukiwarce. */
+export function meetingLineHint(personId: string, people: Person[]): string {
+  const attr = attributeMeetingBranch(personId, people);
+  if (attr.kind === "root") return "pień Franciszka";
+  if (attr.kind === "outside") return "poza linią Franciszka";
+  if (attr.head?.id && LINE_COLLOQUIAL[attr.head.id]) {
+    return LINE_COLLOQUIAL[attr.head.id]!;
+  }
+  return attr.label;
+}
+
+/** Tekst pod imieniem w wyszukiwarce: linia + syn/córka ojca. */
+export function personSearchMeta(person: Person, people: Person[]): string {
+  const map = getPersonMap(people);
+  const parents = person.parentIds
+    .map((id) => map.get(id))
+    .filter((p): p is Person => Boolean(p));
+  const father =
+    parents.find((p) => p.gender === "male") ?? parents[0] ?? null;
+  const bits: string[] = [];
+  const line = meetingLineHint(person.id, people);
+  if (line) bits.push(line);
+  if (father) {
+    const rel =
+      person.gender === "female"
+        ? "córka"
+        : person.gender === "male"
+          ? "syn"
+          : "dziecko";
+    bits.push(`${rel} ${father.firstName}`);
+  }
+  return bits.join(" · ");
+}
+
+/** Słowa linii rodzinnej trafiające do wyszukiwania po gałęzi. */
+export function personBranchSearchHaystack(
+  person: Person,
+  people: Person[],
+): string {
+  const attr = attributeMeetingBranch(person.id, people);
+  const aliases =
+    attr.head?.id != null ? (LINE_SEARCH_ALIASES[attr.head.id] ?? []) : [];
+  return [attr.label, attr.short, meetingLineHint(person.id, people), ...aliases].join(
+    " ",
+  );
 }
 
 /** Cała linia Franciszka w grupach babć/dziadków — same liczby, bez 150 imion. */

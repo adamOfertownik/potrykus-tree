@@ -9,6 +9,7 @@ import type {
 } from "@/types/submissions";
 import { DateField } from "@/components/DateField";
 import { displayName } from "@/lib/db-client";
+import { personPickerSubline } from "@/lib/personPickerMeta";
 import { loadReporter, saveReporter } from "@/lib/reporter";
 import { searchPeople } from "@/lib/search";
 import { uploadPersonPhoto } from "@/lib/upload-photo";
@@ -218,13 +219,21 @@ export function ChangeRequestPanel({ people }: Props) {
         </label>
         {targetMatches.length > 0 && (
           <ul className="who-matches">
-            {targetMatches.map((p) => (
-              <li key={p.id}>
-                <button type="button" onClick={() => pickTarget(p)}>
-                  {displayName(p)}
-                </button>
-              </li>
-            ))}
+            {targetMatches.map((p) => {
+              const subline = personPickerSubline(p, people);
+              return (
+                <li key={p.id}>
+                  <button type="button" onClick={() => pickTarget(p)}>
+                    <span className="who-matches__text">
+                      <span>{displayName(p, people)}</span>
+                      {subline ? (
+                        <span className="who-matches__dates">{subline}</span>
+                      ) : null}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         )}
         {targetPersonId && (

@@ -1,3 +1,4 @@
+import { personBranchSearchHaystack } from "@/lib/meetingBranches";
 import type { Person } from "@/types/family";
 
 function normalize(text: string): string {
@@ -23,6 +24,7 @@ export function searchPeople(people: Person[], query: string): Person[] {
           p.notes ?? "",
           p.birthDate ?? "",
           p.weddingDate ?? "",
+          personBranchSearchHaystack(p, people),
         ].join(" "),
       );
       return tokens.every((token) => hay.includes(token));
