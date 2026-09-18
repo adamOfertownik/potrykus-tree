@@ -37,6 +37,10 @@ type DraftGraphValue = {
   };
   discard: () => void;
   submitAll: () => Promise<{ summary: string }>;
+  submitIncluding: (
+    input: GraphMutationInput,
+    currentPeople: Person[],
+  ) => Promise<{ summary: string }>;
 };
 
 const DraftGraphContext = createContext<DraftGraphValue | null>(null);
@@ -124,30 +128,43 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
     setError(null);
   }, [replaceEdits]);
 
+  const postEdits = useCallback(
+    async (payload: GraphMutationInput[]) => {
+      const reporter = loadReporter();
+      if (!reporter?.name?.trim()) {
+        throw new Error(
+          "Wybierz kim jesteś (przycisk Ja w menu) — admin musi wiedzieć, kto wysłał zgłoszenie.",
+        );
+      }
+      const res = await fetch("/api/family/mutate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          edits: payload,
+          reporterName: reporter.name,
+          reporterPersonId: reporter.personId,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Błąd zapisu");
+      return `${data.summary} Wysłano jako jedną sugestię — drzewo zmieni się po akceptacji admina.`;
+    },
+    [],
+  );
+
   const submitAll = useCallback(async () => {
     if (edits.length === 0) return { summary: "" };
     setSubmitting(true);
     setError(null);
     try {
-      const reporter = loadReporter();
-      const res = await fetch("/api/family/mutate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          edits: edits.map(({ summary: _summary, ...edit }) => {
-            void _summary;
-            return edit;
-          }),
-          reporterName: reporter?.name || "Edycja grafu",
-          reporterPersonId: reporter?.personId,
+      const summary = await postEdits(
+        edits.map(({ summary: _summary, ...edit }) => {
+          void _summary;
+          return edit;
         }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Błąd zapisu");
+      );
       replaceEdits([]);
-      return {
-        summary: `${data.summary} Wysłano jako jedną sugestię — drzewo zmieni się po akceptacji admina.`,
-      };
+      return { summary };
     } catch (err) {
       const message = (err as Error).message;
       setError(message);
@@ -155,7 +172,47 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
     } finally {
       setSubmitting(false);
     }
-  }, [edits, replaceEdits]);
+  }, [edits, postEdits, replaceEdits]);
+
+  const submitIncluding = useCallback(
+    async (input: GraphMutationInput, currentPeople: Person[]) => {
+      setSubmitting(true);
+      setError(null);
+      try {
+        const preview = applyGraphMutations(
+          {
+            meta: {
+              title: "",
+              rootPersonId: input.anchorPersonId,
+              creator: "",
+              updatedAt: "",
+              description: "",
+            },
+            people: currentPeople,
+          },
+          [input],
+          { keepClientIds: true, markPending: true },
+        );
+        const summary = await postEdits([
+          ...edits.map(({ summary: _summary, ...edit }) => {
+            void _summary;
+            return edit;
+          }),
+          input,
+        ]);
+        void preview.summary;
+        replaceEdits([]);
+        return { summary };
+      } catch (err) {
+        const message = (err as Error).message;
+        setError(message);
+        throw err;
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [edits, postEdits, replaceEdits],
+  );
 
   const value = useMemo<DraftGraphValue>(
     () => ({
@@ -168,6 +225,7 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
       stage,
       discard,
       submitAll,
+      submitIncluding,
     }),
     [
       discard,
@@ -177,6 +235,7 @@ export function DraftGraphProvider({ children }: { children: ReactNode }) {
       overlayPeople,
       stage,
       submitAll,
+      submitIncluding,
       submitting,
     ],
   );

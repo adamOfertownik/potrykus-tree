@@ -24,8 +24,9 @@ export function DraftGraphBanner() {
   return (
     <div className="draft-graph-bar" data-testid="draft-graph-bar" role="status">
       <p>
-        <strong>{label}</strong> na szaro — możesz dodać dzieci i wnuki, a
-        potem wysłać wszystko razem.
+        <strong>{label}</strong> na szaro — widać tylko u Ciebie.{" "}
+        <strong>Admin jeszcze tego nie widzi</strong> — wyślij całość, żeby
+        trafiło do zakładki Zgłoszenia.
       </p>
       <div className="draft-graph-bar__actions">
         <button

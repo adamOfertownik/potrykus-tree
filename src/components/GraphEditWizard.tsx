@@ -60,7 +60,8 @@ export function GraphEditWizard({
   const qc = useQueryClient();
   const admin = useAdminAuthStatus();
   const draft = useOptionalDraftGraph();
-  const useDrafts = Boolean(draft) && admin.data?.loggedIn === false;
+  const useDrafts =
+    Boolean(draft) && !admin.isLoading && admin.data?.loggedIn === false;
   const [step, setStep] = useState<"pick" | "confirm">("pick");
   const [mode, setMode] = useState<Mode>("existing");
   const [query, setQuery] = useState("");
@@ -95,6 +96,11 @@ export function GraphEditWizard({
       ),
     [people, anchor],
   );
+
+  useEffect(() => {
+    if (op !== "add_child" || secondParentId || spouses.length === 0) return;
+    setSecondParentId(spouses[0]!.id);
+  }, [op, spouses, secondParentId]);
 
   const previewInput = useMemo(
     () => ({
@@ -145,25 +151,27 @@ export function GraphEditWizard({
       ? Boolean(related)
       : Boolean(newPerson.firstName.trim() && newPerson.lastName.trim());
 
+  const buildStagedInput = () => ({
+    ...previewInput,
+    newPerson:
+      mode === "new"
+        ? {
+            ...newPerson,
+            clientPersonId: newPerson.clientPersonId || nextDraftPersonId(),
+          }
+        : undefined,
+  });
+
   const submit = async () => {
     setBusy(true);
     setError(null);
     try {
-      const stagedInput = {
-        ...previewInput,
-        newPerson:
-          mode === "new"
-            ? {
-                ...newPerson,
-                clientPersonId: newPerson.clientPersonId || nextDraftPersonId(),
-              }
-            : undefined,
-      };
+      const stagedInput = buildStagedInput();
 
       if (useDrafts && draft) {
         const result = draft.stage(stagedInput, people);
         onApplied?.({
-          summary: `${result.summary} Widać na szaro — dodaj kolejne osoby albo wyślij całość.`,
+          summary: `${result.summary} Widać na szaro u Ciebie — admin zobaczy dopiero po «Wyślij całość».`,
           createdPersonId: result.createdPersonId,
         });
         handleClose();
@@ -195,6 +203,28 @@ export function GraphEditWizard({
         createdPersonId: data.applied ? data.createdPersonId : undefined,
       });
       handleClose();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitToAdmin = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const stagedInput = buildStagedInput();
+      if (useDrafts && draft) {
+        const result = await draft.submitIncluding(stagedInput, people);
+        onApplied?.({
+          summary: result.summary,
+          createdPersonId: undefined,
+        });
+        handleClose();
+        return;
+      }
+      await submit();
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -395,19 +425,25 @@ export function GraphEditWizard({
 
             {op === "add_child" && spouses.length > 0 && (
               <label className="field-block">
-                Drugi rodzic (opcjonalnie)
+                Drugi rodzic (małżonek / partner)
                 <select
                   className="field-input"
                   value={secondParentId}
                   onChange={(e) => setSecondParentId(e.target.value)}
                 >
-                  <option value="">— tylko {displayName(anchor)} —</option>
+                  <option value="">— tylko {displayName(anchor, people)} —</option>
                   {spouses.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {displayName(s)}
+                      {displayName(s, people)}
                     </option>
                   ))}
                 </select>
+                {!secondParentId ? (
+                  <span className="empty-hint">
+                    Bez drugiego rodzica dziecko będzie przypisane tylko do{" "}
+                    {displayName(anchor, people)}.
+                  </span>
+                ) : null}
               </label>
             )}
           </div>
@@ -482,8 +518,8 @@ export function GraphEditWizard({
             </ul>
             <p className="graph-edit__note">
               {admin.data?.loggedIn
-                ? "Jesteś adminem — zmiana zapisze się od razu w drzewie."
-                : "Osoba pojawi się od razu na szaro. Możesz dodać dzieci i wnuki, a potem wysłać wszystko razem do admina."}
+                ? "Jesteś adminem — zmiana zapisze się od razu w drzewie (bez zgłoszenia)."
+                : "«Dodaj roboczo» — tylko u Ciebie na szaro. «Wyślij do admina» trafia od razu do zakładki Zgłoszenia."}
             </p>
           </div>
         )}
@@ -520,11 +556,21 @@ export function GraphEditWizard({
             </>
           ) : (
             <>
+              {useDrafts ? (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={busy}
+                  onClick={() => void submitToAdmin()}
+                >
+                  {busy ? "Wysyłam…" : "Wyślij do admina"}
+                </button>
+              ) : null}
               <button
                 type="button"
-                className="btn btn-primary"
+                className={`btn ${useDrafts ? "btn-secondary" : "btn-primary"}`}
                 disabled={busy}
-                onClick={submit}
+                onClick={() => void submit()}
               >
                 {busy
                   ? "Zapisuję…"
