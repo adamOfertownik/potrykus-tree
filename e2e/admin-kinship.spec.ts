@@ -55,3 +55,47 @@ test("admin queue shows who the edited person is to the reporter", async ({
   }
   await ctx.close();
 });
+
+test("kinship: shows correct uncle/aunt and nephew/niece relationship between Adam Lieske and Jadwiga Tarnowska", async ({
+  browser,
+}) => {
+  const ctx = await browser.newContext();
+  const page = await ctx.newPage();
+  const api = await page.request.get(`${base}/api/family`);
+  expect(api.ok()).toBeTruthy();
+  const payload = (await api.json()) as {
+    people: { id: string; firstName: string; lastName: string; maidenName?: string }[];
+  };
+  const adam = payload.people.find(
+    (p) => p.firstName === "Adam" && p.lastName === "Lieske",
+  );
+  const jadwiga = payload.people.find(
+    (p) =>
+      p.firstName === "Jadwiga" &&
+      (p.lastName.includes("Tarnow") || p.maidenName === "Potrykus"),
+  );
+  expect(adam, "Adam Lieske must exist").toBeTruthy();
+  expect(jadwiga, "Jadwiga Tarnowska must exist").toBeTruthy();
+
+  await page.goto(
+    `${base}/pokrewienstwo?a=${encodeURIComponent(adam!.id)}&b=${encodeURIComponent(jadwiga!.id)}`,
+  );
+  await expect(page.getByRole("heading", { name: "Kto jest kim" })).toBeVisible({
+    timeout: 20000,
+  });
+
+  // Adam dla Jadwiga: bratanek / siostrzeniec
+  // Jadwiga dla Adam: ciocia
+  const resultDiv = page.locator(".kinship-result");
+  await expect(resultDiv).toBeVisible();
+  await expect(resultDiv).toContainText("bratanek / siostrzeniec");
+  await expect(resultDiv).toContainText("ciocia");
+
+  // Verify direction
+  const text = await resultDiv.innerText();
+  expect(text).toMatch(/Adam Lieske to bratanek \/ siostrzeniec dla Jadwiga/i);
+  expect(text).toMatch(/Jadwiga.* to ciocia dla Adam Lieske/i);
+
+  await ctx.close();
+});
+

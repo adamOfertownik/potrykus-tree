@@ -159,15 +159,20 @@ function bloodLabels(
     };
   }
   // Uncle/aunt — nephew/niece
-  if (genA >= 2 && genB === 1) {
-    const removed = genA - 2;
+  // genA is distance from A to LCA, genB is distance from B to LCA.
+  // If genA === 1 and genB >= 2: A is child of LCA, B is grandchild (or further) of LCA.
+  // Thus A is sibling of B's ancestor -> A is uncle/aunt to B, and B is nephew/niece to A.
+  if (genA === 1 && genB >= 2) {
+    const removed = genB - 2;
     return {
       aToB: uncleAuntLabel(genderA, removed),
       bToA: niblingLabel(genderB, removed),
     };
   }
-  if (genB >= 2 && genA === 1) {
-    const removed = genB - 2;
+  // If genB === 1 and genA >= 2: B is child of LCA, A is grandchild (or further) of LCA.
+  // Thus B is uncle/aunt to A, and A is nephew/niece to B.
+  if (genB === 1 && genA >= 2) {
+    const removed = genA - 2;
     return {
       aToB: niblingLabel(genderA, removed),
       bToA: uncleAuntLabel(genderB, removed),
